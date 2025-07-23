@@ -1,0 +1,3047 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pole Barn Order Management</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: 'Montserrat', sans-serif;
+      }
+
+      .main-navigation {
+        padding-left: 37px;
+        padding-right: 37px;
+      }
+
+      .nav-link {
+        color: #000000;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .form_deco1 {
+        padding: 0;
+        background-color: #fbfbfb;
+      }
+
+      .form_deco {
+        padding: 5px 0 100px 0;
+        background-color: #fbfbfb;
+      }
+
+      .form-label {
+        font-size: 13px;
+        color: #000;
+        font-weight: 500;
+        margin: 18px 0 4px 0;
+      }
+
+      .main_heading {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 1px;
+        margin-top: 29px;
+        color: #b62025;
+      }
+
+      .re-de {
+        box-shadow: 0px 0px 39px #f7f7f7;
+        border: solid 1px #ececec;
+        border-radius: 5px;
+        background-color: #fff;
+      }
+
+      .re-de1 {
+        box-shadow: 0px 0px 39px #f7f7f7;
+        border: solid 1px #ececec;
+        border-radius: 5px;
+        padding: 6px;
+        background-color: #fff;
+      }
+
+      ::-webkit-input-placeholder {
+        font-size: 12px;
+        color: #2e2e2e;
+      }
+
+      :-moz-placeholder {
+        /* Firefox 18- */
+        font-size: 12px;
+        color: #2e2e2e;
+      }
+
+      ::-moz-placeholder {
+        /* Firefox 19+ */
+        font-size: 12px;
+        color: #2e2e2e;
+      }
+
+      :-ms-input-placeholder {
+        font-size: 12px;
+        color: #2e2e2e;
+      }
+
+      .form-control-plaintext:focus-visible {
+        border-color: #ffa9ab;
+        outline: none;
+        box-shadow: 0 0 0 0.25rem rgba(182, 32, 37, 0.25);
+      }
+
+      .form-control:focus {
+        border-color: #ffa9ab;
+        box-shadow: 0 0 0 0.25rem rgba(182, 32, 37, 0.25);
+      }
+
+      .table-bordered thead,
+      .table-bordered tbody,
+      .table-bordered td,
+      .table-bordered th,
+      .table-bordered tr {
+        border: solid 1px #f4e2e2;
+      }
+
+      /* Remove borders from inner tables */
+      .table-bordered td table,
+      .table-bordered td table tbody,
+      .table-bordered td table tr,
+      .table-bordered td table td {
+        border: none;
+      }
+
+      label {
+        font-size: 12px;
+      }
+
+      .custom-row {
+        padding-bottom: 10px;
+        padding-top: 10px;
+        margin-bottom: 13px;
+        background: #ffffff;
+        border-radius: 66px;
+      }
+
+      .btn-sma {
+        height: 40px;
+        width: 160px;
+        /* margin-top: 40px; */
+        background-color: #b62025;
+        border: solid 1px #b62025;
+        color: #ffffff;
+        /* display: flex; */
+        /* justify-content: flex-end; */
+      }
+
+      .btn-sma:hover {
+        background-color: #000000;
+        border: solid 1px #000000;
+        color: #ffffff;
+      }
+
+      .main-nam {
+        width: 180px;
+      }
+
+      .main-nam h2 {
+        color: #000;
+        font-size: 22px;
+        font-weight: 800;
+      }
+
+      .main-nam .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        /* Adds some space between elements if multiple */
+      }
+
+      .form-margin {
+        margin: 0 4% 0;
+        background-color: #ffeff0;
+        padding: 2px 30px 26px;
+      }
+
+      /* Login */
+      .login-box {
+        background: url('https://drive.google.com/uc?export=view&id=1EsGxjeIKLpVi2p3xliu2SDBrAuZ2s5_m');
+        background-size: cover;
+        background-position: center;
+        padding: 250px;
+        height: 100vh;
+        min-height: 500px;
+        -webkit-box-shadow: 0 2px 60px -5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 60px -5px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo {
+        font-family: 'Script MT';
+        font-size: 54px;
+        text-align: center;
+        color: #888888;
+        margin-bottom: 50px;
+      }
+
+      .logo .logo-font {
+        color: #3bc3ff;
+      }
+
+      @media only screen and (max-width: 767px) {
+        .logo {
+          font-size: 34px;
+        }
+      }
+
+      .header-title {
+        text-align: center;
+        margin-bottom: 50px;
+      }
+
+      .login-form {
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      .login-form .form-control {
+        border-radius: 0;
+        margin-bottom: 30px;
+      }
+
+      .login-form .form-group {
+        position: relative;
+      }
+
+      .login-form .form-group .forgot-password {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 12px;
+      }
+
+      .login-form .btn {
+        border-radius: 0;
+        -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .login-form .btn.btn-primary {
+        background: #3bc3ff;
+        border-color: #31c0ff;
+      }
+
+      a {
+        color: #000;
+      }
+
+      .columnnewforpadding {
+        padding-bottom: 10px;
+      }
+
+      .divider {
+        display: flex;
+
+        &:before,
+        &:after {
+          content: '';
+          flex: 1;
+        }
+      }
+
+      .line {
+        align-items: center;
+        margin: 1em -1em;
+
+        &:before,
+        &:after {
+          height: 1px;
+          margin: 0 1em;
+        }
+      }
+
+      .one-line {
+        &:before,
+        &:after {
+          background: black;
+        }
+      }
+
+      .razor {
+        &:before,
+        &:after {
+          box-shadow: 0 0.5px 0 black;
+          border-bottom: 0.5px solid black;
+        }
+      }
+
+      .double-razor {
+        &:before,
+        &:after {
+          height: 3px;
+          box-shadow:
+            0 -0.5px 0 black,
+            0 0.5px 0 black;
+          border: solid black;
+          border-width: 0;
+        }
+      }
+
+      .glow {
+        &:before,
+        &:after {
+          height: 6px;
+          border-radius: 5px;
+        }
+
+        &:before {
+          background: linear-gradient(to right, blue, hotpink);
+        }
+
+        &:after {
+          background: linear-gradient(to left, blue, hotpink);
+        }
+      }
+
+      .gradient {
+        align-items: stretch;
+        margin: 1em 0;
+        height: 2em;
+        line-height: 2em;
+        color: white;
+        background: black;
+
+        &:before {
+          background: linear-gradient(to right, white, black);
+        }
+
+        &:after {
+          background: linear-gradient(to left, white, black);
+        }
+      }
+
+      .donotcross {
+        overflow: hidden;
+        align-items: center;
+        background: hsl(50, 100%, 50%);
+        color: black;
+        height: 2em;
+        line-height: 2em;
+
+        &:before,
+        &:after {
+          background: white;
+          padding: 50px 0;
+          height: 0;
+          transform: rotate(45deg);
+        }
+      }
+
+      .upload__box-header {
+        display: flex;
+      }
+
+      .upload__box {
+        position: relative;
+        padding: 40px;
+        margin: 0 4% 0;
+        background-color: #ffeff0;
+        padding: 2px 30px 26px;
+      }
+
+      .upload__inputfile {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+      }
+
+      .upload__btn {
+        display: inline-block;
+        font-weight: 600;
+        color: #fff;
+        text-align: center;
+        min-width: 116px;
+        padding: 5px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid;
+        background-color: #4045ba;
+        border-color: #4045ba;
+        border-radius: 10px;
+        line-height: 26px;
+        font-size: 14px;
+      }
+
+      .upload__btn:hover {
+        background-color: unset;
+        color: #4045ba;
+        transition: all 0.3s ease;
+      }
+
+      .upload__btn-box {
+        /* margin-bottom: 10px; */
+      }
+
+      .upload__btn p {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+      .upload__img-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 10px;
+      }
+
+      .upload__img-box {
+        width: 200px;
+        padding: 0 10px;
+        margin-bottom: 12px;
+      }
+
+      .upload__img-close {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+      }
+
+      /* .upload__img-close:after {
+    content: "✖";
+    font-size: 14px;
+    color: white;
+  } */
+
+      .img-bg {
+        position: relative;
+        height: 100px;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .document-icon {
+        font-size: 48px;
+        color: #666;
+        /* Only show icon when there's no background image */
+        display: none;
+      }
+
+      .img-bg:not([style*='url']) .document-icon {
+        display: block;
+      }
+
+      .upload__img-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 1;
+      }
+
+      .upload__btnheading {
+        display: inline-block;
+        font-weight: bold;
+        color: #fff;
+        text-align: center;
+        padding: 10px;
+        transition: all 0.3s ease;
+        border: 2px solid;
+        background-color: red;
+        border-color: red;
+        border-radius: 30px;
+        font-size: 20px;
+        width: 22%;
+      }
+
+      .uploadboxforborder {
+        border: 4px solid;
+        min-height: 80%;
+        margin: 5px 10%;
+        border-radius: 30px;
+      }
+
+      .upload__btn-box {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      .upload__btn {
+        cursor: pointer;
+        /* display: flex; */
+        align-items: center;
+        padding: 10px 10px;
+        background-color: #007bff;
+        /* Adjust background color as needed */
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
+
+      .upload__btn svg {
+        width: 24px;
+        height: 24px;
+        /* margin-right: 10px; */
+      }
+
+      .table-container {
+        max-width: 1800px;
+        margin: 0 auto;
+        padding: 5px;
+      }
+
+      .responsive-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        /* Enable horizontal scrolling on smaller screens */
+      }
+
+      .responsive-table th,
+      .responsive-table td {
+        border: 1px solid #ccc;
+        text-align: left;
+      }
+
+      .responsive-table td {
+        padding: 4px 12px;
+      }
+
+      .responsive-table th {
+        padding: 12px;
+        background-color: #ffeff0;
+        font-weight: bold;
+      }
+
+      /* Responsive styles for smaller screens */
+      @media (max-width: 767px) {
+        .responsive-table th,
+        .responsive-table td {
+          display: block;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .responsive-table tbody td {
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+
+        .table-search-box input[type='text'] {
+          font-size: 13px;
+          height: 32px;
+          padding: 4px 8px;
+        }
+      }
+
+      .spinner-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+      }
+
+      .spinner {
+        border: 8px solid #f3f3f3;
+        /* Light grey */
+        border-top: 8px solid #3498db;
+        /* Blue */
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .dropdown-icon {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+      }
+
+      /* Chrome, Safari, Edge, Opera */
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* Firefox */
+      input[type='number'] {
+        -moz-appearance: textfield;
+      }
+
+      .notification-label {
+        font-family: var(--bs-font-sans-serif);
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+      }
+
+      .notification-label-item {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        background-color: rgb(13 165 13 / 80%);
+        color: white;
+        padding: 2px 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+      }
+
+      /* Tooltip container */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+      }
+
+      /* Tooltip text */
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -60px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      /* Tooltip arrow */
+      .tooltip .tooltiptext::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+      }
+
+      /* Show the tooltip text when you mouse over the tooltip container */
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .card {
+        overflow: hidden;
+      }
+
+      .card-img-top {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+
+      .img-bg.clickable {
+        cursor: pointer;
+      }
+
+      .google-drive-link {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+      }
+
+      .google-drive-link a {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px;
+        background-color: #f1f3f4;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #1a73e8;
+        font-size: 14px;
+        transition: background-color 0.3s;
+      }
+
+      .google-drive-link a:hover {
+        background-color: #e8f0fe;
+      }
+
+      .google-drive-link svg {
+        margin-right: 5px;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      .navbar-brand {
+        margin-right: 20px;
+      }
+
+      .main-navigation {
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .navlogo {
+        height: 80px;
+        width: auto;
+      }
+
+      .form-check {
+        min-height: 1rem;
+        margin-bottom: 0rem;
+      }
+
+      .no-margin {
+        margin-bottom: 0rem;
+      }
+
+      .table-search-box {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .table-search-box input[type='text'] {
+        width: 100%;
+        min-width: 0;
+        height: 36px;
+        font-size: 15px;
+        padding: 6px 12px;
+        border: 1px solid #aaa;
+        border-radius: 5px;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+      }
+
+      .table-search-box input[type='text']:focus {
+        border-color: #4045ba;
+        outline: none;
+      }
+    </style>
+    <!-- <link rel="stylesheet" href="index.css" /> -->
+  </head>
+
+  <body>
+    <!-- Login Section -->
+    <section id="loginSection" class="form_deco1">
+      <div class="login-box">
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="logo">
+              <img
+                src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg"
+                width="100"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-6">
+            <form class="login-form" id="loginForm">
+              <div class="form-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="username"
+                  placeholder="Email or UserName"
+                />
+              </div>
+              <div class="form-group">
+                <input type="Password" class="form-control" id="password" placeholder="Password" />
+              </div>
+              <div class="form-group" style="display: flex; justify-content: center">
+                <button class="btn btn-block btn-sma">LOGIN</button>
+              </div>
+              <div class="form-group">
+                <div class="" id="errscssmsg" style="color: red; font-weight: bold"></div>
+                <div class="" id="msg" style="color: green; font-weight: bold"></div>
+              </div>
+            </form>
+          </div>
+          <div class="col-sm-6 hide-on-mobile"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboardSection" class="form_deco" style="display: none">
+      <nav class="navbar navbar-expand-lg navbar-light main-navigation">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <img
+              src="https://drive.google.com/thumbnail?id=1YTlmGD4-xVIHXm0ZdWf9HWW77XhG3xNh&sz=w1000"
+              class="navlogo"
+            />
+          </a>
+          <div style="display: block">
+            <h2>Site Specific Pole Barn Order Form &amp; Agreement</h2>
+
+            <div
+              class="legend"
+              style="
+                margin-top: 5px;
+                display: flex;
+                align-items: center;
+                font-size: 0.9rem;
+                justify-content: center;
+              "
+            >
+              <div style="display: flex; align-items: center; margin-right: 20px">
+                <div
+                  style="width: 15px; height: 15px; background-color: #aaaaff; margin-right: 5px"
+                ></div>
+                <span>Non-Florida Projects</span>
+              </div>
+              <div style="display: flex; align-items: center">
+                <div
+                  style="width: 15px; height: 15px; background-color: #7fffff; margin-right: 5px"
+                ></div>
+                <span>Florida Projects with Wet Map and Seal</span>
+              </div>
+            </div>
+          </div>
+          <div class="main-nam" id="">
+            <div style="display: flex; justify-content: flex-end; flex-direction: column">
+              <button class="btn btn-primary" id="newProjectBtn">New Project</button>
+            </div>
+            <div class="mt-2">
+              <input id="showArchived" class="form-check-input" type="checkbox" />
+              <label class="form-check-label" for="showArchived">Show Archived</label>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="notification-label" id="notification-label"></div>
+      <div class="table-container">
+        <div class="table-search-box">
+          <input
+            type="text"
+            id="dashboardSearch"
+            class="form-control"
+            placeholder="Search projects..."
+            autocomplete="off"
+            style="margin-bottom: 15px"
+          />
+        </div>
+        <table id="dashboard" class="responsive-table">
+          <thead>
+            <tr>
+              <th>Project ID</th>
+              <th>Project Name</th>
+              <th>Client Name</th>
+              <th>Order Date</th>
+              <th>Folder Link</th>
+              <th>Status</th>
+              <th>More Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="loadingRow">
+              <td colspan="7" style="text-align: center; vertical-align: middle">
+                Loading Data... Please Wait
+                <div class="spinner-container">
+                  <div class="spinner"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Project Form Section -->
+    <section id="projectFormSection" class="form_deco" style="display: none">
+      <nav class="navbar navbar-expand-lg navbar-light main-navigation">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <img
+              src="https://drive.google.com/thumbnail?id=1YTlmGD4-xVIHXm0ZdWf9HWW77XhG3xNh&sz=w1000"
+              class="navlogo"
+            />
+          </a>
+          <div style="display: block">
+            <h2>Site Specific Pole Barn Order Form &amp; Agreement</h2>
+          </div>
+          <div class="main-nam" id="">
+            <div style="display: flex; justify-content: flex-end; flex-direction: column">
+              <button class="btn btn-primary" id="backToDashboard">See Dashboard</button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="container">
+        <form class="form-margin" id="fillableform" name="fillableform" method="Post">
+          <div class="main_heading">Ceed Civil Engineering Project</div>
+          <div class="row">
+            <div class="col" style="display: none" id="projectid">
+              <h6 class="form-check-label">Project ID</h6>
+              <span
+                ><input
+                  disabled
+                  type="text"
+                  class="form-control re-de"
+                  name="projectid"
+                  placeholder="Ceed Civil Engineering Project #"
+                  spellcheck="false"
+              /></span>
+            </div>
+            <div class="col">
+              <h6>Status</h6>
+              <span style="position: relative">
+                <select class="form-control re-de" id="status" name="status">
+                  <!-- <option value="New Request">New Request</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="For Review by BW">For Review by BW</option>
+                    <option value="Approved by BW">Approved by BW</option>
+                    <option value="Rework">Rework</option>
+                    <option value="S&S">S&S</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Archived">Archived</option> -->
+                </select>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+              </span>
+            </div>
+          </div>
+          <div class="main_heading">Order Information</div>
+          <!-- <div id="civil-project" class="form-text">We'll never share your email with anyone else.</div> -->
+          <div class="row">
+            <div class="col columnnewforpadding">
+              <input
+                type="text"
+                class="form-control re-de"
+                placeholder="Client Name"
+                name="cname"
+                required
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col columnnewforpadding">
+              <input
+                type="text"
+                class="form-control re-de"
+                placeholder="Project Name"
+                name="projectname"
+                required
+              />
+            </div>
+            <div class="col columnnewforpadding">
+              <input
+                type="text"
+                class="form-control re-de"
+                placeholder="Site Address"
+                name="siteaddress"
+                required
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col columnnewforpadding">
+              <input
+                type="text"
+                class="form-control re-de"
+                placeholder="City"
+                name="city"
+                required
+              />
+            </div>
+            <div class="col columnnewforpadding">
+              <input
+                type="text"
+                class="form-control re-de"
+                list="states"
+                placeholder="Type or select a state"
+                name="state"
+                required=""
+                id="state-select"
+                spellcheck="false"
+                data-ms-editor="true"
+                title="Type or select a state"
+              />
+              <datalist id="states"> </datalist>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col columnnewforpadding">
+              <input
+                type="text"
+                class="form-control re-de"
+                placeholder="Country"
+                name="country"
+                required
+              />
+            </div>
+            <div class="col columnnewforpadding">
+              <input type="text" class="form-control re-de" placeholder="Zip" name="zip" required />
+            </div>
+          </div>
+          <div class="table-main">
+            <div class="main_heading">
+              Scope of Work (Use second page for additional information/notes.)
+            </div>
+            <div class="table-responsive-sm">
+              <table class="table table-bordered table-hover">
+                <thead></thead>
+                <tbody>
+                  <tr>
+                    <th scope="col" class="align-middle">#</th>
+                    <th scope="col" class="text-center align-middle">
+                      <div class="form-check" class="text-center align-middle">
+                        <label class="form-check-label" for="flexCheckDefault">
+                          Open Pole Barn</label
+                        >
+                      </div>
+                    </th>
+                    <th scope="col" class="text-center align-middle">
+                      <label class="form-check-label" for="flexCheckDefault">Enclosed Pole</label>
+                    </th>
+                    <th scope="col" class="text-center align-middle">
+                      <label class="form-check-label" for="flexCheckDefault"
+                        >Partially Enclosed Pole Barn</label
+                      >
+                    </th>
+                    <th scope="col" class="text-center align-middle">
+                      <label class="form-check-label" for="flexCheckDefault">Truss Only</label>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th scope="row">Size</th>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Size"
+                        name="openpolebarnsize"
+                        oninput="updateRequired(this)"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Size"
+                        name="enclosedpolesize"
+                        oninput="updateRequired(this)"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Size"
+                        name="partialyenclosedsize"
+                        oninput="updateRequired(this)"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Size"
+                        name="trussonlysize"
+                        oninput="updateRequired(this)"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Post Spacing</th>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Spacing"
+                        name="postspacingopenpolebarn"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Spacing"
+                        name="postspacingenclosedpole"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Spacing"
+                        name="postspacingpartialyenclosed"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Spacing"
+                        name="postspacingtrussonly"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Post Size</th>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Size"
+                        name="postsizeopenpolebarn"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Size"
+                        name="postsizeenclosedpole"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Size"
+                        name="postsizepartialyenclosed"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Post Size"
+                        name="postsizetrussonly"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Main Bldg. Pitch</th>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Main Bldg. Pitch"
+                        name="maibbldgpitchopenpolebarn"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Main Bldg. Pitch"
+                        name="maibbldgpitchenclosedpole"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Main Bldg. Pitch"
+                        name="maibbldgpitchpartialyenclosed"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Main Bldg. Pitch"
+                        name="maibbldgpitchtrussonly"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Overhang</th>
+                    <td colspan="4">
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="form-check">
+                          <input
+                            class="form-check-input"
+                            type="radio"
+                            name="overhangtype"
+                            value="standard"
+                            id="standardOverhang"
+                          />
+                          <label class="form-check-label" for="standardOverhang">Standard</label>
+                        </div>
+                        <div class="form-check">
+                          <input
+                            class="form-check-input"
+                            type="radio"
+                            name="overhangtype"
+                            value="custom"
+                            id="customOverhang"
+                          />
+                          <label class="form-check-label" for="customOverhang">Custom</label>
+                        </div>
+                        <input
+                          type="text"
+                          class="form-control"
+                          style="width: 120px"
+                          name="overhangvalue"
+                          placeholder="Value"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Metal Roof Panel Gauge</th>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Metal Roof Panel Gauge"
+                        name="metalroofpanelgaugeopenpolebarn"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Metal Roof Panel Gauge"
+                        name="metalroofpanelgaugeenclosedpole"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Metal Roof Panel Gauge"
+                        name="metalroofpanelgaugepartialyenclosed"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Metal Roof Panel Gauge"
+                        name="metalroofpanelgaugetrussonly"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Concrete Slab (Y/N)</th>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Concrete Slab"
+                        name="connectslabopenpolebarn"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Concrete Slab"
+                        name="connectslabenclosedpole"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Concrete Slab"
+                        name="connectslabpartialyenclosed"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control re-de"
+                        placeholder="Concrete Slab"
+                        name="connectslabtrussonly"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="row align-items-center custom-row">
+              <div class="col-md-6">
+                <label for="orderby" class="form-label mt-0">Risk Category </label>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="risk-inlineCheckbox1"
+                    name="riskcategory"
+                    value="1"
+                    required
+                  />
+                  <label class="form-check-label" for="risk-inlineCheckbox1">1</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="risk-inlineCheckbox2"
+                    name="riskcategory"
+                    value="2"
+                    required
+                  />
+                  <label class="form-check-label" for="risk-inlineCheckbox2">2</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="risk-inlineCheckbox3"
+                    name="riskcategory"
+                    value="3"
+                    required
+                  />
+                  <label class="form-check-label" for="risk-inlineCheckbox3">3</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="risk-inlineCheckbox4"
+                    name="riskcategory"
+                    value="4"
+                    required
+                  />
+                  <label class="form-check-label" for="risk-inlineCheckbox4">4</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="orderby" class="form-label mt-0">Exposure Category </label>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="inlineCheckbox5"
+                    name="exposurecategory"
+                    value="A"
+                    required
+                  />
+                  <label class="form-check-label" for="inlineCheckbox5">A</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="inlineCheckbox6"
+                    name="exposurecategory"
+                    value="B"
+                    required
+                  />
+                  <label class="form-check-label" for="inlineCheckbox6">B</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="inlineCheckbox7"
+                    name="exposurecategory"
+                    value="C"
+                    required
+                  />
+                  <label class="form-check-label" for="inlineCheckbox7">C</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="inlineCheckbox8"
+                    name="exposurecategory"
+                    value="D"
+                    required
+                  />
+                  <label class="form-check-label" for="inlineCheckbox8">D</label>
+                </div>
+              </div>
+            </div>
+            <div class="row align-items-center custom-row">
+              <div class="col-md-6">
+                <label for="orderby" class="form-label mt-0">Plywood On Siding</label>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="plywood-siding-yes"
+                    name="plywoodonsiding"
+                    value="Yes"
+                    required
+                  />
+                  <label class="form-check-label" for="plywood-siding-yes">Yes</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="plywood-siding-no"
+                    name="plywoodonsiding"
+                    value="No"
+                    required
+                  />
+                  <label class="form-check-label" for="plywood-siding-no">No</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="orderby" class="form-label mt-0">Plywood On Roof</label>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id=""
+                    name="plywoodonroof"
+                    value="Yes"
+                    required
+                  />
+                  <label class="form-check-label" for="inlineCheckbox1">Yes</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="inlineCheckbox2"
+                    name="plywoodonroof"
+                    value="No"
+                    required
+                  />
+                  <label class="form-check-label" for="inlineCheckbox2">No</label>
+                </div>
+              </div>
+            </div>
+            <div class="row align-items-center custom-row">
+              <div class="col-md-6">
+                <label for="orderby" class="form-label mt-0">Wind Speed</label>
+                <div class="form-check form-check-inline">
+                  <input
+                    type="text"
+                    class="form-control re-de"
+                    value="145MPH"
+                    name="windspeed"
+                    required=""
+                    spellcheck="false"
+                    data-ms-editor="true"
+                    style="height: 27px"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="orderby" class="form-label mt-0">Wet Stamp And Seal</label>
+                <div class="form-check form-check-inline">
+                  <input type="checkbox" class="" placeholder="" name="wetmapandseal" />
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-12 align-items-center custom-row pe-3 ps-3">
+              <label for="orderby" class="form-label mt-0">2 x 6 Stud Spacing </label>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  id="inlineCheckbox9"
+                  name="studspacing"
+                  value="16"
+                  required
+                />
+                <label class="form-check-label" for="inlineCheckbox9">16</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  id="inlineCheckbox10"
+                  name="studspacing"
+                  value="24"
+                  required
+                />
+                <label class="form-check-label" for="inlineCheckbox10">24</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  id="inlineCheckbox11"
+                  name="studspacing"
+                  value="custom"
+                  required
+                />
+                <label class="form-check-label" for="inlineCheckbox11">Custom</label>
+              </div>
+              <div class="form-check form-check-inline d-inline-flex align-items-center">
+                <input
+                  type="text"
+                  class="form-control re-de"
+                  placeholder=""
+                  name="studspacingcustomvalue"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-12 align-items-center custom-row pe-3 ps-3">
+              <label for="orderby" class="form-label mt-0">Project Pricing </label>
+              <div class="form-check form-check-inline">
+                <input
+                  type="number"
+                  class="form-control re-de"
+                  placeholder="Project Pricing"
+                  name="projectpricing"
+                  step="0.01"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="main_heading">ADD-ONS</div>
+            <div class="table-responsive-sm">
+              <table class="table table-bordered">
+                <thead></thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        value=""
+                        name="selectaddonsfordoors"
+                        id="selectaddonsfordoors"
+                      />
+                      <label class="form-check-label" for="selectaddonsfordoors">Doors</label>
+                    </th>
+                    <td scope="col">
+                      <div class="d-flex align-items-center">N/A</div>
+                    </td>
+                    <td scope="col">
+                      <table class="table no-margin">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsfordoorsquantityenclosedpole"
+                                placeholder="Quantity"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsfordoorssizeenclosedpole"
+                                placeholder="Size"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                    <td scope="col">
+                      <table class="table no-margin">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsfordoorsquantitypartialyenclosedpolebarn"
+                                type="Quantity"
+                                placeholder="Quantity"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsfordoorssizepartialyenclosedpolebarn"
+                                placeholder="Size"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        value="selectaddonsforwindows"
+                        name="selectaddonsforwindows"
+                        id="selectaddonsforwindows"
+                      />
+                      <label class="form-check-label" for="selectaddonsforwindows">Windows</label>
+                    </th>
+                    <td scope="col">N/A</td>
+                    <td scope="col">
+                      <table class="table no-margin">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsforwindowsquantityenclosedpole"
+                                placeholder="Quantity"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsforwindowssizeenclosedpole"
+                                placeholder="Size"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                    <td scope="col">
+                      <table class="table no-margin">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsforwindowsquantitypartialyenclosedpolebarn"
+                                placeholder="Quantity"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsforwindowssizepartialyenclosedpolebarn"
+                                placeholder="Size"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        value=""
+                        name="selectaddonsforleanto"
+                        id="selectaddonsforleanto"
+                      />
+                      <label class="form-check-label" for="selectaddonsforleanto">Lean-To</label>
+                    </th>
+                    <td scope="col">
+                      <table class="table table-bordered no-margin">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantoopenpolebarnsize"
+                                placeholder="Size"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantoopenpolebarnpitch"
+                                placeholder="Pitch"
+                              />
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <td>
+                              <label for="orderby" class="form-label mt-0">Slab</label>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox12-openpolebarn"
+                                  value="Yes"
+                                  name="addonsleantoslabopenpolebarnpitch"
+                                />
+                                <label
+                                  class="form-check-label mt-0"
+                                  for="inlineCheckbox12-openpolebarn"
+                                  >Yes</label
+                                >
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox13-openpolebarn-no"
+                                  value="No"
+                                  name="addonsleantoslabopenpolebarnpitch"
+                                />
+                                <label
+                                  class="form-check-label mt-0"
+                                  for="inlineCheckbox13-openpolebarn-no"
+                                  >No</label
+                                >
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox13-openpolebarn-na"
+                                  value="N/A"
+                                  name="addonsleantoslabopenpolebarnpitch"
+                                />
+                                <label
+                                  class="form-check-label mt-0"
+                                  for="inlineCheckbox13-openpolebarn-na"
+                                  >N/A</label
+                                >
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantopostsizeopenpolebarn"
+                                placeholder="Post Size"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                    <td scope="col">
+                      <table class="table no-margin">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantoenclosedpolepostsize"
+                                placeholder="Size"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantopostpitchopenpolebarn"
+                                placeholder="Pitch"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <label for="orderby" class="form-label mt-0">Slab</label>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox12-enclosedpole"
+                                  value="Yes"
+                                  name="addonsleantoslabenclosedpole"
+                                />
+                                <label class="form-check-label" for="inlineCheckbox12-enclosedpole"
+                                  >Yes</label
+                                >
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox13-enclosedpole-no"
+                                  value="No"
+                                  name="addonsleantoslabenclosedpole"
+                                />
+                                <label
+                                  class="form-check-label"
+                                  for="inlineCheckbox13-enclosedpole-no"
+                                  >No</label
+                                >
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox13-enclosedpole-na"
+                                  value="N/A"
+                                  name="addonsleantoslabenclosedpole"
+                                />
+                                <label
+                                  class="form-check-label mt-0"
+                                  for="inlineCheckbox13-enclosedpole-na"
+                                  >N/A</label
+                                >
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                id="postsize"
+                                type="Post Size"
+                                placeholder="Post Size"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                    <td scope="col">
+                      <table class="table no-margin">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantopartialyenclosedpolebarnsize"
+                                placeholder="Size"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantopitchpartialyenclosedpolebarn"
+                                placeholder="Pitch"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <label for="orderby" class="form-label mt-0">Slab</label>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox12-partialyenclosed"
+                                  value="Yes"
+                                  name="addonsleantoslabpartialyenclosepolebarn"
+                                />
+                                <label
+                                  class="form-check-label"
+                                  for="inlineCheckbox12-partialyenclosed"
+                                  >Yes</label
+                                >
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox13-partialyenclosed-no"
+                                  value="No"
+                                  name="addonsleantoslabpartialyenclosepolebarn"
+                                />
+                                <label
+                                  class="form-check-label"
+                                  for="inlineCheckbox13-partialyenclosed-no"
+                                  >No</label
+                                >
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  id="inlineCheckbox13-partialyenclosed-na"
+                                  value="N/A"
+                                  name="addonsleantoslabpartialyenclosepolebarn"
+                                />
+                                <label
+                                  class="form-check-label mt-0"
+                                  for="inlineCheckbox13-partialyenclosed-na"
+                                  >N/A</label
+                                >
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="text"
+                                class="form-control form-control-plaintext re-de1"
+                                name="addonsleantopostsizepartialyenclosepolebarn"
+                                placeholder="Post Size"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="row align-items-centere">
+              <div class="col-md-4">
+                <input
+                  type="text"
+                  class="form-control form-control-plaintext re-de1"
+                  name="orderedby"
+                  placeholder="Ordered by"
+                  required
+                />
+              </div>
+
+              <div class="col-md-4">
+                <input
+                  type="text"
+                  class="form-control form-control-plaintext re-de1"
+                  name="signature"
+                  placeholder="Signature"
+                  required
+                />
+              </div>
+
+              <div class="col-md-4">
+                <input
+                  type="date"
+                  class="form-control form-control-plaintext re-de1"
+                  name="orderdate"
+                  placeholder="Order Date"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="row align-items-centere" style="padding-top: 10px">
+              <div class="col-md-12">
+                <textarea
+                  class="form-control"
+                  id="additionalinformationnotes"
+                  name="additionalinformationnotes"
+                  rows="3"
+                  placeholder="Additional Information/Notes"
+                  required
+                ></textarea>
+              </div>
+            </div>
+          </div>
+          <br />
+          <h2 class="divider line double-razor">Page 2 - Upload Sketch</h2>
+          <div class="upload__box uploadboxforborder">
+            <div class="d-flex align-items-center p-2 justify-content-between">
+              <div class="upload__btn-box">
+                <label class="btn btn-light border d-flex align-items-center">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 15 15"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="me-2"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M7.48614 0.806747L11.0891 4.13259L10.4109 4.8674L8 2.64199V11H7V2.7071L4.85355 4.85355L4.14645 4.14644L7.48614 0.806747ZM2 13V6.99999H1V14H14V6.99999H13V13H2Z"
+                      fill="currentColor"
+                    ></path>
+                  </svg>
+                  Upload Files
+                  <input
+                    id="uploadSketch"
+                    type="file"
+                    multiple=""
+                    data-max_length="20"
+                    class="upload__inputfile d-none"
+                  />
+                </label>
+              </div>
+              <div class="upload__btn-box" id="driveurlbutton">
+                <a
+                  href=""
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-light border d-flex align-items-center"
+                  id="driveurl"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    class="bi bi-eye me-2"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
+                    ></path>
+                    <path
+                      d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"
+                    ></path>
+                  </svg>
+                  View in Google Drive
+                </a>
+              </div>
+            </div>
+            <div class="upload__img-wrap"></div>
+          </div>
+          <!-- partial -->
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+          <!-- <script src="./script.js"></script> -->
+          <div style="display: flex; justify-content: space-around">
+            <button type="submit" class="btn btn-sma">Submit</button>
+          </div>
+          <br />
+          <div class="" id="form-err-msg" style="color: red; font-weight: bold"></div>
+          <div class="" id="form-msg" style="color: green; font-weight: bold"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Modal Components -->
+    <div class="modal fade" id="question-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Please Confirm</h4>
+          </div>
+          <div class="modal-body" id="q-modal-body">
+            <p></p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+              id="q-close-button"
+            >
+              Close
+            </button>
+            <button id="q-continue-button" type="button" class="btn btn-primary">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="info-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">INFO</h4>
+          </div>
+          <div class="modal-body" id="i-modal-body">
+            <p></p>
+          </div>
+          <div class="modal-footer">
+            <button id="i-continue-button" type="button" class="btn btn-primary">Okay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading-overlay" style="display: none">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+      // Constants
+      const STATUSES = [
+        'New Request',
+        'Accepted',
+        'In Progress',
+        'For Review by BW',
+        'Approved by BW',
+        'Rework',
+        'S&S',
+        'Delivered',
+        'Archived',
+      ]
+      const STATES = ['AL', 'FL']
+      const itemsToNotDisable = ['uploadSketch', 'submitbutton', 'status']
+      const itemsToHide = ['projectpricing']
+
+      // Application State
+      let tableData = []
+      let imgArray = []
+      let existingImages = []
+      let isAdmin = false
+      let currentUser = null
+
+      // Navigation Functions
+      function showLogin() {
+        document.getElementById('loginSection').style.display = 'block'
+        document.getElementById('dashboardSection').style.display = 'none'
+        document.getElementById('projectFormSection').style.display = 'none'
+      }
+
+      function showDashboard() {
+        document.getElementById('loginSection').style.display = 'none'
+        document.getElementById('dashboardSection').style.display = 'block'
+        document.getElementById('projectFormSection').style.display = 'none'
+        loadDashboardData()
+      }
+
+      function showProjectForm(isEdit = false, projectData = null) {
+        document.getElementById('loginSection').style.display = 'none'
+        document.getElementById('dashboardSection').style.display = 'none'
+        document.getElementById('projectFormSection').style.display = 'block'
+
+        if (isEdit && projectData) {
+          populateProjectForm(projectData)
+          document.getElementById('projectid').style.display = 'block'
+        } else {
+          resetProjectForm()
+          document.getElementById('projectid').style.display = 'none'
+        }
+      }
+
+      // Event Listeners
+      function setupEventListeners() {
+        // Login Form Submit
+        document.getElementById('loginForm').addEventListener('submit', handleLogin)
+
+        // Dashboard Controls
+        document
+          .getElementById('showArchived')
+          .addEventListener('change', (e) => handleShowArchived(e.target.checked))
+        document.getElementById('newProjectBtn').addEventListener('click', () => showProjectForm())
+        document.getElementById('backToDashboard').addEventListener('click', showDashboard)
+
+        // Project Form Controls
+        document.getElementById('fillableform').addEventListener('submit', handleProjectSubmit)
+
+        document.getElementById('dashboardSearch').addEventListener('input', function () {
+          const query = this.value.toLowerCase()
+          let filterFunction
+          if (query) {
+            filterFunction = (row) =>
+              [row.data.projectname || '', row.data.projectid || '', row.data.cname || '']
+                .join('|')
+                .toLowerCase()
+                .trim()
+                .includes(query.trim())
+          } else {
+            filterFunction = null
+          }
+          loadDashboardData(filterFunction)
+        })
+      }
+
+      // Login Functions
+      async function handleLogin(event) {
+        event.preventDefault()
+        const username = document.getElementById('username').value
+        const password = document.getElementById('password').value
+
+        const loginData = {
+          email: username,
+          password: password,
+          timestamp: new Date().toISOString(),
+        }
+
+        try {
+          $('#errscssmsg').hide()
+          $('#msg').show()
+          $('#msg').html(`Logging you in...`)
+
+          google.script.run
+            .withSuccessHandler((info) => {
+              sessionStorage.setItem('token', info.user.currentToken)
+              currentUser = info.user
+              tableData = info.data
+              showDashboard()
+            })
+            .withFailureHandler((error) => {
+              $('#errscssmsg').html(`Oops! Invalid Login. ${error}`)
+              $('#errscssmsg').show()
+            })
+            .login(loginData)
+        } catch (error) {
+          $('#errscssmsg').html(`Oops! Invalid Login. ${error}`)
+          $('#errscssmsg').show()
+        }
+      }
+
+      // Dashboard Functions
+      async function loadDashboardData(extraFilter) {
+        const token = sessionStorage.getItem('token')
+        const showArchived = document.getElementById('showArchived').checked
+
+        try {
+          handleShowArchived(showArchived, extraFilter)
+        } catch (error) {
+          showNotification(`Error: ${error}`)
+        }
+      }
+
+      function handleShowArchived(showArchived, extraFilter) {
+        let filteredData = showArchived
+          ? tableData
+          : tableData.filter((row) => row.data.status !== 'Archived')
+
+        if (extraFilter) {
+          filteredData = filteredData.filter(extraFilter)
+        }
+        loadDataIntoTable(filteredData)
+      }
+
+      async function loadDataIntoTable(data) {
+        const token = sessionStorage.getItem('token')
+        const tableBody = document.querySelector('#dashboard tbody')
+        tableBody.innerHTML = ''
+
+        data.forEach((rowData) => {
+          let { data: item, images } = rowData
+          const row = document.createElement('tr')
+          const backgroundColor =
+            item.state.toLowerCase().trim() !== 'fl'
+              ? '#aaaaff'
+              : item.wetmapandseal === 'on'
+                ? '#7FFFFF'
+                : ''
+          row.setAttribute('style', `background-color: ${backgroundColor}`)
+
+          const detailsBtn = document.createElement('button')
+          detailsBtn.textContent = 'Details'
+          detailsBtn.className = 'btn btn-sm btn-primary'
+          detailsBtn.onclick = () => handleEditProject(item.projectid)
+
+          row.innerHTML = `
+                  <td data-title="Project ID" class="col-1">${item.projectid}</td>
+                  ${isAdmin ? `<td data-title='Invoice ID' class="col-1">${item.fBInvoiceId || ''}</td>` : ''}
+                  <td data-title="Project Name" class="col-3">${item.projectname}</td>
+                  <td data-title="Client Name" class="col-2">${item.cname}</td>
+                  <td data-title="Order Date" class="col-1">${formatDateToMonthDayYear(item.orderdate)}</td>
+                  <td data-title="FolderLink" class="col-1">
+                      ${item.driveFolder ? `<a href="${item.driveFolder}" target="_blank">Go To Folder</a>` : 'N/A'}
+                  </td>
+                  <td data-title="Status" class="col-2">
+                      <select class="form-select re-de" onchange="handleStatusChange(this)" 
+                          data-projectid="${item.projectid}" 
+                          data-projectname="${item.projectname}">
+                          ${STATUSES.map((status) => `<option value="${status}" ${item.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+                      </select>
+                  </td>
+                  <td data-title="More Details" class="col-1"></td>
+              `
+          row.querySelector('[data-title="More Details"]').appendChild(detailsBtn)
+          tableBody.appendChild(row)
+        })
+      }
+
+      // Project Form Functions
+      async function handleProjectSubmit(event) {
+        event.preventDefault()
+        showOverlay()
+        $('#form-msg').show()
+        $('#form-err-msg').hide()
+        $('#form-msg').html(`Submitting the form ....`)
+
+        // enable fields, get the data and then disable the field again
+        const disabledFields = document
+          .getElementById('fillableform')
+          .querySelectorAll('[disabled]')
+
+        disabledFields.forEach((field) => {
+          field.disabled = false
+        })
+
+        const formData = new FormData(this)
+        delete formData.filedata
+        let formEntries = Object.fromEntries(formData)
+        formEntries.wetmapandseal = Object.keys(formEntries).includes('wetmapandseal')
+        formEntries.selectaddonsfordoors = Object.keys(formEntries).includes('selectaddonsfordoors')
+        formEntries.selectaddonsforwindows =
+          Object.keys(formEntries).includes('selectaddonsforwindows')
+        formEntries.selectaddonsforleanto =
+          Object.keys(formEntries).includes('selectaddonsforleanto')
+
+        console.log(JSON.stringify(formEntries))
+
+        disabledFields.forEach((field) => {
+          field.disabled = true
+        })
+
+        formEntries.sketchData = imgArray
+        formEntries.existingImages = existingImages
+
+        const token = sessionStorage.getItem('token')
+        const isEdit = !!formEntries.projectid
+
+        const handler = isEdit ? 'updateProject' : 'newProject'
+
+        google.script.run
+          .withSuccessHandler((receivedData) => {
+            console.log('received', receivedData, receivedData.data.projectid)
+            let projectId = receivedData.data.projectid
+
+            if (isEdit) {
+              let foundProjectIndex = tableData.findIndex(
+                ({ data, images }) => data.projectid == projectId,
+              )
+
+              tableData[foundProjectIndex] = receivedData
+            } else {
+              tableData.push(receivedData)
+            }
+
+            $('#form-msg').hide()
+            showInfoModal(
+              isEdit ? 'Project Updated' : `Project ${receivedData.data.projectid} Created`,
+            )
+            resetFileUpload()
+            if (!isEdit) {
+              resetProjectForm()
+            }
+            hideOverlay()
+            showDashboard()
+          })
+          .withFailureHandler((error) => {
+            $('#form-msg').hide()
+            $('#form-err-msg').show()
+            $('#form-err-msg').html(`Oops! Error Occurred. ${error}`)
+            hideOverlay()
+          })
+          [handler](formEntries, token)
+      }
+
+      function resetProjectForm() {
+        document.getElementById('fillableform').reset()
+        imgArray = []
+        existingImages = []
+        resetFileUpload()
+        initializeFormState()
+      }
+
+      async function handleEditProject(projectId) {
+        showOverlay()
+        const token = sessionStorage.getItem('token')
+        projectData = tableData.find((row) => row.data.projectid == projectId)
+        console.log('projectData', projectData)
+        showProjectForm(true, projectData)
+        hideOverlay()
+      }
+
+      function populateProjectForm(formData) {
+        const form = document.getElementById('fillableform')
+        const { data, images } = formData
+        existingImages = images
+
+        // Populate form fields
+        for (let element of form.elements) {
+          if (element.nodeName === 'INPUT') {
+            const fieldType = element.type
+            const fieldName = element.name
+
+            if (
+              fieldType === 'text' ||
+              fieldType === 'textarea' ||
+              fieldType === 'date' ||
+              fieldType === 'number'
+            ) {
+              if (data[fieldName] !== undefined) {
+                element.value = data[fieldName]
+              }
+            } else if (fieldType === 'radio') {
+              if (data[fieldName] !== undefined && element.value === data[fieldName]) {
+                element.checked = true
+              }
+            } else if (fieldType === 'checkbox') {
+              if (data[fieldName] == undefined || data[fieldName] == 'off' || !data[fieldName])
+                element.checked = false
+              else element.checked = true
+            }
+          } else if (element.nodeName === 'TEXTAREA') {
+            const fieldName = element.name
+            if (data[fieldName] !== undefined) {
+              element.value = data[fieldName]
+            }
+          } else if (element.nodeName === 'SELECT') {
+            const fieldName = element.name
+            const fieldValue = data[fieldName]
+
+            for (let j = 0; j < element.options.length; j++) {
+              if (element.options[j].value === fieldValue) {
+                element.selectedIndex = j
+                break
+              }
+            }
+          }
+
+          if (currentUser.type === 'Employee') {
+            if (itemsToHide.includes(element.id) || itemsToHide.includes(element.name)) {
+              element.style.display = 'none'
+            } else if (!itemsToNotDisable.includes(element.id)) {
+              element.disabled = true
+            }
+          }
+        }
+
+        const notesTextarea = document.getElementById('additionalinformationnotes')
+        if (notesTextarea) {
+          makeTextareaAutoExpand(notesTextarea)
+        }
+
+        // Handle file display
+        const imgWrap = document.querySelector('.upload__img-wrap')
+        imgWrap.innerHTML = ''
+        images.forEach((image, index) => {
+          const html = generateImageCardHTML(image, index)
+          imgWrap.insertAdjacentHTML('beforeend', html)
+        })
+
+        // Handle drive folder link
+        const driveUrlButton = document.getElementById('driveurlbutton')
+        const driveUrl = document.getElementById('driveurl')
+        if (data.driveFolder) {
+          driveUrl.href = data.driveFolder
+          driveUrlButton.style.display = 'block'
+        } else {
+          driveUrlButton.style.display = 'none'
+        }
+
+        initializeFormState()
+      }
+
+      // File Upload Functions
+      function generateUniqueId() {
+        return '_' + Math.random().toString(36).substr(2, 9)
+      }
+
+      function initializeFileUpload() {
+        $('body').on('change', '.upload__inputfile', handleFileSelect)
+        $('body').on('click', '.upload__img-close', handleFileRemove)
+      }
+
+      function handleFileSelect(e) {
+        const imgWrap = $(this).closest('.upload__box').find('.upload__img-wrap')
+        const maxLength = $(this).attr('data-max_length')
+        const files = Array.from(e.target.files)
+
+        files.forEach((file) => {
+          if (imgArray.length >= maxLength) return
+
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            const uniqueId = generateUniqueId()
+            const fileData = {
+              fileId: uniqueId,
+              fileName: file.name,
+              mimeType: file.type,
+              data: e.target.result.split(',')[1],
+            }
+            imgArray.push(fileData)
+
+            const html = generateImageCardHTML(file, $('.upload__img-close').length)
+            imgWrap.append(html)
+          }
+          reader.readAsDataURL(file)
+        })
+      }
+
+      function handleFileRemove(e) {
+        const fileId = $(this).closest('.img-bg').data('fileid')
+        imgArray = imgArray.filter((img) => img.fileId !== fileId)
+        existingImages = existingImages.filter((img) => img.id !== fileId)
+        $(this).closest('.upload__img-box').remove()
+      }
+
+      function generateImageCardHTML(file, index) {
+        const isNewUpload = file instanceof File
+        const uniqueId = isNewUpload ? `file_${Date.now()}_${index}` : file.id
+        const fileName = isNewUpload ? file.name : file.name || `File ${index + 1}`
+
+        // For the background, either use the actual image or show an icon
+        let backgroundStyle
+        if (isNewUpload && file.type.match('image.*')) {
+          backgroundStyle = `background-image: url(${URL.createObjectURL(file)})`
+        } else if (file.url?.includes('uc?export=view&id=')) {
+          backgroundStyle = `background-image: url(${file.url})`
+        } else {
+          // Instead of a URL, we use a font icon or SVG directly
+          // backgroundStyle = 'background: #f5f5f5'; // Light gray background
+        }
+
+        const linkElement = file.url
+          ? `<a href="${file.url}" class="card-text text-center mb-0 text-decoration-none text-blue" target="_blank">${formatFileName(fileName)}</a>`
+          : `<span class="card-text text-center mb-0">${formatFileName(fileName)}</span>`
+
+        return `
+              <div class="upload__img-box col-md-4">
+                  <div class="card">
+                      <div style="${backgroundStyle}" 
+                          data-number="${index}"
+                          data-fileid="${uniqueId}" 
+                          class="img-bg card-img-top${file.url ? ' clickable' : ''}">
+                          <i class="document-icon fas fa-file-alt"></i>
+                          <button type="button" class="btn-close upload__img-close" aria-label="Close"></button>
+                      </div>
+                      <div class="card-body p-2">
+                          ${linkElement}
+                      </div>
+                  </div>
+              </div>
+          `
+      }
+
+      function formatFileName(fileName, maxLength = 35) {
+        // Convert to proper case (capitalize first letter of each word)
+        const properName = fileName
+          .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+          .split(' ')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ')
+
+        // Limit length and add ellipsis if needed
+        const displayName =
+          properName.length > maxLength ? properName.substring(0, maxLength) + '...' : properName
+
+        // Return with extension
+        return displayName
+      }
+
+      // Modal and Interaction Handlers
+      const ModalManager = {
+        questionModal: null,
+        infoModal: null,
+
+        initialize: function () {
+          this.questionModal = new bootstrap.Modal(document.getElementById('question-modal'))
+          this.infoModal = new bootstrap.Modal(document.getElementById('info-modal'))
+          this.setupModalListeners()
+        },
+
+        setupModalListeners: function () {
+          // Clean up modal content when hidden
+          ;['question-modal', 'info-modal'].forEach((modalId) => {
+            document.getElementById(modalId).addEventListener('hidden.bs.modal', () => {
+              document.querySelector(`#${modalId} .modal-body`).innerHTML = ''
+            })
+          })
+        },
+
+        showQuestion: async function (message, title = 'Please Confirm') {
+          return new Promise((resolve) => {
+            const modal = document.getElementById('question-modal')
+            modal.querySelector('.modal-title').textContent = title
+            modal.querySelector('.modal-body').innerHTML = message
+
+            const closeBtn = modal.querySelector('#q-close-button')
+            const continueBtn = modal.querySelector('#q-continue-button')
+
+            const cleanup = () => {
+              closeBtn.removeEventListener('click', handleClose)
+              continueBtn.removeEventListener('click', handleContinue)
+            }
+
+            const handleClose = () => {
+              this.questionModal.hide()
+              cleanup()
+              resolve(false)
+            }
+
+            const handleContinue = () => {
+              this.questionModal.hide()
+              cleanup()
+              resolve(true)
+            }
+
+            closeBtn.addEventListener('click', handleClose)
+            continueBtn.addEventListener('click', handleContinue)
+
+            this.questionModal.show()
+          })
+        },
+
+        showInfo: async function (message, title = 'INFO') {
+          return new Promise((resolve) => {
+            const modal = document.getElementById('info-modal')
+            modal.querySelector('.modal-title').textContent = title
+            modal.querySelector('.modal-body').innerHTML = message
+
+            const continueBtn = modal.querySelector('#i-continue-button')
+
+            const handleContinue = () => {
+              this.infoModal.hide()
+              continueBtn.removeEventListener('click', handleContinue)
+              resolve(true)
+            }
+
+            continueBtn.addEventListener('click', handleContinue)
+            this.infoModal.show()
+          })
+        },
+      }
+
+      // Notification System
+      const NotificationManager = {
+        container: null,
+        queue: [],
+        isProcessing: false,
+
+        initialize: function () {
+          this.container = document.getElementById('notification-label')
+          if (!this.container) {
+            this.container = document.createElement('div')
+            this.container.id = 'notification-label'
+            this.container.className = 'notification-label'
+            document.body.appendChild(this.container)
+          }
+        },
+
+        show: function (message, type = 'info', duration = 3000) {
+          this.queue.push({ message, type, duration })
+          if (!this.isProcessing) {
+            this.processQueue()
+          }
+        },
+
+        async processQueue() {
+          if (this.queue.length === 0) {
+            this.isProcessing = false
+            return
+          }
+
+          this.isProcessing = true
+          const { message, type, duration } = this.queue.shift()
+
+          const notification = document.createElement('div')
+          notification.className = 'notification-label-item'
+          notification.innerHTML = `
+                  <span class="material-icons text-${type}" style="font-size: 20px; margin-right:2px">
+                      ${type === 'info' ? 'info' : type === 'error' ? 'error' : 'check_circle'}
+                  </span>
+                  <span>${message}</span>
+              `
+
+          this.container.appendChild(notification)
+
+          await new Promise((resolve) => setTimeout(resolve, duration))
+
+          notification.style.opacity = '0'
+          await new Promise((resolve) => setTimeout(resolve, 300))
+
+          notification.remove()
+          this.processQueue()
+        },
+      }
+
+      // Utility Functions
+      function formatDateToMonthDayYear(dateString) {
+        const options = { year: 'numeric', month: 'short', day: 'numeric' }
+        return new Date(dateString).toLocaleDateString(undefined, options)
+      }
+
+      function showOverlay() {
+        document.getElementById('loading-overlay').style.display = 'flex'
+      }
+
+      function hideOverlay() {
+        document.getElementById('loading-overlay').style.display = 'none'
+      }
+
+      function showNotification(message) {
+        const notificationLabel = document.getElementById('notification-label')
+        const newLabel = document.createElement('div')
+        newLabel.classList.add('notification-label-item')
+        newLabel.innerHTML = `
+        <span class="material-icons text-info" style="font-size: 20px; margin-right:2px">info</span>
+        <span>${message}</span>
+    `
+        notificationLabel.appendChild(newLabel)
+        return newLabel
+      }
+
+      async function handleStatusChange(select) {
+        const projectId = select.dataset.projectid
+        const projectName = select.dataset.projectname
+        const selectedStatus = select.value
+        const message = `Changing project ${projectId} - ${projectName}'s status to ${selectedStatus}`
+        const label = showNotification(message)
+
+        google.script.run
+          .withSuccessHandler(() => {
+            let foundProjectIndex = tableData.findIndex(
+              ({ data, images }) => data.projectid == projectId,
+            )
+
+            tableData[foundProjectIndex].data.status = selectedStatus
+
+            label.remove()
+          })
+          .withFailureHandler(() => {
+            label.remove()
+          })
+          .updateProjectStatus(projectId, selectedStatus)
+      }
+
+      function showInfoModal(message) {
+        return new Promise(function (resolve) {
+          const modalBody = document.getElementById('i-modal-body')
+          const continueButton = document.getElementById('i-continue-button')
+
+          modalBody.innerHTML = message
+          continueButton.onclick = function () {
+            $('#info-modal').modal('hide')
+            resolve(true)
+          }
+
+          $('#info-modal').modal('show')
+        })
+      }
+
+      function showQuestionModal(message) {
+        return new Promise(function (resolve) {
+          const modalBody = document.getElementById('q-modal-body')
+          const closeButton = document.getElementById('q-close-button')
+          const continueButton = document.getElementById('q-continue-button')
+
+          modalBody.innerHTML = message
+          closeButton.onclick = function () {
+            $('#question-modal').modal('hide')
+            resolve(false)
+          }
+          continueButton.onclick = function () {
+            $('#question-modal').modal('hide')
+            resolve(true)
+          }
+
+          $('#question-modal').modal('show')
+        })
+      }
+
+      // Form initialization and validation
+      function initializeFormFields() {
+        const stateSelect = document.getElementById('states')
+        const statusSelect = document.getElementById('status')
+
+        // Initialize states dropdown
+        STATES.forEach((state) => {
+          const option = document.createElement('option')
+          option.value = state
+          option.textContent = state
+          stateSelect.appendChild(option)
+        })
+
+        // Initialize status dropdown
+        STATUSES.forEach((status) => {
+          const option = document.createElement('option')
+          option.value = status
+          option.textContent = status
+          statusSelect.appendChild(option)
+        })
+
+        // Initialize form validation
+        setupFormValidation()
+      }
+
+      function setupFormValidation() {
+        // Add validation for size inputs
+        const sizeInputs = document.querySelectorAll('input[name$="size"]')
+        console.log(sizeInputs)
+        sizeInputs.forEach((input) => {
+          input.addEventListener('input', function () {
+            updateRequired(this)
+          })
+        })
+      }
+
+      function updateRequired(sizeInput) {
+        const column = sizeInput.parentNode.cellIndex
+        const table = sizeInput.closest('table')
+        for (let i = 1; i < table.rows.length; i++) {
+          if (table.rows.length < column) return
+          if (table.rows[i].cells[column] === undefined) return
+
+          const input = table.rows[i].cells[column].querySelector('input')
+          if (!input) continue
+
+          // Skip overhang row
+          if (table.rows[i].cells[0].innerText.trim() === 'Overhang') {
+            continue
+          }
+
+          if (input !== sizeInput) {
+            input.required = sizeInput.value.trim() !== ''
+          }
+        }
+      }
+
+      // Reset file upload container
+      function resetFileUpload() {
+        const imgWrap = document.querySelector('.upload__img-wrap')
+        if (imgWrap) {
+          imgWrap.innerHTML = ''
+        }
+        imgArray = []
+        existingImages = []
+
+        const driveUrlButton = document.getElementById('driveurlbutton')
+        const driveUrl = document.getElementById('driveurl')
+
+        driveUrlButton.style.display = 'none'
+      }
+
+      // Project form specific functions
+      function setupProjectFormEventListeners() {
+        // Handle overhang type selection
+        const overhangInputs = document.querySelectorAll('input[name="overhangtype"]')
+        const overhangValue = document.querySelector('input[name="overhangvalue"]')
+
+        overhangInputs.forEach((input) => {
+          input.addEventListener('change', function () {
+            overhangValue.disabled = this.value === 'standard'
+            // if (this.value === "standard") {
+            //   overhangValue.value = "";
+            // }
+          })
+        })
+
+        //handle stud spacing
+        const studSpacingInputs = document.querySelectorAll('input[name="studspacing"]')
+        const studSpacingCustom = document.querySelector('input[name="studspacingcustomvalue"]')
+
+        studSpacingInputs.forEach((input) => {
+          input.addEventListener('change', function () {
+            studSpacingCustom.disabled = this.value !== 'custom'
+          })
+        })
+
+        // Handle add-ons checkboxes
+        const addonsCheckboxes = document.querySelectorAll(
+          'input[type="checkbox"][id^="selectaddonsfor"]',
+        )
+        addonsCheckboxes.forEach((checkbox) => {
+          checkbox.addEventListener('change', function () {
+            updateAddonFields(this)
+          })
+
+          // Initialize fields based on current checkbox state
+          updateAddonFields(checkbox)
+        })
+      }
+
+      function updateAddonFields(checkbox) {
+        const section = checkbox.closest('tr')
+        const inputs = section.querySelectorAll('input:not([type="checkbox"])')
+        inputs.forEach((input) => {
+          // input.required = checkbox.checked;
+          input.disabled = !checkbox.checked
+        })
+      }
+
+      function initializeFormState() {
+        // Initialize overhang fields
+        const selectedOverhangType = document.querySelector('input[name="overhangtype"]:checked')
+        const overhangValue = document.querySelector('input[name="overhangvalue"]')
+        if (selectedOverhangType) {
+          overhangValue.disabled = selectedOverhangType.value === 'standard'
+          if (selectedOverhangType.value === 'standard') {
+            overhangValue.value = ''
+          }
+        }
+
+        // Initialize overhang fields
+        const selectedStudSpacing = document.querySelector('input[name="studspacing"]:checked')
+        const studSpacingCustomValue = document.querySelector(
+          'input[name="studspacingcustomvalue"]',
+        )
+        if (selectedStudSpacing) {
+          studSpacingCustomValue.disabled = selectedStudSpacing.value !== 'custom'
+        }
+
+        // Initialize add-on fields based on checkbox states
+        const addonsCheckboxes = document.querySelectorAll(
+          'input[type="checkbox"][id^="selectaddonsfor"]',
+        )
+        addonsCheckboxes.forEach((checkbox) => {
+          const section = checkbox.closest('tr')
+          const inputs = section.querySelectorAll('input:not([type="checkbox"])')
+          inputs.forEach((input) => {
+            // input.required = checkbox.checked;
+            input.disabled = !checkbox.checked
+          })
+        })
+      }
+
+      function makeTextareaAutoExpand(textarea) {
+        console.log(textarea)
+        // Set initial height
+        textarea.style.height = 'auto'
+        textarea.style.height = Math.min(textarea.scrollHeight + 10, 500) + 'px'
+
+        // Function to update height as content changes
+        function updateHeight() {
+          textarea.style.height = 'auto'
+          textarea.style.height = Math.min(textarea.scrollHeight + 10, 500) + 'px'
+        }
+
+        // Add event listeners for input and change events
+        textarea.addEventListener('input', updateHeight)
+        textarea.addEventListener('change', updateHeight)
+
+        // Initial call to set the correct height
+        updateHeight()
+      }
+
+      // Initialize everything when document is ready
+      $(document).ready(function () {
+        // Initialize all managers
+        ModalManager.initialize()
+        NotificationManager.initialize()
+
+        // Initialize form components
+        initializeFileUpload()
+        initializeFormFields()
+        setupProjectFormEventListeners()
+
+        const notesTextarea = document.getElementById('additionalinformationnotes')
+        if (notesTextarea) {
+          makeTextareaAutoExpand(notesTextarea)
+        }
+        // Check for existing session
+        const token = sessionStorage.getItem('token')
+        if (token) {
+          console.log('trying to login')
+          const loginData = {
+            token,
+          }
+          $('#msg').show()
+          $('#msg').html(`Trying to auto login ...`)
+
+          google.script.run
+            .withSuccessHandler((info) => {
+              console.log(info)
+              sessionStorage.setItem('token', info.user.currentToken)
+              currentUser = info.user
+              tableData = info.data
+              showDashboard()
+            })
+            .withFailureHandler((error) => {
+              $('#msg').hide()
+              $('#errscssmsg').html(`Auto login failed. Do login manually`)
+              $('#errscssmsg').show()
+            })
+            .login(loginData)
+        } else {
+          showLogin()
+        }
+
+        // Add form edit mode detection
+        const urlParams = new URLSearchParams(window.location.search)
+        const projectId = urlParams.get('project')
+        if (projectId) {
+          handleEditProject(projectId)
+        }
+
+        // Setup navigation handlers
+        document.getElementById('newProjectBtn').addEventListener('click', () => {
+          resetProjectForm()
+          showProjectForm(false)
+        })
+
+        document.getElementById('backToDashboard').addEventListener('click', () => {
+          showDashboard()
+        })
+
+        // Handle logout
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'token' && !e.newValue) {
+            showLogin()
+          }
+        })
+
+        setupEventListeners()
+      })
+      // Login handling
+      // Dashboard data loading and display
+      // Project form handling
+      // File upload handling
+      // Modal handling
+      // Status update handling
+      // Etc.
+    </script>
+  </body>
+</html>
