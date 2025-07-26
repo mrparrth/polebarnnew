@@ -1,55 +1,88 @@
 export const DEV_ENV = typeof google === 'undefined'
-export const MAX_SYNC_RETRY_ATTEMPTS = 5
-export const DEFAULT_MOCK_API_DELAY = 0 // Delay in ms for mock API calls
-export const DEFAULT_MOCK_API_BATCH_DELAY = 1000 // Delay in ms for mock API batch calls
-export const IDLE_SYNC_WAIT_TIME = 0.25 * 60 * 1000 // Wait for idle time to start syncing
-export const APP_DATA_REFRESH_THRESHOLD = 3 * 60 * 1000 // 5 minutes
-
-export const PILLAR_COLORS = {
-  '1-effective-communication': {
-    deep: 'deep-orange-lighten-1',
-    light: 'deep-orange-lighten-3',
-  },
-  '2-engaging-culture-experience': { deep: 'blue', light: 'blue-lighten-3' },
-  '3-maximize-employee-productivity': {
-    deep: 'amber',
-    light: 'amber-lighten-3',
-  },
-}
-
-export const NOTIFICATION_TYPES = {
-  SNACKBAR: 'snackbar',
-  ALERT: 'alert',
-  CONFIRM: 'confirm',
-  PROMPT: 'prompt',
-  URL: 'dialog',
-  TOAST: 'toast',
-}
-
-export const NOTIFICATION_STYLES = {
-  INFO: 'info',
-  SUCCESS: 'success',
-  ERROR: 'error',
-  WARNING: 'warning',
-}
-
-export const OPERATION_TYPES = {
-  CREATE: 'create',
-  UPDATE: 'update',
-  DELETE: 'delete',
-  LINK: 'link',
-}
-
-export const OP_STATUS = {
-  PENDING: 'pending',
-  IN_PROGRESS: 'in_progress',
-  SUCCESS: 'success',
-  FAILED: 'failed',
-}
-
-export const OPERATION_PRIORITY = {
-  [OPERATION_TYPES.CREATE]: 1,
-  [OPERATION_TYPES.UPDATE]: 2,
-  [OPERATION_TYPES.LINK]: 3,
-  [OPERATION_TYPES.DELETE]: 4,
+export const DEFAULT_MOCK_API_DELAY = 3000
+export const STATUSES = [
+  'New Request',
+  'Accepted',
+  'In Progress',
+  'For Review by BW',
+  'Approved by BW',
+  'Rework',
+  'S&S',
+  'Delivered',
+  'Archived',
+]
+export const BLANK_FORM_DATA = {
+  projectId: '',
+  status: '',
+  clientName: '',
+  projectName: '',
+  siteAddress: '',
+  city: '',
+  state: '',
+  country: '',
+  zip: '',
+  opbSize: '',
+  opbPostSpacing: '',
+  opbPostSize: '',
+  opbMainBldGpitch: '',
+  opbMetalRoofPanelGauge: '',
+  opbConnectSlab: '',
+  epbSize: '',
+  epbPostSpacing: '',
+  epbPostSize: '',
+  epbMainBldGpitch: '',
+  epbMetalRoofPanelGauge: '',
+  epbConnectSlab: '',
+  pepbSize: '',
+  pepbPostSpacing: '',
+  pepbPostSize: '',
+  pepbMainBldGpitch: '',
+  pepbMetalRoofPanelGauge: '',
+  pepbConnectSlab: '',
+  trussSize: '',
+  trussPostSpacing: '',
+  trussPostSize: '',
+  trussMainBldGpitch: '',
+  trussMetalRoofPanelGauge: '',
+  trussConnectSlab: '',
+  overhangType: '',
+  overhangValue: '',
+  riskCategory: '',
+  exposureCategory: '',
+  plywoodOnSiding: '',
+  plywoodOnRoof: '',
+  windSpeed: '',
+  wetMapAndSeal: false,
+  studSpacing: '',
+  studSpacingCustomValue: '',
+  price: '',
+  // Add-Ons
+  addOnDoorSelected: false,
+  addOnDoorEpbQty: '',
+  addOnDoorEpbSize: '',
+  addOnDoorPepbQty: '',
+  addOnDoorPepbSize: '',
+  addOnWindowSelected: false,
+  addOnWindowEpbQty: '',
+  addOnWindowEpbSize: '',
+  addOnWindowPepbQty: '',
+  addOnWindowPepbSize: '',
+  addOnLeanToSelected: false,
+  addOnLeanToOpbSize: '',
+  addOnLeanToOpbPitch: '',
+  addOnLeanToOpbSlab: '',
+  addOnLeanToOpbPostSize: '',
+  addOnLeanToEpbSize: '',
+  addOnLeanToEpbPitch: '',
+  addOnLeanToEpbSlab: '',
+  addOnLeanToEpbPostSize: '',
+  addOnLeanToPepbSize: '',
+  addOnLeanToPepbPitch: '',
+  addOnLeanToPepbSlab: '',
+  addOnLeanToPepbPostSize: '',
+  orderedBy: '',
+  signature: '',
+  orderDate: '',
+  additionalInformation: '',
+  driveFolder: '',
 }

@@ -1,17 +1,17 @@
 <template>
-  <v-container class="project-form-bg fill-height d-flex align-center justify-center">
+  <v-container class="project-form-bg d-flex">
     <v-row justify="center" align="center" class="fill-height">
-      <v-col cols="12" md="11" lg="10" xl="9">
+      <v-col cols="12">
         <v-card elevation="8" class="pa-0 rounded-xl main-form-card">
           <!-- Header Bar -->
           <v-sheet class="header-bar d-flex align-center px-6 py-4" elevation="0">
             <v-img
               src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg"
-              width="90"
-              class="mr-4"
-              style="border-radius: 8px"
+              height="100"
+              width="100"
+              class="mr-10 rounded-lg"
             />
-            <div class="flex-grow-1 text-center">
+            <div class="flex-grow-1 text-center mr-10">
               <h2 class="form-title mb-0">Site Specific Pole Barn Order Form & Agreement</h2>
             </div>
             <v-btn color="primary" variant="flat" class="ml-auto" @click="goToDashboard"
@@ -22,58 +22,121 @@
           <!-- Status and Order Information Section -->
           <v-sheet class="page-section" elevation="1">
             <div class="section-header mb-4">Ceed Civil Engineering Project</div>
-            <v-select
-              v-model="form.status"
-              :items="statuses"
-              label="Status"
-              class="mb-4"
-              dense
-              variant="outlined"
-              hide-details
-              full-width
-            />
+            <v-row>
+              <v-col cols="12" md="6" v-if="isEdit">
+                <v-text-field
+                  v-model="form.projectId"
+                  label="Project ID"
+                  variant="outlined"
+                  dense
+                  required
+                  name="projectId"
+                  disabled
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="form.status"
+                  :items="STATUSES"
+                  label="Status"
+                  class="mb-4"
+                  dense
+                  variant="outlined"
+                  hide-details
+                  full-width
+                  name="status"
+                  :error-messages="fieldErrors.status"
+                  :error="!!fieldErrors.status"
+                />
+              </v-col>
+            </v-row>
             <div class="section-header mb-2">Order Information</div>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.cname" label="Client Name" dense variant="outlined" />
+                <v-text-field
+                  v-model="form.clientName"
+                  label="Client Name"
+                  dense
+                  variant="outlined"
+                  required
+                  name="clientName"
+                  :error-messages="fieldErrors.clientName"
+                  :error="!!fieldErrors.clientName"
+                />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="form.projectname"
+                  v-model="form.projectName"
                   label="Project Name"
                   dense
                   variant="outlined"
+                  required
+                  name="projectName"
+                  :error-messages="fieldErrors.projectName"
+                  :error="!!fieldErrors.projectName"
                 />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="form.siteaddress"
+                  v-model="form.siteAddress"
                   label="Site Address"
                   dense
                   variant="outlined"
+                  required
+                  name="siteAddress"
+                  :error-messages="fieldErrors.siteAddress"
+                  :error="!!fieldErrors.siteAddress"
                 />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.city" label="City" dense variant="outlined" />
+                <v-text-field
+                  v-model="form.city"
+                  label="City"
+                  dense
+                  variant="outlined"
+                  required
+                  name="city"
+                  :error-messages="fieldErrors.city"
+                  :error="!!fieldErrors.city"
+                />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" md="4">
-                <v-select
+                <v-combobox
                   v-model="form.state"
                   :items="states"
                   label="Type or select a state"
                   dense
                   variant="outlined"
+                  name="state"
+                  :error-messages="fieldErrors.state"
+                  :error="!!fieldErrors.state"
                 />
               </v-col>
               <v-col cols="12" md="4">
-                <v-text-field v-model="form.country" label="Country" dense variant="outlined" />
+                <v-text-field
+                  v-model="form.country"
+                  label="Country"
+                  dense
+                  variant="outlined"
+                  name="country"
+                  :error-messages="fieldErrors.country"
+                  :error="!!fieldErrors.country"
+                />
               </v-col>
               <v-col cols="12" md="4">
-                <v-text-field v-model="form.zip" label="Zip" dense variant="outlined" />
+                <v-text-field
+                  v-model="form.zip"
+                  label="Zip"
+                  dense
+                  variant="outlined"
+                  name="zip"
+                  :error-messages="fieldErrors.zip"
+                  :error="!!fieldErrors.zip"
+                />
               </v-col>
             </v-row>
           </v-sheet>
@@ -92,285 +155,147 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th class="scope-label">Size</th>
-                    <td>
+                  <tr v-for="row in scopeOfWorkRows" :key="row.label">
+                    <th class="scope-label">{{ row.label }}</th>
+                    <td v-for="column in scopeColumns" :key="column.key">
+                      <div
+                        v-if="row.key === 'Size'"
+                        class="sow-input-container"
+                        tabindex="0"
+                        :name="`${column.key}${row.key}`"
+                        :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        @click="focusFirstInput('size', `${column.key}${row.key}`)"
+                        @focusin="activeColumns[column.key] = true"
+                      >
+                        <input
+                          v-model="sizeInputs[`${column.key}${row.key}`].l"
+                          :name="`size-${column.key}${row.key}-l`"
+                          type="number"
+                          min="1"
+                          class="sow-input"
+                          :placeholder="activeColumns[column.key] ? 'L' : ''"
+                          inputmode="numeric"
+                          @click.stop
+                        />
+                        <span class="sow-separator">{{
+                          activeColumns[column.key] ? 'x' : ''
+                        }}</span>
+                        <input
+                          v-model="sizeInputs[`${column.key}${row.key}`].w"
+                          type="number"
+                          min="1"
+                          class="sow-input"
+                          :placeholder="activeColumns[column.key] ? 'W' : ''"
+                          inputmode="numeric"
+                          @click.stop
+                        />
+                        <span class="sow-separator">{{
+                          activeColumns[column.key] ? 'x' : ''
+                        }}</span>
+                        <input
+                          v-model="sizeInputs[`${column.key}${row.key}`].h"
+                          type="number"
+                          min="1"
+                          class="sow-input"
+                          :placeholder="activeColumns[column.key] ? 'H' : ''"
+                          inputmode="numeric"
+                          @click.stop
+                        />
+                      </div>
+
+                      <div
+                        v-else-if="row.key === 'PostSpacing'"
+                        class="sow-input-container justify-start"
+                        tabindex="0"
+                        :name="`${column.key}${row.key}`"
+                        :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        @click="focusFirstInput('postSpacing', `${column.key}${row.key}`)"
+                        @focusin="activeColumns[column.key] = true"
+                      >
+                        <input
+                          v-model="postSpacingInputs[`${column.key}${row.key}`].value"
+                          :name="`postSpacing-${column.key}${row.key}`"
+                          type="number"
+                          min="1"
+                          class="sow-input"
+                          :placeholder="activeColumns[column.key] ? '' : ''"
+                          inputmode="numeric"
+                          @click.stop
+                        />
+                        <span class="sow-separator">{{
+                          activeColumns[column.key] ? "'" : ''
+                        }}</span>
+                      </div>
+
+                      <div
+                        v-else-if="row.key === 'PostSize'"
+                        class="sow-input-container justify-start"
+                        tabindex="0"
+                        :name="`${column.key}${row.key}`"
+                        :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        @click="focusFirstInput('postSize', `${column.key}${row.key}`)"
+                        @focusin="activeColumns[column.key] = true"
+                      >
+                        <input
+                          v-model="postSizeInputs[`${column.key}${row.key}`].h"
+                          :name="`postSize-${column.key}${row.key}-h`"
+                          type="number"
+                          min="1"
+                          class="sow-input"
+                          :placeholder="activeColumns[column.key] ? 'H' : ''"
+                          inputmode="numeric"
+                          @click.stop
+                        />
+                        <span class="sow-separator">{{
+                          activeColumns[column.key] ? 'x' : ''
+                        }}</span>
+                        <input
+                          v-model="postSizeInputs[`${column.key}${row.key}`].w"
+                          type="number"
+                          min="1"
+                          class="sow-input"
+                          :placeholder="activeColumns[column.key] ? 'W' : ''"
+                          inputmode="numeric"
+                          @click.stop
+                        />
+                      </div>
+
+                      <div
+                        v-else-if="row.key === 'MainBldGpitch'"
+                        class="sow-input-container justify-start"
+                        tabindex="0"
+                        :name="`${column.key}${row.key}`"
+                        :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        @click="focusFirstInput('mainBldgPitch', `${column.key}${row.key}`)"
+                        @focusin="activeColumns[column.key] = true"
+                      >
+                        <input
+                          v-model="mainBldgPitchInputs[`${column.key}${row.key}`].value"
+                          :name="`mainBldgPitch-${column.key}${row.key}`"
+                          type="number"
+                          min="1"
+                          class="sow-input"
+                          :placeholder="activeColumns[column.key] ? '' : ''"
+                          inputmode="numeric"
+                          @click.stop
+                        />
+                        <span class="sow-separator">{{
+                          activeColumns[column.key] ? '/12' : ''
+                        }}</span>
+                      </div>
+
                       <v-text-field
-                        v-model="form.openpolebarnsize"
-                        id="openpolebarnsize"
-                        name="openpolebarnsize"
+                        v-else
+                        v-model="form[`${column.key}${row.key}`]"
+                        :id="`${column.key}${row.key}`"
+                        :name="`${column.key}${row.key}`"
                         dense
                         variant="outlined"
                         hide-details
                         class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.enclosedpolesize"
-                        id="enclosedpolesize"
-                        name="enclosedpolesize"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.partialyenclosedsize"
-                        id="partialyenclosedsize"
-                        name="partialyenclosedsize"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.trussonlysize"
-                        id="trussonlysize"
-                        name="trussonlysize"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th class="scope-label">Post Spacing</th>
-                    <td>
-                      <v-text-field
-                        v-model="form.postspacingopenpolebarn"
-                        id="postspacingopenpolebarn"
-                        name="postspacingopenpolebarn"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.postspacingenclosedpole"
-                        id="postspacingenclosedpole"
-                        name="postspacingenclosedpole"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.postspacingpartialyenclosed"
-                        id="postspacingpartialyenclosed"
-                        name="postspacingpartialyenclosed"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.postspacingtrussonly"
-                        id="postspacingtrussonly"
-                        name="postspacingtrussonly"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th class="scope-label">Post Size</th>
-                    <td>
-                      <v-text-field
-                        v-model="form.postsizeopenpolebarn"
-                        id="postsizeopenpolebarn"
-                        name="postsizeopenpolebarn"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.postsizeenclosedpole"
-                        id="postsizeenclosedpole"
-                        name="postsizeenclosedpole"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.postsizepartialyenclosed"
-                        id="postsizepartialyenclosed"
-                        name="postsizepartialyenclosed"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.postsizetrussonly"
-                        id="postsizetrussonly"
-                        name="postsizetrussonly"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th class="scope-label">Main Bldg. Pitch</th>
-                    <td>
-                      <v-text-field
-                        v-model="form.maibbldgpitchopenpolebarn"
-                        id="maibbldgpitchopenpolebarn"
-                        name="maibbldgpitchopenpolebarn"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.maibbldgpitchenclosedpole"
-                        id="maibbldgpitchenclosedpole"
-                        name="maibbldgpitchenclosedpole"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.maibbldgpitchpartialyenclosed"
-                        id="maibbldgpitchpartialyenclosed"
-                        name="maibbldgpitchpartialyenclosed"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.maibbldgpitchtrussonly"
-                        id="maibbldgpitchtrussonly"
-                        name="maibbldgpitchtrussonly"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th class="scope-label">Metal Roof Panel Gauge</th>
-                    <td>
-                      <v-text-field
-                        v-model="form.metalroofpanelgaugeopenpolebarn"
-                        id="metalroofpanelgaugeopenpolebarn"
-                        name="metalroofpanelgaugeopenpolebarn"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.metalroofpanelgaugeenclosedpole"
-                        id="metalroofpanelgaugeenclosedpole"
-                        name="metalroofpanelgaugeenclosedpole"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.metalroofpanelgaugepartialyenclosed"
-                        id="metalroofpanelgaugepartialyenclosed"
-                        name="metalroofpanelgaugepartialyenclosed"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.metalroofpanelgaugetrussonly"
-                        id="metalroofpanelgaugetrussonly"
-                        name="metalroofpanelgaugetrussonly"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th class="scope-label">Concrete Slab (Y/N)</th>
-                    <td>
-                      <v-text-field
-                        v-model="form.connectslabopenpolebarn"
-                        id="connectslabopenpolebarn"
-                        name="connectslabopenpolebarn"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.connectslabenclosedpole"
-                        id="connectslabenclosedpole"
-                        name="connectslabenclosedpole"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.connectslabpartialyenclosed"
-                        id="connectslabpartialyenclosed"
-                        name="connectslabpartialyenclosed"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        v-model="form.connectslabtrussonly"
-                        id="connectslabtrussonly"
-                        name="connectslabtrussonly"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="scope-input"
+                        :error-messages="fieldErrors[`${column.key}${row.key}`]"
+                        :error="!!fieldErrors[`${column.key}${row.key}`]"
+                        @focus="activeColumns[column.key] = true"
                       />
                     </td>
                   </tr>
@@ -378,32 +303,50 @@
               </table>
             </div>
 
-            <!-- Overhang radios below the table -->
             <div class="fake-table-row mb-4">
               <div class="scope-label overhang-label">Overhang</div>
               <div class="overhang-controls">
-                <v-radio-group v-model="form.overhangtype" inline hide-details>
+                <v-radio-group
+                  v-model="form.overhangType"
+                  inline
+                  hide-details
+                  name="overhangtype"
+                  :error-messages="fieldErrors.overhangType"
+                  :error="!!fieldErrors.overhangType"
+                >
                   <v-radio label="Standard" value="standard" />
                   <div style="display: inline-flex; align-items: center">
                     <v-radio label="Custom" value="custom" />
                     <v-text-field
-                      v-if="form.overhangtype === 'custom'"
-                      v-model="form.overhangvalue"
-                      label="Value"
+                      v-if="form.overhangType === 'custom'"
+                      v-model="form.overhangValue"
+                      label="Custom Overhang"
                       dense
                       variant="outlined"
                       hide-details
-                      style="width: 100px; margin-left: 8px"
+                      name="overhangValue"
+                      :error-messages="fieldErrors.overhangValue"
+                      :error="!!fieldErrors.overhangValue"
+                      style="width: 170px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
                     />
                   </div>
                 </v-radio-group>
               </div>
             </div>
 
-            <!-- Risk, Exposure, Plywood, Wind, Stud Spacing -->
-            <v-row class="mb-2">
+            <hr class="section-divider" />
+
+            <v-row>
               <v-col cols="12" md="3">
-                <v-radio-group v-model="form.riskcategory" row label="Risk Category" class="mb-2">
+                <v-radio-group
+                  v-model="form.riskCategory"
+                  row
+                  label="Risk Category"
+                  inline
+                  name="riskCategory"
+                  :error-messages="fieldErrors.riskCategory"
+                  :error="!!fieldErrors.riskCategory"
+                >
                   <v-radio
                     v-for="n in [1, 2, 3, 4]"
                     :key="n"
@@ -414,10 +357,13 @@
               </v-col>
               <v-col cols="12" md="3">
                 <v-radio-group
-                  v-model="form.exposurecategory"
+                  v-model="form.exposureCategory"
                   row
                   label="Exposure Category"
-                  class="mb-2"
+                  inline
+                  name="exposureCategory"
+                  :error-messages="fieldErrors.exposureCategory"
+                  :error="!!fieldErrors.exposureCategory"
                 >
                   <v-radio
                     v-for="cat in ['A', 'B', 'C', 'D']"
@@ -429,184 +375,355 @@
               </v-col>
               <v-col cols="12" md="3">
                 <v-radio-group
-                  v-model="form.plywoodonsiding"
+                  v-model="form.plywoodOnSiding"
                   row
                   label="Plywood On Siding"
-                  class="mb-2"
-                >
-                  <v-radio label="Yes" value="Yes" />
-                  <v-radio label="No" value="No" />
-                </v-radio-group>
-                <v-radio-group
-                  v-model="form.plywoodonroof"
-                  row
-                  label="Plywood On Roof"
-                  class="mb-2"
+                  inline
+                  name="plywoodOnSiding"
+                  :error-messages="fieldErrors.plywoodOnSiding"
+                  :error="!!fieldErrors.plywoodOnSiding"
                 >
                   <v-radio label="Yes" value="Yes" />
                   <v-radio label="No" value="No" />
                 </v-radio-group>
               </v-col>
               <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.windspeed"
-                  label="Wind Speed"
-                  dense
-                  variant="outlined"
-                />
-                <v-checkbox v-model="form.wetmapandseal" label="Wet Stamp And Seal" />
                 <v-radio-group
-                  v-model="form.studspacing"
+                  v-model="form.plywoodOnRoof"
+                  row
+                  label="Plywood On Roof"
+                  inline
+                  name="plywoodOnRoof"
+                  :error-messages="fieldErrors.plywoodOnRoof"
+                  :error="!!fieldErrors.plywoodOnRoof"
+                >
+                  <v-radio label="Yes" value="Yes" />
+                  <v-radio label="No" value="No" />
+                </v-radio-group>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-radio-group
+                  v-model="form.studSpacing"
                   row
                   label="2 x 6 Stud Spacing"
-                  class="mb-2"
+                  inline
+                  name="studSpacing"
+                  :error-messages="fieldErrors.studSpacing"
+                  :error="!!fieldErrors.studSpacing"
                 >
-                  <v-radio label="16" value="16" />
-                  <v-radio label="24" value="24" />
-                  <v-radio label="Custom" value="custom" />
+                  <v-radio label="16" value="16" class="mr-3 my-3" />
+                  <v-radio label="24" value="24" class="mr-3 my-3" />
+                  <div style="display: inline-flex; align-items: center">
+                    <v-radio label="Custom" value="custom" />
+                    <v-text-field
+                      v-if="form.studSpacing === 'custom'"
+                      v-model="form.studSpacingCustomValue"
+                      label="Custom Stud Spacing"
+                      dense
+                      variant="outlined"
+                      hide-details
+                      name="studSpacingCustomValue"
+                      :error-messages="fieldErrors.studSpacingCustomValue"
+                      :error="!!fieldErrors.studSpacingCustomValue"
+                      style="width: 200px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
+                    />
+                  </div>
                 </v-radio-group>
-                <v-text-field
-                  v-if="form.studspacing === 'custom'"
-                  v-model="form.studspacingcustomvalue"
-                  label="Custom Stud Spacing Value"
-                  dense
-                  variant="outlined"
-                />
               </v-col>
-            </v-row>
 
-            <!-- Add-ons -->
-            <div class="form-section-title mt-8 mb-2">ADD-ONS</div>
-            <v-row class="mb-2">
-              <v-col cols="12" md="4">
-                <v-checkbox v-model="form.selectaddonsfordoors" label="Doors" />
-                <v-row v-if="form.selectaddonsfordoors">
+              <v-col cols="12" md="6">
+                <div class="section-header mb-2" style="min-height: 24px"></div>
+                <v-row>
                   <v-col cols="6">
-                    <v-text-field
-                      v-model="form.addonsfordoorsquantityenclosedpole"
-                      label="Quantity"
-                      dense
-                      variant="outlined"
-                    />
+                    <div
+                      class="sow-input-container justify-start"
+                      tabindex="0"
+                      :class="{ error: !!fieldErrors.windSpeed }"
+                      @click="focusFirstInput('windSpeed', 'windSpeed')"
+                    >
+                      <input
+                        v-model="windSpeedInput.value"
+                        name="windSpeed"
+                        type="number"
+                        min="1"
+                        class="sow-input"
+                        placeholder=""
+                        inputmode="numeric"
+                        @click.stop
+                      />
+                      <span class="sow-separator">MPH</span>
+                      <div v-if="fieldErrors.windSpeed" class="error-message">
+                        {{ fieldErrors.windSpeed }}
+                      </div>
+                    </div>
                   </v-col>
-                  <v-col cols="6">
-                    <v-text-field
-                      v-model="form.addonsfordoorssizeenclosedpole"
-                      label="Size"
-                      dense
-                      variant="outlined"
-                    />
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-checkbox v-model="form.selectaddonsforwindows" label="Windows" />
-                <v-row v-if="form.selectaddonsforwindows">
-                  <v-col cols="6">
-                    <v-text-field
-                      v-model="form.addonsforwindowsquantityenclosedpole"
-                      label="Quantity"
-                      dense
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col cols="6">
-                    <v-text-field
-                      v-model="form.addonsforwindowssizeenclosedpole"
-                      label="Size"
-                      dense
-                      variant="outlined"
-                    />
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-checkbox v-model="form.selectaddonsforleanto" label="Lean-To" />
-                <v-row v-if="form.selectaddonsforleanto">
-                  <v-col cols="6">
-                    <v-text-field
-                      v-model="form.addonsleantoopenpolebarnsize"
-                      label="Size"
-                      dense
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col cols="6">
-                    <v-text-field
-                      v-model="form.addonsleantoopenpolebarnpitch"
-                      label="Pitch"
-                      dense
-                      variant="outlined"
-                    />
+                  <v-col cols="6" class="d-flex align-center">
+                    <v-checkbox v-model="form.wetMapAndSeal" label="Wet Stamp And Seal" />
                   </v-col>
                 </v-row>
               </v-col>
             </v-row>
+          </v-sheet>
 
-            <!-- Ordered by, Signature, Date, Notes -->
-            <v-row class="mb-2">
+          <v-sheet class="page-section" elevation="1">
+            <div class="section-header">ADD-ONS</div>
+            <div class="addons-table-wrapper">
+              <table class="addons-table">
+                <thead>
+                  <tr>
+                    <th class="addons-header">Add-On</th>
+                    <th class="addons-header">Open Pole Barn</th>
+                    <th class="addons-header">Enclosed Pole</th>
+                    <th class="addons-header">Partially Enclosed Pole Barn</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="addon in addonsConfig" :key="addon.key">
+                    <th class="addons-label">
+                      <v-checkbox
+                        v-model="form[addon.checkboxKey]"
+                        :label="addon.label"
+                        hide-details
+                      />
+                    </th>
+                    <td v-for="column in addonColumns" :key="column.key" class="addons-cell">
+                      <div v-if="addon.type === 'simple' && column.key === 'Opb'" class="na-text">
+                        N/A
+                      </div>
+                      <div v-else-if="addon.type === 'simple'" class="addons-inputs">
+                        <v-text-field
+                          v-model="form[`${addon.key}${column.key}Qty`]"
+                          :name="`${addon.key}${column.key}Qty`"
+                          label="Quantity"
+                          dense
+                          variant="outlined"
+                          hide-details
+                          :disabled="!form[addon.checkboxKey]"
+                          :error="!!fieldErrors[`${addon.key}${column.key}Qty`]"
+                        />
+                        <v-text-field
+                          v-model="form[`${addon.key}${column.key}Size`]"
+                          :name="`${addon.key}${column.key}Size`"
+                          label="Size"
+                          dense
+                          variant="outlined"
+                          hide-details
+                          :disabled="!form[addon.checkboxKey]"
+                          :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
+                        />
+                      </div>
+                      <div v-else-if="addon.type === 'complex'" class="addons-inputs">
+                        <v-text-field
+                          v-model="form[`${addon.key}${column.key}Size`]"
+                          :name="`${addon.key}${column.key}Size`"
+                          label="Size"
+                          dense
+                          variant="outlined"
+                          hide-details
+                          :disabled="!form[addon.checkboxKey]"
+                          :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
+                        />
+                        <v-text-field
+                          v-model="form[`${addon.key}${column.key}Pitch`]"
+                          :name="`${addon.key}${column.key}Pitch`"
+                          label="Pitch"
+                          dense
+                          variant="outlined"
+                          hide-details
+                          :disabled="!form[addon.checkboxKey]"
+                          :error="!!fieldErrors[`${addon.key}${column.key}Pitch`]"
+                        />
+                        <div class="slab-section">
+                          <div class="slab-label">Slab</div>
+                          <v-radio-group
+                            v-model="form[`${addon.key}${column.key}Slab`]"
+                            inline
+                            hide-details
+                          >
+                            <v-radio
+                              label="Yes"
+                              value="Yes"
+                              :name="`${addon.key}${column.key}Slab`"
+                              :disabled="!form[addon.checkboxKey]"
+                              :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
+                            />
+                            <v-radio
+                              label="No"
+                              value="No"
+                              :name="`${addon.key}${column.key}Slab`"
+                              :disabled="!form[addon.checkboxKey]"
+                              :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
+                            />
+                            <v-radio
+                              label="N/A"
+                              value="N/A"
+                              :name="`${addon.key}${column.key}Slab`"
+                              :disabled="!form[addon.checkboxKey]"
+                              :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
+                            />
+                          </v-radio-group>
+                        </div>
+                        <v-text-field
+                          v-model="form[`${addon.key}${column.key}PostSize`]"
+                          :name="`${addon.key}${column.key}PostSize`"
+                          label="Post Size"
+                          dense
+                          variant="outlined"
+                          hide-details
+                          :disabled="!form[addon.checkboxKey]"
+                          :error="!!fieldErrors[`${addon.key}${column.key}PostSize`]"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </v-sheet>
+
+          <v-sheet class="page-section" elevation="1">
+            <div class="section-header">Order Information & Signature</div>
+            <v-row>
               <v-col cols="12" md="4">
                 <v-text-field
-                  v-model="form.orderedby"
+                  v-model="form.orderedBy"
                   label="Ordered by"
                   dense
                   variant="outlined"
+                  name="orderedBy"
+                  :error-messages="fieldErrors.orderedBy"
+                  :error="!!fieldErrors.orderedBy"
                 />
               </v-col>
               <v-col cols="12" md="4">
-                <v-text-field v-model="form.signature" label="Signature" dense variant="outlined" />
+                <v-text-field
+                  v-model="form.signature"
+                  label="Signature"
+                  dense
+                  variant="outlined"
+                  name="signature"
+                  :error-messages="fieldErrors.signature"
+                  :error="!!fieldErrors.signature"
+                />
               </v-col>
               <v-col cols="12" md="4">
                 <v-text-field
-                  v-model="form.orderdate"
+                  v-model="form.orderDate"
                   label="Order Date"
                   type="date"
                   dense
                   variant="outlined"
+                  name="orderdate"
+                  :error-messages="fieldErrors.orderdate"
+                  :error="!!fieldErrors.orderdate"
                 />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12">
                 <v-textarea
-                  v-model="form.additionalinformationnotes"
+                  v-model="form.additionalInformation"
                   label="Additional Information/Notes"
-                  rows="2"
+                  rows="4"
                   dense
                   variant="outlined"
+                  name="additionalInformation"
+                  :error-messages="fieldErrors.additionalInformation"
+                  :error="!!fieldErrors.additionalInformation"
+                  auto-grow
                 />
               </v-col>
             </v-row>
-
-            <!-- Upload Sketch -->
-            <div class="upload-title mt-8 mb-2">Page 2 - Upload Sketch</div>
+            <hr class="section-divider" />
+            <div class="upload-header-container mb-4">
+              <div class="upload-title">Page 2 - Upload Sketch</div>
+              <v-btn
+                v-if="form.driveFolder"
+                class="view-folder-btn"
+                prepend-icon="mdi-folder-open"
+                color="primary"
+                variant="outlined"
+                :href="form.driveFolder"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View Folder
+              </v-btn>
+            </div>
             <v-file-input
-              v-model="form.files"
+              v-model="files"
               label="Upload Files"
               multiple
               show-size
               prepend-icon="mdi-upload"
               variant="outlined"
-              class="mb-2"
+              @change="handleFileUpload"
+              hide-details
             />
 
-            <div class="text-center mt-8">
-              <v-btn
-                color="red darken-2"
-                type="submit"
-                size="large"
-                class="px-10 py-4 text-white font-weight-bold"
-                >Submit</v-btn
-              >
-            </div>
+            <!-- File Preview Area -->
+            <div v-if="uploadedFiles.length > 0" class="file-preview-area mt-4">
+              <div class="file-preview-grid">
+                <div v-for="file in uploadedFiles" :key="file.id" class="file-preview-card">
+                  <div v-if="file.isImage" class="image-preview">
+                    <img :src="file.preview || file.url" :alt="file.name" class="thumbnail-image" />
+                    <v-btn
+                      icon="mdi-close"
+                      size="small"
+                      color="error"
+                      class="remove-btn"
+                      @click="removeFileById(file.id)"
+                    />
+                  </div>
 
-            <v-alert v-if="errorMessage" type="error" variant="tonal" class="mt-4">{{
-              errorMessage
-            }}</v-alert>
-            <v-alert v-if="successMessage" type="success" variant="tonal" class="mt-4">{{
-              successMessage
-            }}</v-alert>
+                  <div v-else class="file-icon-preview">
+                    <v-icon size="48" color="primary">mdi-file-document</v-icon>
+                    <a :href="file.url" target="_blank" class="file-name-link">
+                      <div class="file-name">{{ file.name }}</div>
+                    </a>
+                    <v-btn
+                      icon="mdi-close"
+                      size="small"
+                      color="error"
+                      class="remove-btn"
+                      @click="removeFileById(file.id)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </v-sheet>
+
+          <div class="text-center mb-4">
+            <v-btn
+              color="red darken-2"
+              type="submit"
+              size="large"
+              class="px-10 py-4 text-white font-weight-bold"
+              :loading="isSubmitting"
+              :disabled="isSubmitting"
+              @click="handleSubmit"
+            >
+              {{
+                isSubmitting
+                  ? isEdit
+                    ? 'Updating...'
+                    : 'Submitting...'
+                  : isEdit
+                    ? 'Update Project'
+                    : 'Submit Project'
+              }}
+            </v-btn>
+          </div>
+
+          <v-alert v-if="errorMessage" type="error" variant="tonal" class="mt-4">{{
+            errorMessage
+          }}</v-alert>
+          <v-alert v-if="successMessage" type="success" variant="tonal" class="mt-4">{{
+            successMessage
+          }}</v-alert>
         </v-card>
       </v-col>
     </v-row>
@@ -614,89 +731,658 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted, watch, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useProjectStore } from '@/stores/projectStore'
+import { STATUSES, BLANK_FORM_DATA } from '@/global'
+import { API } from '@/services/apiService'
+import { useSnackbar } from '@/composables/useSnackbar'
 
 const router = useRouter()
-
-const states = ['AL', 'FL']
-const statuses = [
-  'New Request',
-  'Accepted',
-  'In Progress',
-  'For Review by BW',
-  'Approved by BW',
-  'Rework',
-  'S&S',
-  'Delivered',
-  'Archived',
-]
-
-const form = reactive({
-  status: '',
-  cname: '',
-  projectname: '',
-  siteaddress: '',
-  city: '',
-  state: '',
-  country: '',
-  zip: '',
-  openpolebarnsize: '',
-  postspacingopenpolebarn: '',
-  postsizeopenpolebarn: '',
-  maibbldgpitchopenpolebarn: '',
-  metalroofpanelgaugeopenpolebarn: '',
-  connectslabopenpolebarn: '',
-  enclosedpolesize: '',
-  postspacingenclosedpole: '',
-  postsizeenclosedpole: '',
-  maibbldgpitchenclosedpole: '',
-  metalroofpanelgaugeenclosedpole: '',
-  connectslabenclosedpole: '',
-  partialyenclosedsize: '',
-  postspacingpartialyenclosed: '',
-  postsizepartialyenclosed: '',
-  maibbldgpitchpartialyenclosed: '',
-  metalroofpanelgaugepartialyenclosed: '',
-  connectslabpartialyenclosed: '',
-  trussonlysize: '',
-  postspacingtrussonly: '',
-  postsizetrussonly: '',
-  maibbldgpitchtrussonly: '',
-  metalroofpanelgaugetrussonly: '',
-  connectslabtrussonly: '',
-  overhangtype: '',
-  overhangvalue: '',
-  riskcategory: '',
-  exposurecategory: '',
-  plywoodonsiding: '',
-  plywoodonroof: '',
-  windspeed: '',
-  wetmapandseal: false,
-  studspacing: '',
-  studspacingcustomvalue: '',
-  projectpricing: '',
-  selectaddonsfordoors: false,
-  addonsfordoorsquantityenclosedpole: '',
-  addonsfordoorssizeenclosedpole: '',
-  selectaddonsforwindows: false,
-  addonsforwindowsquantityenclosedpole: '',
-  addonsforwindowssizeenclosedpole: '',
-  selectaddonsforleanto: false,
-  addonsleantoopenpolebarnsize: '',
-  addonsleantoopenpolebarnpitch: '',
-  orderedby: '',
-  signature: '',
-  orderdate: '',
-  additionalinformationnotes: '',
-  files: [],
-})
+const route = useRoute()
+const projectStore = useProjectStore()
+const { showSnackbar } = useSnackbar()
 
 const errorMessage = ref('')
 const successMessage = ref('')
+const uploadedFiles = ref([])
+const existingImages = ref([])
+const isEdit = ref(false)
+const fieldErrors = ref({})
+const isSubmitting = ref(false)
+const files = ref([])
+
+const states = ['AL', 'FL']
+
+const scopeColumns = [
+  { key: 'opb', label: 'Open Pole Barn' },
+  { key: 'epb', label: 'Enclosed Pole' },
+  { key: 'pepb', label: 'Partially Enclosed Pole Barn' },
+  { key: 'truss', label: 'Truss Only' },
+]
+
+// Add-ons configuration
+const addonColumns = [
+  { key: 'Opb', label: 'Open Pole Barn' },
+  { key: 'Epb', label: 'Enclosed Pole' },
+  { key: 'Pepb', label: 'Partially Enclosed Pole Barn' },
+]
+
+const addonsConfig = [
+  {
+    key: 'addOnDoor',
+    label: 'Doors',
+    checkboxKey: 'addOnDoorSelected',
+    type: 'simple',
+  },
+  {
+    key: 'addOnWindow',
+    label: 'Windows',
+    checkboxKey: 'addOnWindowSelected',
+    type: 'simple',
+  },
+  {
+    key: 'addOnLeanTo',
+    label: 'Lean-To',
+    checkboxKey: 'addOnLeanToSelected',
+    type: 'complex',
+  },
+]
+
+const scopeOfWorkRows = [
+  { key: 'Size', label: 'Size' },
+  { key: 'PostSpacing', label: 'Post Spacing' },
+  { key: 'PostSize', label: 'Post Size' },
+  { key: 'MainBldGpitch', label: 'Main Bldg. Pitch' },
+  { key: 'MetalRoofPanelGauge', label: 'Metal Roof Panel Gauge' },
+  { key: 'ConnectSlab', label: 'Concrete Slab (Y/N)' },
+]
+
+const sizeInputs = reactive({
+  opbSize: { l: '', w: '', h: '' },
+  epbSize: { l: '', w: '', h: '' },
+  pepbSize: { l: '', w: '', h: '' },
+  trussSize: { l: '', w: '', h: '' },
+})
+
+const postSpacingInputs = reactive({
+  opbPostSpacing: { value: '' },
+  epbPostSpacing: { value: '' },
+  pepbPostSpacing: { value: '' },
+  trussPostSpacing: { value: '' },
+})
+
+const postSizeInputs = reactive({
+  opbPostSize: { h: '', w: '' },
+  epbPostSize: { h: '', w: '' },
+  pepbPostSize: { h: '', w: '' },
+  trussPostSize: { h: '', w: '' },
+})
+
+const mainBldgPitchInputs = reactive({
+  opbMainBldGpitch: { value: '' },
+  epbMainBldGpitch: { value: '' },
+  pepbMainBldGpitch: { value: '' },
+  trussMainBldGpitch: { value: '' },
+})
+
+const windSpeedInput = reactive({
+  value: '',
+})
+
+const activeColumns = reactive({
+  opb: false,
+  epb: false,
+  pepb: false,
+  truss: false,
+})
+
+const form = reactive({ ...BLANK_FORM_DATA })
+
+const columnHasData = (columnKey) => {
+  return scopeOfWorkRows.some((row) => {
+    const fieldName = `${columnKey}${row.key}`
+    return form[fieldName] && form[fieldName].toString().trim() !== ''
+  })
+}
+
+function handleFileUpload(event) {
+  if (!event || !event.target || !event.target.files) return
+
+  const filesArray = Array.from(event.target.files)
+
+  filesArray.forEach((file) => {
+    const fileObj = {
+      id: Date.now() + Math.random(),
+      name: file.name,
+      size: file.size,
+      mimeType: file.type,
+      isImage: file.type.startsWith('image/'),
+      preview: null,
+      data: null,
+      file: file,
+    }
+
+    if (fileObj.isImage) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        fileObj.preview = e.target.result
+        fileObj.data = e.target.result.split(',')[1]
+        uploadedFiles.value.push(fileObj)
+      }
+      reader.readAsDataURL(file)
+    } else {
+      uploadedFiles.value.push(fileObj)
+    }
+  })
+}
+
+function removeFileById(id) {
+  const uploadedIndex = uploadedFiles.value.findIndex((f) => f.id === id)
+  if (uploadedIndex !== -1) {
+    uploadedFiles.value.splice(uploadedIndex, 1)
+  }
+
+  const existingIndex = existingImages.value.findIndex((f) => f.id === id)
+  if (existingIndex !== -1) {
+    existingImages.value.splice(existingIndex, 1)
+  }
+}
 
 function goToDashboard() {
   router.push('/dashboard')
+}
+
+function validateRequiredFields() {
+  fieldErrors.value = {}
+
+  const requiredFields = [
+    'clientName',
+    'projectName',
+    'siteAddress',
+    'city',
+    'state',
+    'country',
+    'zip',
+    'riskCategory',
+    'exposureCategory',
+    'plywoodOnSiding',
+    'plywoodOnRoof',
+    'windSpeed',
+    'studSpacing',
+    'orderedBy',
+    'signature',
+    'orderDate',
+  ]
+
+  let hasErrors = false
+
+  for (const field of requiredFields) {
+    if (!form[field] || form[field].toString().trim() === '') {
+      fieldErrors.value[field] = 'This field is required'
+      hasErrors = true
+    }
+  }
+
+  if (
+    form.studSpacing === 'custom' &&
+    (!form.studSpacingCustomValue || form.studSpacingCustomValue.trim() === '')
+  ) {
+    fieldErrors.value.studSpacingCustomValue = 'Please enter custom stud spacing value'
+    hasErrors = true
+  }
+
+  if (form.overhangType === 'custom' && (!form.overhangValue || form.overhangValue.trim() === '')) {
+    fieldErrors.value.overhangValue = 'Please enter custom overhang value'
+    hasErrors = true
+  }
+
+  return hasErrors
+}
+
+function validateScopeOfWork() {
+  const scopeColumns = ['opb', 'epb', 'pepb', 'truss']
+  let hasErrors = false
+
+  for (const column of scopeColumns) {
+    const scopeFields = [
+      'Size',
+      'PostSpacing',
+      'PostSize',
+      'MainBldGpitch',
+      'MetalRoofPanelGauge',
+      'ConnectSlab',
+    ]
+
+    let columnHasValue = false
+    for (const field of scopeFields) {
+      const fieldName = `${column}${field}`
+      if (form[fieldName] && form[fieldName].toString().trim() !== '') {
+        columnHasValue = true
+        break
+      }
+    }
+
+    if (columnHasValue) {
+      for (const field of scopeFields) {
+        const fieldName = `${column}${field}`
+        if (!form[fieldName] || form[fieldName].toString().trim() === '') {
+          fieldErrors.value[fieldName] = 'This field is required'
+          hasErrors = true
+        }
+      }
+    }
+  }
+  return hasErrors
+}
+
+function validateAddOns() {
+  let hasErrors = false
+
+  for (const addon of addonsConfig) {
+    if (form[addon.checkboxKey]) {
+      for (const column of addonColumns) {
+        const columnFields = getColumnFields(addon, column.key)
+
+        if (columnFields.length === 0) continue
+
+        const hasColumnData = columnFields.some(
+          (field) => form[field] && form[field].toString().trim() !== '',
+        )
+
+        if (hasColumnData) {
+          for (const field of columnFields) {
+            if (!form[field] || form[field].toString().trim() === '') {
+              fieldErrors.value[field] = `This field is required for ${addon.label}`
+              hasErrors = true
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return hasErrors
+}
+
+function getColumnFields(addon, columnKey) {
+  if (addon.type === 'simple') {
+    if (columnKey === 'Opb') {
+      return []
+    }
+    return [`${addon.key}${columnKey}Qty`, `${addon.key}${columnKey}Size`]
+  } else if (addon.type === 'complex') {
+    return [
+      `${addon.key}${columnKey}Size`,
+      `${addon.key}${columnKey}Pitch`,
+      `${addon.key}${columnKey}Slab`,
+      `${addon.key}${columnKey}PostSize`,
+    ]
+  }
+  return []
+}
+
+async function handleSubmit() {
+  errorMessage.value = ''
+  successMessage.value = ''
+  isSubmitting.value = true
+
+  const hasRequiredErrors = validateRequiredFields()
+  const hasScopeErrors = validateScopeOfWork()
+  const hasAddonErrors = validateAddOns()
+  if (hasRequiredErrors || hasScopeErrors || hasAddonErrors) {
+    console.log(
+      'hasErrors',
+      hasRequiredErrors || hasScopeErrors || hasAddonErrors,
+      fieldErrors.value,
+    )
+    scrollToFirstError()
+    isSubmitting.value = false
+    return
+  }
+
+  try {
+    let sketchData = uploadedFiles.value.map((file) => ({
+      fileId: file.id,
+      fileName: file.name,
+      mimeType: file.mimeType,
+      data: file.data,
+    }))
+
+    const formData = {
+      ...form,
+      sketchData,
+      existingImages: existingImages.value,
+    }
+
+    console.log('formData', formData)
+
+    if (isEdit.value) {
+      let updatedProject = await API.updateProject(formData)
+      console.log('updatedProject', updatedProject)
+      projectStore.updateProject(formData.projectId, updatedProject)
+      showSnackbar(`Project ${formData.projectId} updated successfully!`, 'success')
+    } else {
+      projectStore.newProject(formData)
+      let newProject = await API.newProject(formData)
+      showSnackbar(`Project ${newProject.data.projectId} created successfully!`, 'success')
+    }
+
+    router.push('/dashboard')
+  } catch (error) {
+    console.error('Error submitting form:', error)
+    errorMessage.value = 'An error occurred while submitting the form'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+function scrollToFirstError() {
+  const firstErrorField = Object.keys(fieldErrors.value)[0]
+  console.log('firstErrorField', firstErrorField)
+  if (firstErrorField) {
+    let element = document.querySelector(`[name="${firstErrorField}"]`)
+    console.log('element', element)
+    if (!element) {
+      element = document.querySelector(`[data-field="${firstErrorField}"]`)
+    }
+
+    if (!element) {
+      element = document.querySelector(`input[name="${firstErrorField}"]`)
+    }
+
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const inputElement = element.querySelector('input') || element
+      inputElement.focus()
+    }
+  }
+}
+
+function parseLWH(val) {
+  if (!val) return { l: '', w: '', h: '' }
+  const match = val.match(/(\d+)\s*[xX*]\s*(\d+)\s*[xX*]\s*(\d+)/)
+  if (match) {
+    return { l: match[1], w: match[2], h: match[3] }
+  }
+  return { l: '', w: '', h: '' }
+}
+
+function parsePostSpacing(val) {
+  if (!val) return { value: '' }
+  const match = val.match(/(\d+)\s*'?/)
+  if (match) {
+    return { value: match[1] }
+  }
+  return { value: '' }
+}
+
+function parsePostSize(val) {
+  if (!val) return { h: '', w: '' }
+  const match = val.match(/(\d+)\s*[xX*]\s*(\d+)/)
+  if (match) {
+    return { h: match[1], w: match[2] }
+  }
+  return { h: '', w: '' }
+}
+
+function parseMainBldgPitch(val) {
+  if (!val) return { value: '' }
+  const match = val.match(/(\d+)\s*\/\s*12/)
+  if (match) {
+    return { value: match[1] }
+  }
+  return { value: '' }
+}
+
+function parseWindSpeed(val) {
+  if (!val) return { value: '' }
+  const match = val.match(/(\d+)\s*MPH/i)
+  if (match) {
+    return { value: match[1] }
+  }
+  return { value: '' }
+}
+
+function focusFirstInput(type, fieldName) {
+  nextTick(() => {
+    let inputElement = null
+
+    switch (type) {
+      case 'size':
+        inputElement = document.querySelector(`[name="size-${fieldName}-l"]`)
+        break
+      case 'postSpacing':
+        inputElement = document.querySelector(`[name="postSpacing-${fieldName}"]`)
+        break
+      case 'postSize':
+        inputElement = document.querySelector(`[name="postSize-${fieldName}-h"]`)
+        break
+      case 'mainBldgPitch':
+        inputElement = document.querySelector(`[name="mainBldgPitch-${fieldName}"]`)
+        break
+      case 'windSpeed':
+        inputElement = document.querySelector(`[name="windSpeed-${fieldName}"]`)
+        break
+    }
+    if (inputElement) {
+      inputElement.focus()
+      inputElement.select()
+    }
+  })
+}
+
+const sizeFields = ['opbSize', 'epbSize', 'pepbSize', 'trussSize']
+const postSpacingFields = [
+  'opbPostSpacing',
+  'epbPostSpacing',
+  'pepbPostSpacing',
+  'trussPostSpacing',
+]
+const postSizeFields = ['opbPostSize', 'epbPostSize', 'pepbPostSize', 'trussPostSize']
+const mainBldgPitchFields = [
+  'opbMainBldGpitch',
+  'epbMainBldGpitch',
+  'pepbMainBldGpitch',
+  'trussMainBldGpitch',
+]
+
+sizeFields.forEach((field) => {
+  watch(
+    () => sizeInputs[field],
+    (newVal) => {
+      const { l, w, h } = newVal
+      if (l && w && h) {
+        form[field] = `${l}x${w}x${h}`
+      } else {
+        form[field] = ''
+      }
+    },
+    { deep: true },
+  )
+
+  watch(
+    () => form[field],
+    (newVal) => {
+      const { l, w, h } = parseLWH(newVal)
+      sizeInputs[field].l = l
+      sizeInputs[field].w = w
+      sizeInputs[field].h = h
+    },
+    { immediate: true },
+  )
+})
+
+postSpacingFields.forEach((field) => {
+  watch(
+    () => postSpacingInputs[field],
+    (newVal) => {
+      const { value } = newVal
+      if (value) {
+        form[field] = `${value}'`
+      } else {
+        form[field] = ''
+      }
+    },
+    { deep: true },
+  )
+
+  watch(
+    () => form[field],
+    (newVal) => {
+      const { value } = parsePostSpacing(newVal)
+      postSpacingInputs[field].value = value
+    },
+    { immediate: true },
+  )
+})
+
+postSizeFields.forEach((field) => {
+  watch(
+    () => postSizeInputs[field],
+    (newVal) => {
+      const { h, w } = newVal
+      if (h && w) {
+        form[field] = `${h}x${w}`
+      } else {
+        form[field] = ''
+      }
+    },
+    { deep: true },
+  )
+
+  watch(
+    () => form[field],
+    (newVal) => {
+      const { h, w } = parsePostSize(newVal)
+      postSizeInputs[field].h = h
+      postSizeInputs[field].w = w
+    },
+    { immediate: true },
+  )
+})
+
+mainBldgPitchFields.forEach((field) => {
+  watch(
+    () => mainBldgPitchInputs[field],
+    (newVal) => {
+      const { value } = newVal
+      if (value) {
+        form[field] = `${value}/12`
+      } else {
+        form[field] = ''
+      }
+    },
+    { deep: true },
+  )
+
+  watch(
+    () => form[field],
+    (newVal) => {
+      const { value } = parseMainBldgPitch(newVal)
+      mainBldgPitchInputs[field].value = value
+    },
+    { immediate: true },
+  )
+})
+
+watch(
+  () => windSpeedInput,
+  (newVal) => {
+    const { value } = newVal
+    if (value) {
+      form.windSpeed = `${value} MPH`
+    } else {
+      form.windSpeed = ''
+    }
+  },
+  { deep: true },
+)
+
+watch(
+  () => form.windSpeed,
+  (newVal) => {
+    const { value } = parseWindSpeed(newVal)
+    windSpeedInput.value = value
+  },
+  { immediate: true },
+)
+
+watch(
+  () => form,
+  () => {
+    scopeColumns.forEach((column) => {
+      activeColumns[column.key] = columnHasData(column.key)
+    })
+  },
+  { deep: true },
+)
+
+onMounted(() => {
+  loadProjectData()
+  scopeColumns.forEach((column) => {
+    activeColumns[column.key] = columnHasData(column.key)
+  })
+})
+
+watch(
+  () => route.query.projectId,
+  (newProjectId) => {
+    if (newProjectId) {
+      loadProjectData()
+    }
+  },
+)
+
+function loadProjectData() {
+  const editProjectId = route.query.projectId
+  isEdit.value = !!editProjectId
+
+  if (editProjectId) {
+    const editProjectInfo = projectStore.projects.find(
+      (project) => project.data.projectId === editProjectId,
+    )
+
+    let editProject = editProjectInfo.data
+    editProject.existingImages = editProjectInfo.images
+
+    if (editProject) {
+      try {
+        Object.keys(editProject).forEach((key) => {
+          if (key in form) {
+            form[key] = editProject[key]
+          }
+        })
+
+        existingImages.value = editProject.existingImages
+        uploadedFiles.value = []
+        if (Array.isArray(editProject.existingImages)) {
+          editProject.existingImages.forEach((img) => {
+            uploadedFiles.value.push({
+              id: img.id || img.url + Math.random(),
+              name: img.name || 'File',
+              isImage: false,
+              preview: null,
+              url: img.url,
+              file: null,
+              existing: true,
+            })
+          })
+        }
+      } catch (error) {
+        console.error('Error populating form data:', error)
+        errorMessage.value = 'Error loading project data'
+      }
+    } else {
+      errorMessage.value = 'Project not found'
+    }
+  } else {
+    Object.keys(BLANK_FORM_DATA).forEach((key) => {
+      if (key in form) {
+        form[key] = BLANK_FORM_DATA[key]
+      }
+    })
+  }
 }
 </script>
 
@@ -757,6 +1443,33 @@ function goToDashboard() {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;
+}
+
+/* Fixed column widths for scope table */
+.scope-table-v2 th:nth-child(1),
+.scope-table-v2 td:nth-child(1) {
+  width: 20%;
+}
+
+.scope-table-v2 th:nth-child(2),
+.scope-table-v2 td:nth-child(2) {
+  width: 20%;
+}
+
+.scope-table-v2 th:nth-child(3),
+.scope-table-v2 td:nth-child(3) {
+  width: 20%;
+}
+
+.scope-table-v2 th:nth-child(4),
+.scope-table-v2 td:nth-child(4) {
+  width: 20%;
+}
+
+.scope-table-v2 th:nth-child(5),
+.scope-table-v2 td:nth-child(5) {
+  width: 25%;
 }
 .scope-table-v2 th.scope-header {
   background: #ffeaea;
@@ -775,7 +1488,7 @@ function goToDashboard() {
   font-size: 1rem;
   padding: 8px 10px;
   border-right: 1.5px solid #f2caca;
-  min-width: 140px;
+  min-width: 120px;
 }
 .scope-table-v2 td {
   background: #fff;
@@ -797,13 +1510,24 @@ function goToDashboard() {
   margin-bottom: 18px;
   text-align: center;
 }
+
+.upload-header-container {
+  position: relative;
+  text-align: center;
+}
+
+.view-folder-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
 .page-section {
   background: #fff0f0;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 16px;
-  margin-bottom: 16px;
-  margin-top: 16px;
+  margin: 16px;
 }
 .section-header {
   font-size: 1.25rem;
@@ -833,23 +1557,238 @@ function goToDashboard() {
   border-left: 1.5px solid #f2caca;
   border-right: 1.5px solid #f2caca;
   border-radius: 10px;
-  min-height: 56px;
+  min-height: 64px;
 }
 .scope-label.overhang-label {
-  width: 162px;
+  width: 19%;
   font-weight: 600;
   color: #b62025;
   background: #fff6f6;
-  padding: 15px 10px;
+  padding: 19px 10px;
   border-right: 1.5px solid #f2caca;
-  min-width: 140px;
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
 }
 .overhang-controls {
-  flex: 1;
+  width: 80%;
   padding-left: 16px;
   display: flex;
   align-items: center;
+}
+.addons-table-wrapper {
+  background: #fff;
+  border-radius: 10px;
+  border: 1.5px solid #f2caca;
+  padding: 0;
+  overflow-x: auto;
+}
+.addons-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.addons-table th.addons-header {
+  background: #ffeaea;
+  color: #b62025;
+  font-weight: 700;
+  text-align: center;
+  font-size: 1.05rem;
+  padding: 10px 8px;
+  border-bottom: 2px solid #f2caca;
+}
+.addons-table th.addons-label {
+  background: #fff6f6;
+  color: #b62025;
+  font-weight: 600;
+  text-align: left;
+  font-size: 1rem;
+  padding: 8px 10px;
+  border-right: 1.5px solid #f2caca;
+  min-width: 120px;
+  vertical-align: top;
+}
+.addons-table td.addons-cell {
+  background: #fff;
+  padding: 8px;
+  min-width: 140px;
+  border-bottom: 1px solid #f2caca;
+  vertical-align: top;
+}
+.addons-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.na-text {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+}
+.slab-section {
+  margin: 8px 0;
+}
+.slab-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #b62025;
+  margin-bottom: 4px;
+}
+.section-divider {
+  border: none;
+  border-top: 1px solid #f2caca;
+  margin: 16px 0;
+}
+
+/* File Preview Styles */
+.file-preview-area {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #f2caca;
+}
+
+.file-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.file-preview-card {
+  position: relative;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.image-preview {
+  position: relative;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.file-icon-preview {
+  position: relative;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #f8f9fa;
+}
+
+.file-name {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 8px;
+  word-break: break-word;
+  color: #666;
+}
+
+.file-name-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.file-name-link:hover {
+  text-decoration: underline;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 10;
+  height: 20px;
+  width: 20px;
+}
+
+/* Chrome, Safari, Edge, Opera */
+:deep(input[type='number'])::-webkit-outer-spin-button,
+:deep(input[type='number'])::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+:deep(input[type='number']) {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Size Input Container Styles */
+.sow-input-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  padding: 0 6px;
+  background: white;
+  transition: all 0.2s ease;
+  position: relative;
+  height: 55px;
+  box-sizing: border-box;
+}
+
+.sow-input-container:focus-within {
+  border: 2px solid rgb(0, 0, 0);
+}
+
+.sow-input-container.error {
+  border-color: rgb(211, 47, 47);
+}
+
+.sow-input-container.error:focus-within {
+  border-color: rgb(211, 47, 47);
+}
+
+.sow-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 30px;
+  text-align: center;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.87);
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.sow-input::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 16px;
+}
+
+.sow-separator {
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 16px;
+  margin: 0 4px;
+  user-select: none;
+  font-weight: 400;
+}
+
+.error-message {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  color: rgb(211, 47, 47);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 400;
+  line-height: 1.2;
 }
 </style>

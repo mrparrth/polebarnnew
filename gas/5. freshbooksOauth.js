@@ -1,16 +1,3 @@
-//Test
-if (settings.testNewProject) {
-  var CLIENT_ID = '841f323753d5f44eef3ac63b78b3ec685d81c0ce3bc4d7dbb138240269581840'
-  var CLIENT_SECRET = 'e42aae8bb6428209a9bd2171419acd3a12fef133e16d859db58ec523fe57d3f9'
-  var ACCOUNT_ID = 'Qp8dk6'
-  var BUSINESS_ID = '4726317'
-} else {
-  var CLIENT_ID = 'edb8f237849b7c18ec91ee867644ba652c9e2478c1b09ea9e973d7bcc26bec83'
-  var CLIENT_SECRET = '6b92ee6f1cdb69f7c6286004561dd1ad4e44bff6e17f2ebd89e8b8c8c67693a7'
-  var ACCOUNT_ID = 'Qp8dk6'
-  var BUSINESS_ID = '4726317'
-}
-
 var SCOPE = 'user:profile:read user:invoices:write user:invoices:read'
 //Actuals
 
@@ -18,49 +5,49 @@ var SCOPE = 'user:profile:read user:invoices:write user:invoices:read'
  * Authorizes and makes a request to the Freshbooks API.
  */
 function fbGetRequest_(url) {
-  let service = getService_();
+  let service = getService_()
   if (!validateService_(service)) throw 'Authorize using the prompt'
 
   let response = UrlFetchApp.fetch(url, {
     headers: {
       Authorization: 'Bearer ' + service.getAccessToken(),
-      'x-api-key': CLIENT_ID
-    }
-  });
+      'x-api-key': CLIENT_ID,
+    },
+  })
 
-  return JSON.parse(response.getContentText());
+  return JSON.parse(response.getContentText())
 }
 
 function fbPostRequest_(url, jsonData, isJson = true) {
-  let service = getService_();
+  let service = getService_()
   let options = {
     method: 'post',
-    headers: { 'Authorization': 'Bearer ' + service.getAccessToken(), Accept: 'application/json' },
+    headers: { Authorization: 'Bearer ' + service.getAccessToken(), Accept: 'application/json' },
     contentType: 'application/json',
     payload: isJson ? JSON.stringify(jsonData) : jsonData,
-    muteHtmlExceptions: true
+    muteHtmlExceptions: true,
   }
 
   let response = UrlFetchApp.fetch(url, options)
 
-  let result = JSON.parse(response.getContentText());
+  let result = JSON.parse(response.getContentText())
   // Logger.log(JSON.stringify(result, null, 2), false);
   return result
 }
 
 function fbPutRequest_(url, jsonData, isJson = true) {
-  let service = getService_();
+  let service = getService_()
   let options = {
     method: 'put',
-    headers: { 'Authorization': 'Bearer ' + service.getAccessToken(), Accept: 'application/json' },
+    headers: { Authorization: 'Bearer ' + service.getAccessToken(), Accept: 'application/json' },
     contentType: 'application/json',
     payload: isJson ? JSON.stringify(jsonData) : jsonData,
-    muteHtmlExceptions: true
+    muteHtmlExceptions: true,
   }
 
   let response = UrlFetchApp.fetch(url, options)
 
-  let result = JSON.parse(response.getContentText());
+  let result = JSON.parse(response.getContentText())
   return result
 }
 
@@ -68,7 +55,7 @@ function fbPutRequest_(url, jsonData, isJson = true) {
  * Reset the authorization state, so that it can be re-tested.
  */
 function reset() {
-  getService_().reset();
+  getService_().reset()
 }
 
 /**
@@ -92,24 +79,23 @@ function getService_() {
     .setPropertyStore(PropertiesService.getScriptProperties())
 
     // Set the scopes.
-    .setScope(SCOPE);
+    .setScope(SCOPE)
 
-
-  return service;
+  return service
 }
 
 function validateService_(service) {
   if (!service.hasAccess()) {
-    var authorizationUrl = service.getAuthorizationUrl();
+    var authorizationUrl = service.getAuthorizationUrl()
     var template = HtmlService.createTemplate(
       '<a href="<?= authorizationUrl ?>" target="_blank">Authorize</a>. ' +
-      'Close sidebar when the authorization is complete.');
-    template.authorizationUrl = authorizationUrl;
-    var page = template.evaluate();
+        'Close sidebar when the authorization is complete.',
+    )
+    template.authorizationUrl = authorizationUrl
+    var page = template.evaluate()
     try {
-      SpreadsheetApp.getUi().showSidebar(page);
-    }
-    catch (e) {
+      SpreadsheetApp.getUi().showSidebar(page)
+    } catch (e) {
       throw `Use this url to validate ${authorizationUrl}`
     }
 
@@ -123,12 +109,12 @@ function validateService_(service) {
  * Handles the OAuth callback.
  */
 function authCallback_(request) {
-  var service = getService_();
-  var authorized = service.handleCallback(request);
+  var service = getService_()
+  var authorized = service.handleCallback(request)
   if (authorized) {
-    return HtmlService.createHtmlOutput('Success! You can close this window');
+    return HtmlService.createHtmlOutput('Success! You can close this window')
   } else {
-    return HtmlService.createHtmlOutput('Denied.');
+    return HtmlService.createHtmlOutput('Denied.')
   }
 }
 
@@ -136,7 +122,7 @@ function authCallback_(request) {
  * Logs the redict URI to register in the Dropbox application settings.
  */
 function logRedirectUri() {
-  Logger.log(OAuth2.getRedirectUri());
+  Logger.log(OAuth2.getRedirectUri())
 }
 
 function getAccessToken() {

@@ -7,8 +7,8 @@ const routes = [
   { path: '/login', name: 'login', component: Login },
   { path: '/dashboard', name: 'dashboard', component: Dashboard, meta: { requiresAuth: true } },
   {
-    path: '/project-form',
-    name: 'project-form',
+    path: '/form',
+    name: 'form',
     component: ProjectForm,
     meta: { requiresAuth: true },
   },

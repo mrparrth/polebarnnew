@@ -1,18 +1,10 @@
-// import LOCAL_DATA from '@/data/data.json'
 import LOCAL_DATA from '@/data/data.json'
-
-import { DEFAULT_MOCK_API_BATCH_DELAY, DEFAULT_MOCK_API_DELAY } from '../global'
+import { DEFAULT_MOCK_API_DELAY } from '../global'
 
 const FAKE_USER = {
-  id: '090a95ce-3933-4b57-a191-96dc067f9851',
-  createdAt: '2024-10-03T13:55:51.772Z',
-  modifiedAt: '2024-10-03T13:55:51.772Z',
-  name: 'Admin',
-  email: 'admin@ceedcivil.com',
-  password: '111111',
-  role: '',
-  status: 'Active',
-  _rowIndex: 3,
+  email: 'test@test.com',
+  password: '123456',
+  token: 'dev_fake_token_123456',
 }
 
 export class Mock {
@@ -20,7 +12,16 @@ export class Mock {
     await this.simulateNetworkDelay()
 
     const handlers = {
+      // Auth related functions
       login: () => this.handleMockLogin({ ...data, token }),
+      autoLogin: () => this.handleMockAutoLogin(),
+      logout: () => this.handleMockLogout(),
+
+      // Data related functions
+      newProject: () => this.handleMockNewProject(data),
+      updateProject: () => this.handleMockUpdateProject(data),
+      updateProjectStatus: () => this.handleMockUpdateProjectStatus(data),
+      getLatestData: () => this.handleMockGetLatestData(),
     }
 
     const handler = handlers[functionName]
@@ -35,13 +36,23 @@ export class Mock {
     return handler()
   }
 
-  // Mock Handlers
-  static handleMockLogin({ email, password }) {
+  static handleMockLogin({ email, password, token }) {
+    console.log('handleMockLogin', email, password, token)
+    if (token) {
+      if (token === FAKE_USER.token) {
+        return {
+          user: FAKE_USER,
+          token: `dev_fake_token_123456`,
+          data: LOCAL_DATA,
+        }
+      }
+      throw new Error('Invalid token')
+    }
+
     if (email === FAKE_USER.email && password === FAKE_USER.password) {
-      localStorage.setItem('app_data', JSON.stringify(LOCAL_DATA))
       return {
         user: FAKE_USER,
-        token: `dev_fake_token_${Date.now()}`,
+        token: `dev_fake_token_123456`,
         data: LOCAL_DATA,
       }
     }
@@ -49,11 +60,42 @@ export class Mock {
     throw new Error('Invalid credentials')
   }
 
-  static simulateNetworkDelay(ms = DEFAULT_MOCK_API_DELAY) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+  static handleMockAutoLogin() {
+    if (LOCAL_DATA) {
+      return {
+        user: FAKE_USER,
+        token: `dev_fake_token_123456`,
+        data: LOCAL_DATA,
+      }
+    }
   }
 
-  static getMetaData() {
-    return CONFIG
+  static handleMockLogout() {
+    return { success: true }
+  }
+
+  static handleMockNewProject(data) {
+    console.log('handleMockNewProject', data)
+    data.projectId = '999.999'
+    return { data, images: [] }
+  }
+
+  static handleMockUpdateProject(data) {
+    console.log('handleMockUpdateProject', data)
+    return { data, images: [] }
+  }
+
+  static handleMockGetLatestData() {
+    console.log('handleMockGetLatestData')
+    return { success: true }
+  }
+
+  static handleMockUpdateProjectStatus(data) {
+    console.log('handleMockUpdateProjectStatus', data)
+    return { success: true }
+  }
+
+  static simulateNetworkDelay(ms = DEFAULT_MOCK_API_DELAY) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 }

@@ -1,61 +1,13 @@
-const settings = {
-  appName: 'Pole barn - Ceed Civil',
-  testNewProject: false,
-  sheetNames: {
-    user: 'Users'
-  },
-  secretJwtToken: `1gIugNMme8742WxT13h1CjxLchpAcYsW6U6tyV434`,
-  exportDrive: '1XPwl5KDtLeoW-4TcGHr_1c6defz4BFn4',
-  testMode: false
-}
-
 const login = (payload) => new Auth().login(payload)
 
 const webAppURL = () => ScriptApp.getService().getUrl()
 
-function doGet(e) {
-  // e = {
-  //   queryString: 'cookie=lom11wzl.53',
-  //   contentLength: -1,
-  //   contextPath: '',
-  //   parameter: { cookie: 'lom11wzl.53' },
-  //   parameters: { cookie: ['lom11wzl.53'] }
-  // }
+const doGet = (e) =>
+  HtmlService.createTemplateFromFile('index').evaluate().setTitle(settings.appName)
 
-  console.log(e)
-  let { page, cookie, project } = e.parameter
-  let htmlOutput
-  if (Object.keys(e.parameters).length !== 0) {
-    let user = new Auth().login({ token: cookie })
+const newProject = ({ data, token }) => {
+  console.log(JSON.stringify(data), token)
 
-    if (user && user.token) {
-      user = user.user
-      let pageName = project ? 'editproject' : page ? page : (user.type == 'Employee' ? 'dashboard' : 'newproject')
-
-      if (pageName == 'newproject') {
-        htmlOutput = loadNewProjectPage_()
-      }
-      else if (pageName == 'editproject') {
-        htmlOutput = loadEditProjectPage_(project, user)
-      }
-      else if (pageName == 'dashboard') {
-        htmlOutput = loadDashboardPage_(user.type)
-      }
-    }
-    else {
-      htmlOutput = loadLoginPage_()
-    }
-  }
-  else {
-    htmlOutput = loadLoginPage_()
-  }
-
-  return htmlOutput
-}
-
-const newProject = (data, token) => {
-  console.log(data)
-  console.log(token)
   let time = new Date()
   let userInfo = new Auth().login({ token })
   if (!userInfo.user) throw 'Invalid login. Please login again and try'
@@ -64,7 +16,6 @@ const newProject = (data, token) => {
   let shSubmission = ss.getSheetByName('Submission')
 
   //generate new project id
-  // let sheetData = _getSheetValuesAsJson_(shSubmission)
   let cache = PropertiesService.getScriptProperties()
   let currentProjectId = cache.getProperty('currentProjectId')
 
@@ -72,18 +23,19 @@ const newProject = (data, token) => {
   let newProjectId = projectBase + '.' + (parseInt(projectPart) + 1).toString()
   cache.setProperty('currentProjectId', newProjectId)
 
-  // let maxProjectId = sheetData.reduce((acc, row) => row.projectId > acc ? row.projectId : acc, 0)
-  // let newProjectId = ((parseFloat(maxProjectId) || 450.50) + 0.001).toFixed(3).toString() //Math.round(((parseFloat(maxProjectId) || 450.50) + 0.01) * 100) / 100
-
-  data.projectid = newProjectId
+  data.projectId = newProjectId
   let files = data.sketchData || []
   delete data.sketchData
 
   let driveFileUrls = []
-  let folder = _getOrCreateFolder_(['Project - ' + data.projectid + ' ' + data.projectname])
+  let folder = _getOrCreateFolder_(['Project - ' + data.projectId + ' ' + data.projectName])
 
   for (let file of files) {
-    let fileData = Utilities.newBlob(Utilities.base64Decode(file.data), file.mimeType, file.fileName);
+    let fileData = Utilities.newBlob(
+      Utilities.base64Decode(file.data),
+      file.mimeType,
+      file.fileName,
+    )
     let driveFile = folder.createFile(fileData)
     driveFileUrls.push({ id: file.fileId, url: driveFile.getUrl(), name: file.fileName })
   }
@@ -94,7 +46,7 @@ const newProject = (data, token) => {
   data.fBInvoiceNo = fbInvoice.response.result.invoice.invoice_number
   data.fBInvoiceId = fbInvoice.response.result.invoice.id
 
-  shareInvoiceWithClient(data.fBInvoiceId)
+  if (!settings.testMode) shareInvoiceWithClient(data.fBInvoiceId)
 
   try {
     data.fbInvoiceLink = getSharableFBInvoiceLink(data.fBInvoiceId)
@@ -108,22 +60,22 @@ const newProject = (data, token) => {
     data.presentationUrl = pdfUrl
 
     if (pdfUrl) {
-      const subject = `PDF Generated - ${data.cname} - ${data.projectname}`;
+      const subject = `PDF Generated - ${data.clientName} - ${data.projectName}`
 
       const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
             PDF Generated Successfully
           </h2>
-          
+
           <p style="font-size: 16px; line-height: 1.6; color: #555;">
             Hello,
           </p>
-          
+
           <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            PDF has been generated for <strong>${data.cname}</strong> - <strong>${data.projectname}</strong>
+            PDF has been generated for <strong>${data.clientName}</strong> - <strong>${data.projectName}</strong>
           </p>
-          
+
           <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Presentation URL:</p>
             <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
@@ -135,36 +87,49 @@ const newProject = (data, token) => {
               ${slideUrl}
             </a>
           </div>
-          
-          ${errors && errors.length > 0 ? `
+
+          ${
+            errors && errors.length > 0
+              ? `
           <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
               ⚠️ Errors Encountered:
             </p>
             <ul style="margin: 0; padding-left: 20px; color: #721c24;">
-              ${errors.map(error => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
+              ${errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
             </ul>
           </div>
-          ` : ''}
-          
+          `
+              : ''
+          }
+
           <p style="font-size: 14px; color: #666; margin-top: 30px;">
             Pole Barn Report Generator Bot
           </p>
         </div>
-      `;
+      `
 
       // Send email
-      MailApp.sendEmail({
-        to: 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com', //'iamparrth@gmail.com,erparthas@gmail.com', 
-        subject: subject,
-        htmlBody: htmlBody
-      });
+      if (!settings.testMode)
+        MailApp.sendEmail({
+          to: 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com', //'iamparrth@gmail.com,erparthas@gmail.com',
+          subject: subject,
+          htmlBody: htmlBody,
+        })
     }
   } catch (e) {
     console.log(e)
   }
 
-  shSubmission.appendRow([time, userInfo.user.email, data.projectid, JSON.stringify(data), JSON.stringify(driveFileUrls), data.status, data.projectpricing])
+  shSubmission.appendRow([
+    time,
+    userInfo.user.email,
+    data.projectId,
+    JSON.stringify(data),
+    JSON.stringify(driveFileUrls),
+    data.status,
+    data.price,
+  ])
 
   let { draftSubject, to } = getEmailDraft_('', 'New Project')
   sendEmail(draftSubject, to, data)
@@ -172,7 +137,9 @@ const newProject = (data, token) => {
   return { data, images: driveFileUrls }
 }
 
-const updateProject = (data, token) => {
+const updateProject = ({ data, token }) => {
+  console.log(JSON.stringify(data), token)
+
   let time = new Date()
   let userInfo = new Auth().login({ token })
   let ss = SpreadsheetApp.getActive()
@@ -181,17 +148,18 @@ const updateProject = (data, token) => {
   delete data.sketchData
   delete data.existingImages
 
-  console.log(JSON.stringify(data))
-
-  let projectId = data.projectid
-  let projectinfo = getDataByProjectName_(projectId)
-  let row = projectinfo['_row_']
+  let projectInfo = getDataByProjectName_(data.projectId)
+  let row = projectInfo['_row_']
 
   let driveFileUrls = []
-  let folder = _getOrCreateFolder_(['Project - ' + data.projectid + ' ' + data.projectname])
+  let folder = _getOrCreateFolder_(['Project - ' + data.projectId + ' ' + data.projectName])
 
   for (let file of files) {
-    let fileData = Utilities.newBlob(Utilities.base64Decode(file.data), file.mimeType, file.fileName);
+    let fileData = Utilities.newBlob(
+      Utilities.base64Decode(file.data),
+      file.mimeType,
+      file.fileName,
+    )
     let driveFile = folder.createFile(fileData)
     driveFileUrls.push({ id: file.fileId, url: driveFile.getUrl(), name: file.fileName })
   }
@@ -201,45 +169,52 @@ const updateProject = (data, token) => {
   }
 
   //updates the properties present in the sheet.
-  let olddata = { ...projectinfo.data }
-  let newData = { ...projectinfo.data, ...data }
+  let oldData = { ...projectInfo.data }
+  let newData = { ...projectInfo.data, ...data }
   for (let property in data) {
     newData[property] = data[property]
   }
 
-  let rowData = [time, userInfo.user.email, data.projectid, JSON.stringify(newData), JSON.stringify(driveFileUrls), data.status, data.projectpricing]
+  let rowData = [
+    time,
+    userInfo.user.email,
+    data.projectId,
+    JSON.stringify(newData),
+    JSON.stringify(driveFileUrls),
+    data.status,
+    data.price,
+  ]
   console.log(`${row} - rowData ${JSON.stringify(rowData)}`)
   ss.getSheetByName('Submission').getRange(row, 1, 1, rowData.length).setValues([rowData])
 
   //Send email
-  if (settings.testMode) return
-  if (data.status && projectinfo.status !== data.status) {
-    data.oldstatus = projectinfo.status
-    let { draftSubject, to } = getEmailDraft_(data.oldstatus, data.status)
+  if (settings.testMode) return { data: newData, images: driveFileUrls }
+  if (data.status && projectInfo.status !== data.status) {
+    data.oldStatus = projectInfo.status
+    let { draftSubject, to } = getEmailDraft_(data.oldStatus, data.status)
 
     if (draftSubject) {
       console.log(`Sending email with draft subject ${draftSubject} to ${to}`)
       sendEmail(draftSubject, to, data)
     }
-
-    // if (['for review by bw', 'approved by bw', 's&s', 'rework'].includes(data.status.toLowerCase())) {
-    //   sendEmail(`Status change to ${data.status}`, newData)
-    // }
   }
 
-  console.log(newData.projectpricing)
-  console.log(olddata.projectpricing)
-  if (newData.projectpricing && newData.projectpricing != olddata.projectpricing) {
+  console.log(newData.price)
+  console.log(oldData.price)
+  if (newData.price && newData.price != oldData.price) {
     console.log(`Sending email for project price change`)
-    sendEmail('Project Price Changed For {{projectid}}', 'ceedcivil@gmail.com,RyanHoover@ceedcivil.com', { ...data, oldprice: olddata.projectpricing, newprice: newData.projectpricing })
+    sendEmail(
+      'Project Price Changed For {{projectId}}',
+      'ceedcivil@gmail.com,RyanHoover@ceedcivil.com',
+      { ...data, oldPrice: oldData.price, newPrice: newData.price },
+    )
   }
 
   return { data: newData, images: driveFileUrls }
 }
 
-const updateProjectStatus = (projectId, newStatus) => {
-  // projectId = '450.981'
-  // newStatus = 'Rework'
+const updateProjectStatus = ({ data: { projectId, newStatus } }) => {
+  console.log(`Updating ${projectId} with status ${newStatus}`)
   let project = getDataByProjectName_(projectId)
   let currentStatus = project.data.status
 
@@ -252,7 +227,10 @@ const updateProjectStatus = (projectId, newStatus) => {
   rowData.pop()
 
   console.log(`Updating ${projectId} with status ${newStatus} at row ${project['_row_']}`)
-  SpreadsheetApp.getActive().getSheetByName('Submission').getRange(project['_row_'], 1, 1, rowData.length).setValues([rowData])
+  SpreadsheetApp.getActive()
+    .getSheetByName('Submission')
+    .getRange(project['_row_'], 1, 1, rowData.length)
+    .setValues([rowData])
 
   if (currentStatus && currentStatus !== newStatus) {
     project.data.oldstatus = currentStatus
@@ -269,11 +247,12 @@ const getEmailDraft_ = (oldStatus, newStatus) => {
   let emailData = _getSheetValuesAsJson_(sh)
 
   let foundEmailDetail = emailData
-    .filter(({ statusFrom, statusTo }) => (!!statusFrom || !!statusTo))
-    .find(({ statusFrom, statusTo }) =>
-      ['', 'all', oldStatus.toLowerCase()].includes(statusFrom.toLowerCase())
-      && ['', 'all', newStatus.toLowerCase()].includes(statusTo.toLowerCase()))
-
+    .filter(({ statusFrom, statusTo }) => !!statusFrom || !!statusTo)
+    .find(
+      ({ statusFrom, statusTo }) =>
+        ['', 'all', oldStatus.toLowerCase()].includes(statusFrom.toLowerCase()) &&
+        ['', 'all', newStatus.toLowerCase()].includes(statusTo.toLowerCase()),
+    )
 
   return foundEmailDetail || {}
 }
@@ -306,9 +285,9 @@ class Auth {
     let timeComponent = parseInt(timeComponent36, 36)
     let currTime = new Date().getTime()
     let msInHour = 1000 * 60 * 60
-    let nHour = 24  //Expired after 25 hours
+    let nHour = 24 //Expired after 25 hours
 
-    if (((currTime - timeComponent) / msInHour) > nHour) {
+    if ((currTime - timeComponent) / msInHour > nHour) {
       return false
     } else {
       let user = this.getUserByToken(cookie)
@@ -317,19 +296,19 @@ class Auth {
   }
 
   getUserByEmail(email) {
-    email = email.trim().toLowerCase();
+    email = email.trim().toLowerCase()
     return _getItemsFromSheet_(
       this.ss.getSheetByName(this.settings.sheetNames.user),
       (v) => v.email.trim().toLowerCase() === email,
-    )[0];
+    )[0]
   }
 
   getUserByToken(token) {
-    token = token.trim().toLowerCase();
+    token = token.trim().toLowerCase()
     return _getItemsFromSheet_(
       this.ss.getSheetByName(this.settings.sheetNames.user),
       (v) => v.currentToken.trim().toLowerCase() === token,
-    )[0];
+    )[0]
   }
 
   createToken() {
@@ -343,10 +322,12 @@ class Auth {
     this.shUser.getRange(user._rowIndex, tokenCol + 1).setValue(user.currentToken)
   }
 
-  login({ email, password, token }) {
-    console.log({ email, password, token })
+  login(loginInfo) {
+    console.log(loginInfo)
+
+    let { data: { email, password } = {}, token } = loginInfo
     if (token && token !== 'null') {
-      const validToken = this.getUserByToken(token);
+      const validToken = this.getUserByToken(token)
       if (!validToken) throw 'Invalid login'
 
       const tokenUser = this.getUserByEmail(validToken.email)
@@ -367,22 +348,22 @@ class Auth {
         return { data, images }
       })
 
-      delete tokenUser.password;
+      delete tokenUser.password
 
       return {
         user: tokenUser,
         token,
-        data: dashboardData
-      };
+        data: dashboardData,
+      }
     }
 
     if (email && password) {
-      const user = this.getUserByEmail(email);
-      if (!user) throw new Error("User not found in the database.");
-      if (user.password.toString() !== password.toString()) throw new Error("Invalid credentials!")
+      const user = this.getUserByEmail(email)
+      if (!user) throw new Error('User not found in the database.')
+      if (user.password.toString() !== password.toString()) throw new Error('Invalid credentials!')
 
-      delete user.password;
-      token = this.createToken();
+      delete user.password
+      token = this.createToken()
       user.currentToken = token
 
       this.updateUserToken(user)
@@ -395,54 +376,27 @@ class Auth {
       return {
         user,
         token,
-        data: dashboardData
-      };
+        data: dashboardData,
+      }
     }
 
     return {
       user: null,
       token: null,
-    };
+    }
   }
 }
 
-function loadLoginPage_() {
-  return HtmlService.createTemplateFromFile('login').evaluate().setTitle(settings.appName)
-}
-
-function loadNewProjectPage_() {
-  return HtmlService.createTemplateFromFile('newProject').evaluate()
-    .setTitle(settings.appName)
-}
-
-function loadDashboardPage_(userType) {
-  let data = _getSheetValuesAsJson_(SpreadsheetApp.getActive().getSheetByName('Submission'))
-
-  let dashboardData = data.map(row => row.data)
-
-  const template = HtmlService.createTemplateFromFile('dashboard')
-  template.data = dashboardData
-  template.isAdmin = userType.toLowerCase() == 'admin'
-
-  return template.evaluate().setTitle(settings.appName)
-}
-
-function loadEditProjectPage_(projectid, user) {
-  let data = getDataByProjectName_(projectid)
-  let html = HtmlService.createTemplateFromFile('editProject')
-  html.formData = data
-  html.user = user
-
-  return html.evaluate().setTitle(settings.appName)
-}
-
-function getDataByProjectName_(projectid) {
+function getDataByProjectName_(projectId) {
   let ss = SpreadsheetApp.getActive()
   let shSubmission = ss.getSheetByName('Submission')
   let allData = _getSheetValuesAsJson_(shSubmission)
-  let data = allData.find(row => row.projectId == projectid)
+  let data = allData.find((row) => row.projectId == projectId)
 
-  if (data.images) data.images = data.images.map(({ id, url, name }) => { return { id, url, name } }) //: _driveFileExportUrl_(url) 
+  if (data.images)
+    data.images = data.images.map(({ id, url, name }) => {
+      return { id, url, name }
+    }) //: _driveFileExportUrl_(url)
   return data
 }
 
@@ -485,28 +439,28 @@ function generatePdfForRow() {
   if (ss.getActiveSheet().getName() !== 'Submission') return
   let activeRow = sh.getActiveRange().getRow()
 
-  let dataRow = data.find(dr => dr._row_ == activeRow)?.data
+  let dataRow = data.find((dr) => dr._row_ == activeRow)?.data
   if (!dataRow) return
 
   let { pdfUrl, slideUrl, errors } = generatePresentation(dataRow)
 
   if (pdfUrl) {
-    const subject = `PDF Generated - ${dataRow.cname} - ${dataRow.projectname}`;
+    const subject = `PDF Generated - ${dataRow.clientName} - ${dataRow.projectName}`
 
     const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
             PDF Generated Successfully
           </h2>
-          
+
           <p style="font-size: 16px; line-height: 1.6; color: #555;">
             Hello,
           </p>
-          
+
           <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            PDF has been generated for <strong>${dataRow.cname}</strong> - <strong>${dataRow.projectname}</strong>
+            PDF has been generated for <strong>${dataRow.clientName}</strong> - <strong>${dataRow.projectName}</strong>
           </p>
-          
+
           <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Presentation URL:</p>
             <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
@@ -518,30 +472,37 @@ function generatePdfForRow() {
               ${slideUrl}
             </a>
           </div>
-          
-          ${errors && errors.length > 0 ? `
+
+          ${
+            errors && errors.length > 0
+              ? `
           <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
               ⚠️ Errors Encountered:
             </p>
             <ul style="margin: 0; padding-left: 20px; color: #721c24;">
-              ${errors.map(error => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
+              ${errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
             </ul>
           </div>
-          ` : ''}
-          
+          `
+              : ''
+          }
+
           <p style="font-size: 14px; color: #666; margin-top: 30px;">
             Pole Barn Report Generator Bot
           </p>
         </div>
-      `;
+      `
 
     // Send email
-    MailApp.sendEmail({
-      to: 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com', //'iamparrth@gmail.com,erparthas@gmail.com', 
-      subject: subject,
-      htmlBody: htmlBody
-    });
+    if (!settings.testMode)
+      MailApp.sendEmail({
+        to: 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com', //'iamparrth@gmail.com,erparthas@gmail.com',
+        subject: subject,
+        htmlBody: htmlBody,
+      })
   }
   _openLink_(pdfUrl)
 }
+
+const includes = (e) => HtmlService.createHtmlOutputFromFile(e).getContent()

@@ -44,7 +44,17 @@
               />
 
               <div class="text-center">
-                <v-btn type="submit" color="primary" size="large" block class="mb-4"> LOGIN </v-btn>
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  size="large"
+                  block
+                  class="mb-4"
+                  :loading="isLoading"
+                  :disabled="isLoading"
+                >
+                  {{ isLoading ? 'LOGGING IN...' : 'LOGIN' }}
+                </v-btn>
               </div>
 
               <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-2">
@@ -66,6 +76,10 @@
 import { reactive, ref, onMounted } from 'vue'
 import { API } from '@/services/apiService'
 import { useRouter } from 'vue-router'
+import { DEV_ENV } from '@/global'
+import { useProjectStore } from '@/stores/projectStore'
+
+const projectStore = useProjectStore()
 
 const formData = reactive({
   username: '',
@@ -75,34 +89,71 @@ const formData = reactive({
 const showPassword = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const isLoading = ref(false)
 const router = useRouter()
 
 const handleLogin = async () => {
   errorMessage.value = ''
   successMessage.value = ''
+  isLoading.value = true
 
   if (!formData.username || !formData.password) {
     errorMessage.value = 'Please fill in all fields'
+    isLoading.value = false
     return
   }
 
   try {
     const result = await API.login(formData.username, formData.password)
-    localStorage.setItem('authToken', result.token || 'true')
+    projectStore.setProjects(result.data)
+    projectStore.setUser(result.user)
+    localStorage.setItem('authToken', result.token)
     successMessage.value = 'Login successful!'
     router.push('/form')
+    console.log('Login successful!')
   } catch (error) {
     errorMessage.value = error.message
+    throw error
+  } finally {
+    isLoading.value = false
   }
 }
 
-onMounted(() => {
-  let email = 'admin@ceedcivil.com'
-  let password = '111111'
-  formData.username = email
-  formData.password = password
-  handleLogin()
-  router.push('/form')
+const checkExistingSession = async () => {
+  isLoading.value = true
+  try {
+    const result = await API.autoLogin()
+    if (result.token) {
+      localStorage.setItem('authToken', result.token)
+      projectStore.setProjects(result.data)
+      router.push('/form')
+    }
+  } catch (error) {
+    errorMessage.value = error.message
+    console.error(`Auto login failed: Do try to login manually`)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  if (DEV_ENV) {
+    let email = 'test@test.com'
+    let password = '123456'
+    formData.username = email
+    formData.password = password
+    try {
+      isLoading.value = true
+      await handleLogin()
+      router.push('/form')
+    } catch (error) {
+      console.error(error)
+    } finally {
+      isLoading.value = false
+    }
+  } else {
+    await checkExistingSession()
+  }
 })
 </script>
 
