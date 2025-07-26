@@ -110,7 +110,6 @@ const handleLogin = async () => {
     localStorage.setItem('authToken', result.token)
     successMessage.value = 'Login successful!'
     router.push('/form')
-    console.log('Login successful!')
   } catch (error) {
     errorMessage.value = error.message
     throw error

@@ -16,9 +16,7 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   function updateProject(projectId, updatedData) {
-    console.log('updateProject', projectId, updatedData)
     const projectIndex = projects.value.findIndex((project) => project.data.projectId === projectId)
-    console.log('projectIndex', projectIndex)
     if (projectIndex !== -1) {
       projects.value[projectIndex].data = {
         ...projects.value[projectIndex].data,

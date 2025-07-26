@@ -1031,11 +1031,6 @@ async function handleSubmit() {
   const hasScopeErrors = validateScopeOfWork()
   const hasAddonErrors = validateAddOns()
   if (hasRequiredErrors || hasScopeErrors || hasAddonErrors) {
-    console.log(
-      'hasErrors',
-      hasRequiredErrors || hasScopeErrors || hasAddonErrors,
-      fieldErrors.value,
-    )
     scrollToFirstError()
     isSubmitting.value = false
     return
@@ -1059,7 +1054,6 @@ async function handleSubmit() {
 
     if (isEdit.value) {
       let updatedProject = await API.updateProject(formData)
-      console.log('updatedProject', updatedProject)
       projectStore.updateProject(formData.projectId, updatedProject)
       showSnackbar(`Project ${formData.projectId} updated successfully!`, 'success')
     } else {
@@ -1079,10 +1073,8 @@ async function handleSubmit() {
 
 function scrollToFirstError() {
   const firstErrorField = Object.keys(fieldErrors.value)[0]
-  console.log('firstErrorField', firstErrorField)
   if (firstErrorField) {
     let element = document.querySelector(`[name="${firstErrorField}"]`)
-    console.log('element', element)
     if (!element) {
       element = document.querySelector(`[data-field="${firstErrorField}"]`)
     }

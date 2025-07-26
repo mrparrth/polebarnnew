@@ -75,7 +75,6 @@ export class API {
   }
 
   static async updateProject(projectData) {
-    console.log('updateProject', projectData)
     const result = await this.execute('updateProject', projectData)
 
     return result

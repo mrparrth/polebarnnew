@@ -148,8 +148,6 @@ const notificationColor = ref('success')
 const logoImage = ref(null)
 
 const projects = ref(projectStore.projects)
-console.log('projects', projects.value)
-console.log('projectStore.projects', projectStore.projects)
 
 const headers = [
   { title: 'Project ID', key: 'id', sortable: true, width: '4%' },
@@ -212,10 +210,6 @@ function getRowClass(item) {
 }
 
 function filterProjects() {}
-
-function handleRowClick(item) {
-  console.log('Row clicked:', item)
-}
 
 function viewDetails(item) {
   router.push(`/form?projectId=${item.data.projectId}`)
