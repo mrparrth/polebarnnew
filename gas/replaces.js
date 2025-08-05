@@ -64,6 +64,7 @@ function makeNewVersionOfData() {
     projectname: 'projectName',
     siteaddress: 'siteAddress',
     cname: 'clientName',
+    projectid: 'projectId',
   }
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
   var shSubmission = spreadsheet.getSheetByName('Submission')

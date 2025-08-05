@@ -189,6 +189,8 @@ const newProject = ({ data, token }) => {
     console.log(e)
   }
 
+  sendStatusChangeEmail('', 'New Project', data)
+
   shSubmission.appendRow([
     time,
     userInfo.user.email,
@@ -198,9 +200,6 @@ const newProject = ({ data, token }) => {
     data.status,
     data.price,
   ])
-
-  let { draftSubject, to } = getEmailDraft_('', 'New Project')
-  sendEmail(draftSubject, to, data)
 
   return { data, images: driveFileUrls }
 }
@@ -253,22 +252,16 @@ const updateProject = ({ data, token }) => {
     data.price,
   ]
   console.log(`${row} - rowData ${JSON.stringify(rowData)}`)
-  ss.getSheetByName('Submission').getRange(row, 1, 1, rowData.length).setValues([rowData])
 
   //Send email
   if (settings.testMode) return { data: newData, images: driveFileUrls }
   if (data.status && projectInfo.status !== data.status) {
     data.oldStatus = projectInfo.status
-    let { draftSubject, to } = getEmailDraft_(data.oldStatus, data.status)
-
-    if (draftSubject) {
-      console.log(`Sending email with draft subject ${draftSubject} to ${to}`)
-      sendEmail(draftSubject, to, data)
-    }
+    sendStatusChangeEmail(data.oldStatus, data.status, data)
   }
+  ss.getSheetByName('Submission').getRange(row, 1, 1, rowData.length).setValues([rowData])
 
-  console.log(newData.price)
-  console.log(oldData.price)
+  console.log('New Price', newData.price, 'Old Price', oldData.price)
   if (newData.price && newData.price != oldData.price) {
     console.log(`Sending email for project price change`)
     sendEmail(
@@ -286,26 +279,23 @@ const updateProjectStatus = ({ data: { projectId, newStatus } }) => {
   let project = getDataByProjectName_(projectId)
   let currentStatus = project.data.status
 
-  project.data.status = newStatus
-  project.status = newStatus
-
-  let rowData = Object.values(project)
-  rowData[3] = JSON.stringify(rowData[3])
-  rowData[4] = JSON.stringify(rowData[4])
-  rowData.pop()
-
-  console.log(`Updating ${projectId} with status ${newStatus} at row ${project['_row_']}`)
-  SpreadsheetApp.getActive()
-    .getSheetByName('Submission')
-    .getRange(project['_row_'], 1, 1, rowData.length)
-    .setValues([rowData])
-
   if (currentStatus && currentStatus !== newStatus) {
+    project.data.status = newStatus
+    project.status = newStatus
     project.data.oldstatus = currentStatus
 
-    let { draftSubject, to } = getEmailDraft_(currentStatus, newStatus)
+    let rowData = Object.values(project)
+    rowData[3] = JSON.stringify(rowData[3])
+    rowData[4] = JSON.stringify(rowData[4])
+    rowData.pop()
 
-    if (draftSubject) sendEmail(draftSubject, to, project.data)
+    console.log(`Updating ${projectId} with status ${newStatus} at row ${project['_row_']}`)
+    SpreadsheetApp.getActive()
+      .getSheetByName('Submission')
+      .getRange(project['_row_'], 1, 1, rowData.length)
+      .setValues([rowData])
+
+    sendStatusChangeEmail(currentStatus, newStatus, project.data)
   }
 }
 
@@ -636,16 +626,77 @@ const generatePdfForRow = () => {
   if (errors) ss.toast(`${errors.join('|')}`)
 }
 
-const getStatusDescription = (status) => {
-  const descriptions = {
-    'New Project': 'Project has been submitted and is ready to start.',
-    'For Review by BW': 'Project has been completed and is READY FOR BW REVIEW.',
-    'Approved by Backwoods': 'Project has been reviewed by Backwoods and is APPROVED',
-    'S&S': 'Project has been S&S and is COMPLETE.',
-    Rework: 'Project has been REWORKED',
-    Delivered: 'Project has been DELIVERED',
+const otherFieldChangeEmail = (oldData, newData) => {
+  let preferences = getEmailPreferences(oldData, newData)
+  if (preferences) return
+  for (let preference of preferences) {
+    MailApp.sendEmail(preference.email, preference.subject, preference.body)
+  }
+}
+
+const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
+  let emailPref = getEmailPreferences(oldStatus, newStatus)
+  if (!emailPref?.length) return
+
+  let replacedEmailPref = replaceTemplateVariables(emailPref[0], projectData)
+
+  const template = HtmlService.createTemplateFromFile('statusChange')
+  console.log(oldStatus, newStatus, getStatusClass(newStatus))
+  template.projectId = projectData.projectId
+  template.clientName = projectData.clientName
+  template.projectName = projectData.projectName
+  template.isNewProject = !oldStatus
+  template.oldStatus = oldStatus || ''
+  template.newStatus = newStatus
+  template.statusClass = getStatusClass(newStatus)
+  template.statusText = newStatus
+  template.driveFolder = projectData.driveFolder
+  template.statusDescription = replacedEmailPref.description
+  template.dashboardUrl = settings.appUrl
+
+  const htmlBody = template.evaluate().getContent()
+
+  GmailApp.sendEmail(
+    settings.testMode ? 'iamparrth@gmail.com' : replacedEmailPref.to,
+    replacedEmailPref.subject,
+    htmlBody,
+    {
+      htmlBody: htmlBody,
+      name: 'Ceed Civil Pole Barn Project Admin',
+    },
+  )
+}
+
+const getEmailPreferences = (oldStatus, newStatus) => {
+  let preferences = _getItemsFromSheet_(
+    SpreadsheetApp.getActive().getSheetByName('Email Preferences'),
+    (v) =>
+      (v.statusFrom === oldStatus || v.statusFrom === 'All') &&
+      (v.statusTo === newStatus || v.statusTo === 'All'),
+  )
+
+  return preferences
+}
+
+const getStatusClass = (status) => {
+  const statusClasses = {
+    'New Project': 'pending',
+    'For Review by BW': 'pending',
+    'Approved by BW': 'approved',
+    'S&S': 'complete',
+    Reworked: 'rework',
+    Delivered: 'delivered', // New purple badge
   }
 
-  return descriptions[status] || 'Project status has been updated.'
+  return statusClasses[status] || 'pending'
 }
+
+const replaceTemplateVariables = (emailPref, projectData) => {
+  let replacedEmailPref = JSON.stringify(emailPref)
+  replacedEmailPref = replacedEmailPref.replace(/{{[^{}]+}}/g, (key) => {
+    return escapeData_(projectData[key.replace(/[{}]+/g, '')] || '')
+  })
+  return JSON.parse(replacedEmailPref)
+}
+
 const includes = (e) => HtmlService.createHtmlOutputFromFile(e).getContent()

@@ -20,7 +20,7 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
       .header {
-        background: linear-gradient(135deg, #b62025 0%, #d32f2f 100%);
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
         color: white;
         padding: 30px 40px;
         text-align: center;
@@ -68,6 +68,10 @@
         background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
         box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
       }
+      .status-badge.delivered {
+        background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+        box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
+      }
       .greeting {
         font-size: 18px;
         color: #555;
@@ -75,14 +79,14 @@
       }
       .project-info {
         background: #f8f9fa;
-        border-left: 4px solid #b62025;
+        border-left: 4px solid #3498db;
         padding: 20px;
         margin: 25px 0;
         border-radius: 0 8px 8px 0;
       }
       .project-info h3 {
         margin: 0 0 10px 0;
-        color: #b62025;
+        color: #2c3e50;
         font-size: 18px;
       }
       .project-details {
@@ -100,24 +104,25 @@
         display: inline-block;
         padding: 12px 30px;
         margin: 0 10px;
-        background: linear-gradient(135deg, #b62025 0%, #d32f2f 100%);
-        color: white;
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white !important;
         text-decoration: none;
         border-radius: 25px;
         font-weight: 600;
         transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(182, 32, 37, 0.3);
+        box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
       }
       .btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(182, 32, 37, 0.4);
+        box-shadow: 0 4px 8px rgba(39, 174, 96, 0.4);
       }
       .btn-secondary {
-        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-        box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+        background: linear-gradient(135deg, #3c94e7 0%, #2b88c0 100%);
+        color: white !important;
+        box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
       }
       .btn-secondary:hover {
-        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.4);
+        box-shadow: 0 4px 8px rgba(231, 76, 60, 0.4);
       }
       .footer {
         background: #f8f9fa;
@@ -131,7 +136,7 @@
         font-size: 14px;
       }
       .footer .company-name {
-        color: #b62025;
+        color: #2c3e50;
         font-weight: 600;
         font-size: 16px;
       }
@@ -201,20 +206,22 @@
 
         <p class="greeting">Hello,</p>
 
+        <div class="status-description">
+          <h4>Status Update</h4>
+          <p><?= statusDescription ?></p>
+        </div>
+
         <div class="project-info">
           <h3>Project Details</h3>
           <p class="project-details">
             <strong>Project ID:</strong> <?= projectId ?><br />
             <strong>Client:</strong> <?= clientName ?><br />
             <strong>Project Name:</strong> <?= projectName ?><br />
-            <?= isNewProject ? '' : '<strong>Previous Status:</strong> ' + previousStatus + '<br />'
-            ?> <strong><?= isNewProject ? 'Status:' : 'New Status:' ?></strong> <?= newStatus ?>
+            <? if(isNewProject) { ?>
+            <strong>Status:</strong> <?= newStatus ?> <? } else { ?>
+            <strong>Previous Status:</strong> <?= oldStatus ?><br />
+            <strong>New Status:</strong> <?= newStatus ?> <? } ?>
           </p>
-        </div>
-
-        <div class="status-description">
-          <h4>Status Update</h4>
-          <p><?= statusDescription ?></p>
         </div>
 
         <div class="action-buttons">
@@ -224,12 +231,8 @@
       </div>
 
       <div class="footer">
-        <p>Thank you for choosing Ceed Civil Engineering</p>
         <p class="company-name">Ceed Civil Engineering</p>
         <p>Automated Status Notification System</p>
-        <p>
-          <small>This is an automated email. Please do not reply directly to this message.</small>
-        </p>
       </div>
     </div>
   </body>

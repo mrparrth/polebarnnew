@@ -6,6 +6,8 @@ const settings = {
   },
   secretJwtToken: `1gIugNMme8742WxT13h1CjxLchpAcYsW6U6tyV434`,
   exportDrive: '1XPwl5KDtLeoW-4TcGHr_1c6defz4BFn4',
+  appUrl:
+    'https://script.google.com/macros/s/AKfycbwlMhk694ZaK0lvZ-QK_CRzBmAYCpLru11AcS3cxV42B5Qt3lANM0kARfFbAdv6xdi--A/exec',
   testMode: false,
 }
 
