@@ -1,3 +1,118 @@
+class Auth {
+  constructor() {
+    this.ss = SpreadsheetApp.getActive()
+    this.settings = settings
+    this.shUser = this.ss.getSheetByName(this.settings.sheetNames.user)
+  }
+
+  validateLogin(cookie) {
+    if (!cookie) return false
+    let timeComponent36 = cookie.slice(0, cookie.indexOf('.'))
+    let timeComponent = parseInt(timeComponent36, 36)
+    let currTime = new Date().getTime()
+    let msInHour = 1000 * 60 * 60
+    let nHour = 24 //Expired after 25 hours
+
+    if ((currTime - timeComponent) / msInHour > nHour) {
+      return false
+    } else {
+      let user = this.getUserByToken(cookie)
+      return !!user
+    }
+  }
+
+  getUserByEmail(email) {
+    email = email.trim().toLowerCase()
+    return _getItemsFromSheet_(
+      this.ss.getSheetByName(this.settings.sheetNames.user),
+      (v) => v.email.trim().toLowerCase() === email,
+    )[0]
+  }
+
+  getUserByToken(token) {
+    token = token.trim().toLowerCase()
+    return _getItemsFromSheet_(
+      this.ss.getSheetByName(this.settings.sheetNames.user),
+      (v) => v.currentToken.trim().toLowerCase() === token,
+    )[0]
+  }
+
+  createToken() {
+    let time = new Date().getTime()
+    return time.toString(36) + '.' + Math.floor(Math.random() * 1000).toString(36)
+  }
+
+  updateUserToken(user) {
+    let headers = this.shUser.getRange(`1:1`).getValues()[0]
+    let tokenCol = headers.indexOf('Current Token')
+    this.shUser.getRange(user._rowIndex, tokenCol + 1).setValue(user.currentToken)
+  }
+
+  login(loginInfo) {
+    console.log(loginInfo)
+
+    let { data: { email, password } = {}, token } = loginInfo
+    if (token && token !== 'null') {
+      const validToken = this.getUserByToken(token)
+      if (!validToken) throw 'Invalid login'
+
+      const tokenUser = this.getUserByEmail(validToken.email)
+      if (!tokenUser) {
+        tokenUser.currentToken = ''
+        this.updateUserToken(tokenUser)
+        return 'Invalid login'
+      }
+
+      if (!validToken) {
+        tokenUser.currentToken = ''
+        this.updateUserToken(tokenUser)
+        return 'Invalid login'
+      }
+      let data = _getSheetValuesAsJson_(SpreadsheetApp.getActive().getSheetByName('Submission'))
+
+      let dashboardData = data.map(({ data, images }) => {
+        return { data, images }
+      })
+
+      delete tokenUser.password
+
+      return {
+        user: tokenUser,
+        token,
+        data: dashboardData,
+      }
+    }
+
+    if (email && password) {
+      const user = this.getUserByEmail(email)
+      if (!user) throw new Error('User not found in the database.')
+      if (user.password.toString() !== password.toString()) throw new Error('Invalid credentials!')
+
+      delete user.password
+      token = this.createToken()
+      user.currentToken = token
+
+      this.updateUserToken(user)
+      let data = _getSheetValuesAsJson_(SpreadsheetApp.getActive().getSheetByName('Submission'))
+
+      let dashboardData = data.map(({ data, images }) => {
+        return { data, images }
+      })
+
+      return {
+        user,
+        token,
+        data: dashboardData,
+      }
+    }
+
+    return {
+      user: null,
+      token: null,
+    }
+  }
+}
+
 const login = (payload) => new Auth().login(payload)
 
 const webAppURL = () => ScriptApp.getService().getUrl()
@@ -15,7 +130,6 @@ const newProject = ({ data, token }) => {
   let ss = SpreadsheetApp.getActive()
   let shSubmission = ss.getSheetByName('Submission')
 
-  //generate new project id
   let cache = PropertiesService.getScriptProperties()
   let currentProjectId = cache.getProperty('currentProjectId')
 
@@ -46,76 +160,30 @@ const newProject = ({ data, token }) => {
   data.fBInvoiceNo = fbInvoice.response.result.invoice.invoice_number
   data.fBInvoiceId = fbInvoice.response.result.invoice.id
 
-  if (!settings.testMode) shareInvoiceWithClient(data.fBInvoiceId)
-
   try {
-    data.fbInvoiceLink = getSharableFBInvoiceLink(data.fBInvoiceId)
+    if (!settings.testMode) {
+      shareInvoiceWithClient(data.fBInvoiceId)
+      data.fbInvoiceLink = getSharableFBInvoiceLink(data.fBInvoiceId)
+    }
   } catch (e) {
     console.log(e)
   }
 
   try {
-    let { pdfUrl, slideUrl, errors } = generatePresentation(data)
+    let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
 
-    data.presentationUrl = pdfUrl
+    if (isFileCreated) {
+      data.presentationUrl = pdfUrl
+    } else {
+      data.presentationUrl = ''
+    }
 
-    if (pdfUrl) {
-      const subject = `PDF Generated - ${data.clientName} - ${data.projectName}`
+    if (isOpenPoleBarn && !isFileCreated) {
+      sendNoPresentationEmail({ data, errors })
+    }
 
-      const htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
-            PDF Generated Successfully
-          </h2>
-
-          <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            Hello,
-          </p>
-
-          <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            PDF has been generated for <strong>${data.clientName}</strong> - <strong>${data.projectName}</strong>
-          </p>
-
-          <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
-            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Presentation URL:</p>
-            <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
-              ${pdfUrl}
-            </a>
-            <p></p>
-            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Slide URL (In case you want to make changes):</p>
-            <a href="${slideUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
-              ${slideUrl}
-            </a>
-          </div>
-
-          ${
-            errors && errors.length > 0
-              ? `
-          <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
-            <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
-              ⚠️ Errors Encountered:
-            </p>
-            <ul style="margin: 0; padding-left: 20px; color: #721c24;">
-              ${errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
-            </ul>
-          </div>
-          `
-              : ''
-          }
-
-          <p style="font-size: 14px; color: #666; margin-top: 30px;">
-            Pole Barn Report Generator Bot
-          </p>
-        </div>
-      `
-
-      // Send email
-      if (!settings.testMode)
-        MailApp.sendEmail({
-          to: 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com', //'iamparrth@gmail.com,erparthas@gmail.com',
-          subject: subject,
-          htmlBody: htmlBody,
-        })
+    if (isFileCreated) {
+      createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors })
     }
   } catch (e) {
     console.log(e)
@@ -272,122 +340,182 @@ const getSubmissionData = (token) => {
   return dashboardData
 }
 
-class Auth {
-  constructor() {
-    this.ss = SpreadsheetApp.getActive()
-    this.settings = settings
-    this.shUser = this.ss.getSheetByName(this.settings.sheetNames.user)
+const createDelayedPresentationEmailTrigger = ({ data, pdfUrl, slideUrl, errors }) => {
+  const trigger = ScriptApp.newTrigger('executeDelayedPresentationEmail')
+    .timeBased()
+    .after(2 * 60 * 60 * 1000)
+    .create()
+
+  const triggerData = {
+    data,
+    pdfUrl,
+    slideUrl,
+    errors,
+    triggerId: trigger.getUniqueId(),
+    createdAt: new Date().toISOString(),
   }
 
-  validateLogin(cookie) {
-    if (!cookie) return false
-    let timeComponent36 = cookie.slice(0, cookie.indexOf('.'))
-    let timeComponent = parseInt(timeComponent36, 36)
-    let currTime = new Date().getTime()
-    let msInHour = 1000 * 60 * 60
-    let nHour = 24 //Expired after 25 hours
+  PropertiesService.getScriptProperties().setProperty(
+    trigger.getUniqueId(),
+    JSON.stringify(triggerData),
+  )
 
-    if ((currTime - timeComponent) / msInHour > nHour) {
-      return false
-    } else {
-      let user = this.getUserByToken(cookie)
-      return !!user
-    }
-  }
+  console.log(`Created delayed presentation email trigger: ${trigger.getUniqueId()}`)
 
-  getUserByEmail(email) {
-    email = email.trim().toLowerCase()
-    return _getItemsFromSheet_(
-      this.ss.getSheetByName(this.settings.sheetNames.user),
-      (v) => v.email.trim().toLowerCase() === email,
-    )[0]
-  }
+  return trigger.getUniqueId()
+}
 
-  getUserByToken(token) {
-    token = token.trim().toLowerCase()
-    return _getItemsFromSheet_(
-      this.ss.getSheetByName(this.settings.sheetNames.user),
-      (v) => v.currentToken.trim().toLowerCase() === token,
-    )[0]
-  }
+const executeDelayedPresentationEmail = (event) => {
+  console.log(event)
+  try {
+    const property = PropertiesService.getScriptProperties().getProperty(event.triggerId)
 
-  createToken() {
-    let time = new Date().getTime()
-    return time.toString(36) + '.' + Math.floor(Math.random() * 1000).toString(36)
-  }
+    if (property) {
+      try {
+        const triggerData = JSON.parse(property)
 
-  updateUserToken(user) {
-    let headers = this.shUser.getRange(`1:1`).getValues()[0]
-    let tokenCol = headers.indexOf('Current Token')
-    this.shUser.getRange(user._rowIndex, tokenCol + 1).setValue(user.currentToken)
-  }
+        console.log(`Executing delayed presentation email for trigger: ${triggerData.triggerId}`)
 
-  login(loginInfo) {
-    console.log(loginInfo)
+        sendPresentationEmail(triggerData)
 
-    let { data: { email, password } = {}, token } = loginInfo
-    if (token && token !== 'null') {
-      const validToken = this.getUserByToken(token)
-      if (!validToken) throw 'Invalid login'
-
-      const tokenUser = this.getUserByEmail(validToken.email)
-      if (!tokenUser) {
-        tokenUser.currentToken = ''
-        this.updateUserToken(tokenUser)
-        return 'Invalid login'
-      }
-
-      if (!validToken) {
-        tokenUser.currentToken = ''
-        this.updateUserToken(tokenUser)
-        return 'Invalid login'
-      }
-      let data = _getSheetValuesAsJson_(SpreadsheetApp.getActive().getSheetByName('Submission'))
-
-      let dashboardData = data.map(({ data, images }) => {
-        return { data, images }
-      })
-
-      delete tokenUser.password
-
-      return {
-        user: tokenUser,
-        token,
-        data: dashboardData,
+        cleanupDelayedTrigger(event.triggerId)
+      } catch (parseError) {
+        console.error(`Error parsing trigger data for key ${key}:`, parseError)
+        PropertiesService.getScriptProperties().deleteProperty(event.triggerId)
       }
     }
-
-    if (email && password) {
-      const user = this.getUserByEmail(email)
-      if (!user) throw new Error('User not found in the database.')
-      if (user.password.toString() !== password.toString()) throw new Error('Invalid credentials!')
-
-      delete user.password
-      token = this.createToken()
-      user.currentToken = token
-
-      this.updateUserToken(user)
-      let data = _getSheetValuesAsJson_(SpreadsheetApp.getActive().getSheetByName('Submission'))
-
-      let dashboardData = data.map(({ data, images }) => {
-        return { data, images }
-      })
-
-      return {
-        user,
-        token,
-        data: dashboardData,
-      }
-    }
-
-    return {
-      user: null,
-      token: null,
-    }
+  } catch (error) {
+    console.error('Error in executeDelayedPresentationEmail:', error)
   }
 }
 
-function getDataByProjectName_(projectId) {
+const cleanupDelayedTrigger = (triggerId) => {
+  try {
+    PropertiesService.getScriptProperties().deleteProperty(triggerId)
+
+    if (triggerId) {
+      const triggers = ScriptApp.getProjectTriggers()
+      for (const trigger of triggers) {
+        if (trigger.getUniqueId() === triggerId) {
+          ScriptApp.deleteTrigger(trigger)
+          console.log(`Deleted trigger: ${triggerId}`)
+          break
+        }
+      }
+    }
+
+    console.log(`Cleaned up delayed trigger: ${triggerId}`)
+  } catch (error) {
+    console.error(`Error cleaning up trigger ${triggerId}:`, error)
+  }
+}
+
+const sendNoPresentationEmail = ({ data, errors = [] }) => {
+  const subject = `PDF Generation Failed - ${data.clientName} - ${data.projectName}`
+
+  const htmlBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #721c24; border-bottom: 2px solid #f5c6cb; padding-bottom: 10px;">
+            PDF Generation Failed
+          </h2>
+
+          <p style="font-size: 16px; line-height: 1.6; color: #555;">
+            Hello,
+          </p>
+
+          <p style="font-size: 16px; line-height: 1.6; color: #555;">
+            PDF generation failed for <strong>${data.clientName}</strong> - <strong>${data.projectName}</strong>
+          </p>
+
+          <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
+              ❌ Errors Encountered:
+            </p>
+            <ul style="margin: 0; padding-left: 20px; color: #721c24;">
+              ${
+                errors && errors.length > 0
+                  ? errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')
+                  : '<li style="margin-bottom: 5px;">Unknown error occurred during PDF generation</li>'
+              }
+            </ul>
+          </div>
+
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">
+            Pole Barn Report Generator Bot
+          </p>
+        </div>
+      `
+
+  // Send email
+  MailApp.sendEmail({
+    to: settings.testMode
+      ? 'iamparrth@gmail.com,erparthas@gmail.com'
+      : 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com',
+    subject: subject,
+    htmlBody: htmlBody,
+  })
+}
+
+const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
+  const subject = `PDF Generated - ${data.clientName} - ${data.projectName}`
+
+  const htmlBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+            PDF Generated Successfully
+          </h2>
+
+          <p style="font-size: 16px; line-height: 1.6; color: #555;">
+            Hello,
+          </p>
+
+          <p style="font-size: 16px; line-height: 1.6; color: #555;">
+            PDF has been generated for <strong>${data.clientName}</strong> - <strong>${data.projectName}</strong>
+          </p>
+
+          <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Presentation URL:</p>
+            <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
+              ${pdfUrl}
+            </a>
+            <p></p>
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Slide URL (In case you want to make changes):</p>
+            <a href="${slideUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
+              ${slideUrl}
+            </a>
+          </div>
+
+          ${
+            errors && errors.length > 0
+              ? `
+          <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
+              ⚠️ Errors Encountered:
+            </p>
+            <ul style="margin: 0; padding-left: 20px; color: #721c24;">
+              ${errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
+            </ul>
+          </div>
+          `
+              : ''
+          }
+
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">
+            Pole Barn Report Generator Bot
+          </p>
+        </div>
+      `
+
+  MailApp.sendEmail({
+    to: settings.testMode
+      ? 'iamparrth@gmail.com,erparthas@gmail.com'
+      : 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com',
+    subject: subject,
+    htmlBody: htmlBody,
+  })
+}
+
+const getDataByProjectName_ = (projectId) => {
   let ss = SpreadsheetApp.getActive()
   let shSubmission = ss.getSheetByName('Submission')
   let allData = _getSheetValuesAsJson_(shSubmission)
@@ -400,7 +528,7 @@ function getDataByProjectName_(projectId) {
   return data
 }
 
-function markAsArchived() {
+const markAsArchived = () => {
   let ss = SpreadsheetApp.getActive()
   let activeSheet = ss.getActiveSheet()
 
@@ -432,7 +560,7 @@ function markAsArchived() {
   activeSheet.getRange(activeRow, statusColumn, totalRows, 1).setValue('Archived')
 }
 
-function generatePdfForRow() {
+const generatePdfForRow = () => {
   let ss = SpreadsheetApp.getActive()
   let sh = ss.getSheetByName('Submission')
   let data = _getSheetValuesAsJson_(sh)
@@ -501,8 +629,23 @@ function generatePdfForRow() {
         subject: subject,
         htmlBody: htmlBody,
       })
+
+    _openLink_(pdfUrl)
   }
-  _openLink_(pdfUrl)
+
+  if (errors) ss.toast(`${errors.join('|')}`)
 }
 
+const getStatusDescription = (status) => {
+  const descriptions = {
+    'New Project': 'Project has been submitted and is ready to start.',
+    'For Review by BW': 'Project has been completed and is READY FOR BW REVIEW.',
+    'Approved by Backwoods': 'Project has been reviewed by Backwoods and is APPROVED',
+    'S&S': 'Project has been S&S and is COMPLETE.',
+    Rework: 'Project has been REWORKED',
+    Delivered: 'Project has been DELIVERED',
+  }
+
+  return descriptions[status] || 'Project status has been updated.'
+}
 const includes = (e) => HtmlService.createHtmlOutputFromFile(e).getContent()

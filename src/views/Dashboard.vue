@@ -68,11 +68,11 @@
                   class="projects-table flex-grow-1"
                   hover
                   item-value="id"
-                  @click:row="handleRowClick"
                 >
                   <template v-slot:item="{ item }">
-                    <tr :class="getRowClass(item)" @click="handleRowClick(item)">
+                    <tr :class="getRowClass(item)">
                       <td>{{ item.data.projectId }}</td>
+                      <td v-if="isAdmin">{{ item.data.fBInvoiceId || 'N/A' }}</td>
                       <td>{{ item.data.clientName }}</td>
                       <td>{{ item.data.projectName }}</td>
                       <td>{{ formatDate(item.data.orderDate) }}</td>
@@ -120,14 +120,6 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-snackbar
-      v-model="showNotification"
-      :color="notificationColor"
-      :timeout="3000"
-      location="bottom"
-    >
-      {{ notificationMessage }}
-    </v-snackbar>
   </v-container>
 </template>
 
@@ -136,28 +128,47 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { API } from '@/services/apiService'
 import { useProjectStore } from '@/stores/projectStore'
+import { useSnackbar } from '@/composables/useSnackbar'
 
 const router = useRouter()
 const projectStore = useProjectStore()
 const loading = ref(false)
 const searchQuery = ref('')
 const showArchived = ref(false)
-const showNotification = ref(false)
-const notificationMessage = ref('')
-const notificationColor = ref('success')
-const logoImage = ref(null)
+const { showSnackbar } = useSnackbar()
 
 const projects = ref(projectStore.projects)
 
-const headers = [
-  { title: 'Project ID', key: 'id', sortable: true, width: '4%' },
-  { title: 'Client Name', key: 'clientName', sortable: true, width: '20%' },
-  { title: 'Project Name', key: 'projectName', sortable: true, width: '20%' },
-  { title: 'Order Date', key: 'orderDate', sortable: true, width: '12%' },
-  { title: 'Folder Link', key: 'folderLink', sortable: false, width: '8%' },
-  { title: 'Status', key: 'status', sortable: true, width: '20%' },
-  { title: '', key: 'actions', sortable: false, width: '4%' },
-]
+// Admin detection
+const isAdmin = computed(() => {
+  return projectStore.user?.type === 'Admin' || projectStore.user?.isAdmin === true
+})
+
+// Dynamic headers based on admin status
+const headers = computed(() => {
+  if (isAdmin.value) {
+    return [
+      { title: 'Project ID', key: 'id', sortable: true, width: '6%' },
+      { title: 'Invoice ID', key: 'invoiceId', sortable: true, width: '6%' },
+      { title: 'Client Name', key: 'clientName', sortable: true, width: '22%' },
+      { title: 'Project Name', key: 'projectName', sortable: true, width: '22%' },
+      { title: 'Order Date', key: 'orderDate', sortable: true, width: '11%' },
+      { title: 'Folder Link', key: 'folderLink', sortable: false, width: '4%' },
+      { title: 'Status', key: 'status', sortable: true, width: '24%' },
+      { title: '', key: 'actions', sortable: false, width: '1%' },
+    ]
+  } else {
+    return [
+      { title: 'Project ID', key: 'id', sortable: true, width: '5%' },
+      { title: 'Client Name', key: 'clientName', sortable: true, width: '26%' },
+      { title: 'Project Name', key: 'projectName', sortable: true, width: '26%' },
+      { title: 'Order Date', key: 'orderDate', sortable: true, width: '13%' },
+      { title: 'Folder Link', key: 'folderLink', sortable: false, width: '5%' },
+      { title: 'Status', key: 'status', sortable: true, width: '22%' },
+      { title: '', key: 'actions', sortable: false, width: '3%' },
+    ]
+  }
+})
 
 const statusOptions = [
   'New Request',
@@ -228,14 +239,8 @@ async function updateStatus(projectId, newStatus) {
   if (project) {
     project.data.status = newStatus
     await API.updateProjectStatus(projectId, newStatus)
-    showNotificationMessage(`Status updated for project ${projectId}`, 'success')
+    showSnackbar(`Status for project ${projectId} updated to ${newStatus}!`, 'success')
   }
-}
-
-function showNotificationMessage(message, color = 'success') {
-  notificationMessage.value = message
-  notificationColor.value = color
-  showNotification.value = true
 }
 </script>
 
@@ -341,6 +346,12 @@ function showNotificationMessage(message, color = 'success') {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Invoice ID column styling for admins */
+.projects-table :deep(.v-data-table__wrapper td:nth-child(2)) {
+  font-family: monospace;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {

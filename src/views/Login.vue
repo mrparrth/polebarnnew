@@ -105,6 +105,7 @@ const handleLogin = async () => {
 
   try {
     const result = await API.login(formData.username, formData.password)
+    console.log('result', result)
     projectStore.setProjects(result.data)
     projectStore.setUser(result.user)
     localStorage.setItem('authToken', result.token)

@@ -1,5 +1,5 @@
 export const DEV_ENV = typeof google === 'undefined'
-export const DEFAULT_MOCK_API_DELAY = 3000
+export const DEFAULT_MOCK_API_DELAY = 1000
 export const STATUSES = [
   'New Request',
   'Accepted',
@@ -13,7 +13,7 @@ export const STATUSES = [
 ]
 export const BLANK_FORM_DATA = {
   projectId: '',
-  status: '',
+  status: 'New Request',
   clientName: '',
   projectName: '',
   siteAddress: '',

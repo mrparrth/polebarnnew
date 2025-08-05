@@ -4,6 +4,7 @@ import { DEFAULT_MOCK_API_DELAY } from '../global'
 const FAKE_USER = {
   email: 'test@test.com',
   password: '123456',
+  type: 'Admin1',
   token: 'dev_fake_token_123456',
 }
 
@@ -46,6 +47,7 @@ export class Mock {
           data: LOCAL_DATA,
         }
       }
+      localStorage.removeItem('authToken')
       throw new Error('Invalid token')
     }
 

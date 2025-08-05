@@ -6,7 +6,7 @@ const settings = {
   },
   secretJwtToken: `1gIugNMme8742WxT13h1CjxLchpAcYsW6U6tyV434`,
   exportDrive: '1XPwl5KDtLeoW-4TcGHr_1c6defz4BFn4',
-  testMode: true,
+  testMode: false,
 }
 
 if (settings.testNewProject) {

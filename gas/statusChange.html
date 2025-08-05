@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Status Update</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background: linear-gradient(135deg, #b62025 0%, #d32f2f 100%);
+        color: white;
+        padding: 30px 40px;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      .header .subtitle {
+        margin: 8px 0 0 0;
+        font-size: 16px;
+        opacity: 0.9;
+      }
+      .content {
+        padding: 40px;
+      }
+      .status-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+      }
+      .status-badge.pending {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+      }
+      .status-badge.approved {
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+      }
+      .status-badge.complete {
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+      }
+      .status-badge.rework {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
+      }
+      .greeting {
+        font-size: 18px;
+        color: #555;
+        margin-bottom: 20px;
+      }
+      .project-info {
+        background: #f8f9fa;
+        border-left: 4px solid #b62025;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .project-info h3 {
+        margin: 0 0 10px 0;
+        color: #b62025;
+        font-size: 18px;
+      }
+      .project-details {
+        margin: 0;
+        color: #666;
+      }
+      .project-details strong {
+        color: #333;
+      }
+      .action-buttons {
+        text-align: center;
+        margin: 30px 0;
+      }
+      .btn {
+        display: inline-block;
+        padding: 12px 30px;
+        margin: 0 10px;
+        background: linear-gradient(135deg, #b62025 0%, #d32f2f 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(182, 32, 37, 0.3);
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(182, 32, 37, 0.4);
+      }
+      .btn-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+      }
+      .btn-secondary:hover {
+        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.4);
+      }
+      .footer {
+        background: #f8f9fa;
+        padding: 30px 40px;
+        text-align: center;
+        border-top: 1px solid #e9ecef;
+      }
+      .footer p {
+        margin: 5px 0;
+        color: #666;
+        font-size: 14px;
+      }
+      .footer .company-name {
+        color: #b62025;
+        font-weight: 600;
+        font-size: 16px;
+      }
+      .status-description {
+        background: #e8f5e8;
+        border: 1px solid #c8e6c9;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+      }
+      .status-description h4 {
+        margin: 0 0 10px 0;
+        color: #2e7d32;
+        font-size: 16px;
+      }
+      .status-description p {
+        margin: 0;
+        color: #388e3c;
+        line-height: 1.5;
+      }
+      .next-steps {
+        background: #fff3e0;
+        border: 1px solid #ffcc02;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+      }
+      .next-steps h4 {
+        margin: 0 0 10px 0;
+        color: #f57c00;
+        font-size: 16px;
+      }
+      .next-steps ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #e65100;
+      }
+      .next-steps li {
+        margin-bottom: 5px;
+      }
+      @media only screen and (max-width: 600px) {
+        .email-container {
+          margin: 0;
+          box-shadow: none;
+        }
+        .header,
+        .content,
+        .footer {
+          padding: 20px;
+        }
+        .btn {
+          display: block;
+          margin: 10px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h1>Project Status Update</h1>
+        <p class="subtitle">Ceed Civil Engineering</p>
+      </div>
+
+      <div class="content">
+        <div class="status-badge <?= statusClass ?>"><?= statusText ?></div>
+
+        <p class="greeting">Hello,</p>
+
+        <div class="project-info">
+          <h3>Project Details</h3>
+          <p class="project-details">
+            <strong>Project ID:</strong> <?= projectId ?><br />
+            <strong>Client:</strong> <?= clientName ?><br />
+            <strong>Project Name:</strong> <?= projectName ?><br />
+            <?= isNewProject ? '' : '<strong>Previous Status:</strong> ' + previousStatus + '<br />'
+            ?> <strong><?= isNewProject ? 'Status:' : 'New Status:' ?></strong> <?= newStatus ?>
+          </p>
+        </div>
+
+        <div class="status-description">
+          <h4>Status Update</h4>
+          <p><?= statusDescription ?></p>
+        </div>
+
+        <div class="action-buttons">
+          <a href="<?= dashboardUrl ?>" class="btn">View Project Dashboard</a>
+          <a href="<?= driveFolder ?>" class="btn btn-secondary">Access Project Files</a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Thank you for choosing Ceed Civil Engineering</p>
+        <p class="company-name">Ceed Civil Engineering</p>
+        <p>Automated Status Notification System</p>
+        <p>
+          <small>This is an automated email. Please do not reply directly to this message.</small>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -7,12 +7,12 @@ export const useProjectStore = defineStore('project', () => {
   const isUpdating = ref(false)
   const user = ref(null)
 
-  function setUser(user) {
-    user.value = user
+  function setUser(newUser) {
+    user.value = newUser
   }
 
-  function setProjects(value) {
-    projects.value = value
+  function setProjects(newProjects) {
+    projects.value = newProjects
   }
 
   function updateProject(projectId, updatedData) {
@@ -27,6 +27,7 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   function newProject(projectData) {
+    console.log('projectData', projectData)
     projects.value.push(projectData)
   }
 

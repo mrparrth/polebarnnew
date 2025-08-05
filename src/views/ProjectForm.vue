@@ -45,6 +45,7 @@
                   hide-details
                   full-width
                   name="status"
+                  :disabled="shouldDisableField('status')"
                   :error-messages="fieldErrors.status"
                   :error="!!fieldErrors.status"
                 />
@@ -52,7 +53,7 @@
             </v-row>
             <div class="section-header mb-2">Order Information</div>
             <v-row>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.clientName"
                   label="Client Name"
@@ -60,11 +61,12 @@
                   variant="outlined"
                   required
                   name="clientName"
+                  :disabled="shouldDisableField('clientName')"
                   :error-messages="fieldErrors.clientName"
                   :error="!!fieldErrors.clientName"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.projectName"
                   label="Project Name"
@@ -72,13 +74,14 @@
                   variant="outlined"
                   required
                   name="projectName"
+                  counter="25"
+                  :disabled="shouldDisableField('projectName')"
                   :error-messages="fieldErrors.projectName"
                   :error="!!fieldErrors.projectName"
+                  @input="validateProjectNameLength"
                 />
               </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="6">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.siteAddress"
                   label="Site Address"
@@ -86,11 +89,14 @@
                   variant="outlined"
                   required
                   name="siteAddress"
+                  :disabled="shouldDisableField('siteAddress')"
                   :error-messages="fieldErrors.siteAddress"
                   :error="!!fieldErrors.siteAddress"
                 />
               </v-col>
-              <v-col cols="12" md="6">
+            </v-row>
+            <v-row>
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.city"
                   label="City"
@@ -98,13 +104,12 @@
                   variant="outlined"
                   required
                   name="city"
+                  :disabled="shouldDisableField('city')"
                   :error-messages="fieldErrors.city"
                   :error="!!fieldErrors.city"
                 />
               </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-combobox
                   v-model="form.state"
                   :items="states"
@@ -112,28 +117,31 @@
                   dense
                   variant="outlined"
                   name="state"
+                  :disabled="shouldDisableField('state')"
                   :error-messages="fieldErrors.state"
                   :error="!!fieldErrors.state"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.country"
                   label="Country"
                   dense
                   variant="outlined"
                   name="country"
+                  :disabled="shouldDisableField('country')"
                   :error-messages="fieldErrors.country"
                   :error="!!fieldErrors.country"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.zip"
                   label="Zip"
                   dense
                   variant="outlined"
                   name="zip"
+                  :disabled="shouldDisableField('zip')"
                   :error-messages="fieldErrors.zip"
                   :error="!!fieldErrors.zip"
                 />
@@ -175,6 +183,7 @@
                           class="sow-input"
                           :placeholder="activeColumns[column.key] ? 'L' : ''"
                           inputmode="numeric"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           @click.stop
                         />
                         <span class="sow-separator">{{
@@ -187,6 +196,7 @@
                           class="sow-input"
                           :placeholder="activeColumns[column.key] ? 'W' : ''"
                           inputmode="numeric"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           @click.stop
                         />
                         <span class="sow-separator">{{
@@ -199,13 +209,14 @@
                           class="sow-input"
                           :placeholder="activeColumns[column.key] ? 'H' : ''"
                           inputmode="numeric"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           @click.stop
                         />
                       </div>
 
                       <div
                         v-else-if="row.key === 'PostSpacing'"
-                        class="sow-input-container justify-start"
+                        class="sow-input-container"
                         tabindex="0"
                         :name="`${column.key}${row.key}`"
                         :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
@@ -220,6 +231,7 @@
                           class="sow-input"
                           :placeholder="activeColumns[column.key] ? '' : ''"
                           inputmode="numeric"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           @click.stop
                         />
                         <span class="sow-separator">{{
@@ -229,7 +241,7 @@
 
                       <div
                         v-else-if="row.key === 'PostSize'"
-                        class="sow-input-container justify-start"
+                        class="sow-input-container"
                         tabindex="0"
                         :name="`${column.key}${row.key}`"
                         :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
@@ -237,13 +249,14 @@
                         @focusin="activeColumns[column.key] = true"
                       >
                         <input
-                          v-model="postSizeInputs[`${column.key}${row.key}`].h"
-                          :name="`postSize-${column.key}${row.key}-h`"
+                          v-model="postSizeInputs[`${column.key}${row.key}`].l"
+                          :name="`postSize-${column.key}${row.key}-l`"
                           type="number"
                           min="1"
                           class="sow-input"
-                          :placeholder="activeColumns[column.key] ? 'H' : ''"
+                          :placeholder="activeColumns[column.key] ? 'L' : ''"
                           inputmode="numeric"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           @click.stop
                         />
                         <span class="sow-separator">{{
@@ -251,18 +264,20 @@
                         }}</span>
                         <input
                           v-model="postSizeInputs[`${column.key}${row.key}`].w"
+                          :name="`postSize-${column.key}${row.key}-w`"
                           type="number"
                           min="1"
                           class="sow-input"
                           :placeholder="activeColumns[column.key] ? 'W' : ''"
                           inputmode="numeric"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           @click.stop
                         />
                       </div>
 
                       <div
                         v-else-if="row.key === 'MainBldGpitch'"
-                        class="sow-input-container justify-start"
+                        class="sow-input-container"
                         tabindex="0"
                         :name="`${column.key}${row.key}`"
                         :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
@@ -277,6 +292,7 @@
                           class="sow-input"
                           :placeholder="activeColumns[column.key] ? '' : ''"
                           inputmode="numeric"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           @click.stop
                         />
                         <span class="sow-separator">{{
@@ -293,6 +309,7 @@
                         variant="outlined"
                         hide-details
                         class="scope-input"
+                        :disabled="shouldDisableField(`${column.key}${row.key}`)"
                         :error-messages="fieldErrors[`${column.key}${row.key}`]"
                         :error="!!fieldErrors[`${column.key}${row.key}`]"
                         @focus="activeColumns[column.key] = true"
@@ -311,6 +328,7 @@
                   inline
                   hide-details
                   name="overhangtype"
+                  :disabled="shouldDisableField('overhangType')"
                   :error-messages="fieldErrors.overhangType"
                   :error="!!fieldErrors.overhangType"
                 >
@@ -325,6 +343,7 @@
                       variant="outlined"
                       hide-details
                       name="overhangValue"
+                      :disabled="shouldDisableField('overhangValue')"
                       :error-messages="fieldErrors.overhangValue"
                       :error="!!fieldErrors.overhangValue"
                       style="width: 170px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
@@ -344,6 +363,7 @@
                   label="Risk Category"
                   inline
                   name="riskCategory"
+                  :disabled="shouldDisableField('riskCategory')"
                   :error-messages="fieldErrors.riskCategory"
                   :error="!!fieldErrors.riskCategory"
                 >
@@ -362,6 +382,7 @@
                   label="Exposure Category"
                   inline
                   name="exposureCategory"
+                  :disabled="shouldDisableField('exposureCategory')"
                   :error-messages="fieldErrors.exposureCategory"
                   :error="!!fieldErrors.exposureCategory"
                 >
@@ -378,6 +399,7 @@
                   v-model="form.plywoodOnSiding"
                   row
                   label="Plywood On Siding"
+                  :disabled="shouldDisableField('plywoodOnSiding')"
                   inline
                   name="plywoodOnSiding"
                   :error-messages="fieldErrors.plywoodOnSiding"
@@ -394,6 +416,7 @@
                   label="Plywood On Roof"
                   inline
                   name="plywoodOnRoof"
+                  :disabled="shouldDisableField('plywoodOnRoof')"
                   :error-messages="fieldErrors.plywoodOnRoof"
                   :error="!!fieldErrors.plywoodOnRoof"
                 >
@@ -410,6 +433,7 @@
                   label="2 x 6 Stud Spacing"
                   inline
                   name="studSpacing"
+                  :disabled="shouldDisableField('studSpacing')"
                   :error-messages="fieldErrors.studSpacing"
                   :error="!!fieldErrors.studSpacing"
                 >
@@ -425,6 +449,7 @@
                       variant="outlined"
                       hide-details
                       name="studSpacingCustomValue"
+                      :disabled="shouldDisableField('studSpacingCustomValue')"
                       :error-messages="fieldErrors.studSpacingCustomValue"
                       :error="!!fieldErrors.studSpacingCustomValue"
                       style="width: 200px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
@@ -437,32 +462,48 @@
                 <div class="section-header mb-2" style="min-height: 24px"></div>
                 <v-row>
                   <v-col cols="6">
-                    <div
-                      class="sow-input-container justify-start"
-                      tabindex="0"
-                      :class="{ error: !!fieldErrors.windSpeed }"
-                      @click="focusFirstInput('windSpeed', 'windSpeed')"
-                    >
-                      <input
-                        v-model="windSpeedInput.value"
-                        name="windSpeed"
-                        type="number"
-                        min="1"
-                        class="sow-input"
-                        placeholder=""
-                        inputmode="numeric"
-                        @click.stop
-                      />
-                      <span class="sow-separator">MPH</span>
-                      <div v-if="fieldErrors.windSpeed" class="error-message">
-                        {{ fieldErrors.windSpeed }}
-                      </div>
-                    </div>
+                    <v-text-field
+                      v-model="windSpeedInput.value"
+                      label="Wind Speed"
+                      type="number"
+                      min="1"
+                      dense
+                      variant="outlined"
+                      name="windSpeed"
+                      suffix="MPH"
+                      :disabled="shouldDisableField('windSpeed')"
+                      :error-messages="fieldErrors.windSpeed"
+                      :error="!!fieldErrors.windSpeed"
+                    />
                   </v-col>
                   <v-col cols="6" class="d-flex align-center">
-                    <v-checkbox v-model="form.wetMapAndSeal" label="Wet Stamp And Seal" />
+                    <v-checkbox
+                      v-model="form.wetMapAndSeal"
+                      label="Wet Stamp And Seal"
+                      :disabled="shouldDisableField('wetMapAndSeal')"
+                    />
                   </v-col>
                 </v-row>
+              </v-col>
+            </v-row>
+            <hr v-if="!shouldHideField('price')" class="section-divider" />
+            <v-row v-if="!shouldHideField('price')" class="admin-pricing-field">
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.price"
+                  label="Project Pricing"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  dense
+                  variant="outlined"
+                  required
+                  name="price"
+                  hide-details
+                  prepend-inner-icon="mdi-currency-usd"
+                  :error-messages="fieldErrors.price"
+                  :error="!!fieldErrors.price"
+                />
               </v-col>
             </v-row>
           </v-sheet>
@@ -486,6 +527,7 @@
                         v-model="form[addon.checkboxKey]"
                         :label="addon.label"
                         hide-details
+                        :disabled="shouldDisableField(addon.checkboxKey)"
                       />
                     </th>
                     <td v-for="column in addonColumns" :key="column.key" class="addons-cell">
@@ -500,7 +542,11 @@
                           dense
                           variant="outlined"
                           hide-details
-                          :disabled="!form[addon.checkboxKey]"
+                          type="number"
+                          :disabled="
+                            shouldDisableField(`${addon.key}${column.key}Qty`) ||
+                            !form[addon.checkboxKey]
+                          "
                           :error="!!fieldErrors[`${addon.key}${column.key}Qty`]"
                         />
                         <v-text-field
@@ -510,7 +556,11 @@
                           dense
                           variant="outlined"
                           hide-details
-                          :disabled="!form[addon.checkboxKey]"
+                          type="number"
+                          :disabled="
+                            shouldDisableField(`${addon.key}${column.key}Size`) ||
+                            !form[addon.checkboxKey]
+                          "
                           :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
                         />
                       </div>
@@ -522,7 +572,11 @@
                           dense
                           variant="outlined"
                           hide-details
-                          :disabled="!form[addon.checkboxKey]"
+                          type="number"
+                          :disabled="
+                            shouldDisableField(`${addon.key}${column.key}Size`) ||
+                            !form[addon.checkboxKey]
+                          "
                           :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
                         />
                         <v-text-field
@@ -532,7 +586,11 @@
                           dense
                           variant="outlined"
                           hide-details
-                          :disabled="!form[addon.checkboxKey]"
+                          type="number"
+                          :disabled="
+                            shouldDisableField(`${addon.key}${column.key}Pitch`) ||
+                            !form[addon.checkboxKey]
+                          "
                           :error="!!fieldErrors[`${addon.key}${column.key}Pitch`]"
                         />
                         <div class="slab-section">
@@ -541,6 +599,10 @@
                             v-model="form[`${addon.key}${column.key}Slab`]"
                             inline
                             hide-details
+                            :disabled="
+                              shouldDisableField(`${addon.key}${column.key}Slab`) ||
+                              !form[addon.checkboxKey]
+                            "
                           >
                             <v-radio
                               label="Yes"
@@ -572,7 +634,11 @@
                           dense
                           variant="outlined"
                           hide-details
-                          :disabled="!form[addon.checkboxKey]"
+                          type="number"
+                          :disabled="
+                            shouldDisableField(`${addon.key}${column.key}PostSize`) ||
+                            !form[addon.checkboxKey]
+                          "
                           :error="!!fieldErrors[`${addon.key}${column.key}PostSize`]"
                         />
                       </div>
@@ -593,6 +659,7 @@
                   dense
                   variant="outlined"
                   name="orderedBy"
+                  :disabled="shouldDisableField('orderedBy')"
                   :error-messages="fieldErrors.orderedBy"
                   :error="!!fieldErrors.orderedBy"
                 />
@@ -600,6 +667,7 @@
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.signature"
+                  :disabled="shouldDisableField('signature')"
                   label="Signature"
                   dense
                   variant="outlined"
@@ -616,6 +684,7 @@
                   dense
                   variant="outlined"
                   name="orderdate"
+                  :disabled="shouldDisableField('orderDate')"
                   :error-messages="fieldErrors.orderdate"
                   :error="!!fieldErrors.orderdate"
                 />
@@ -630,6 +699,7 @@
                   dense
                   variant="outlined"
                   name="additionalInformation"
+                  :disabled="shouldDisableField('additionalInformation')"
                   :error-messages="fieldErrors.additionalInformation"
                   :error="!!fieldErrors.additionalInformation"
                   auto-grow
@@ -659,6 +729,7 @@
               show-size
               prepend-icon="mdi-upload"
               variant="outlined"
+              :disabled="shouldDisableField('uploadSketch')"
               @change="handleFileUpload"
               hide-details
             />
@@ -703,7 +774,7 @@
               size="large"
               class="px-10 py-4 text-white font-weight-bold"
               :loading="isSubmitting"
-              :disabled="isSubmitting"
+              :disabled="isSubmitting || shouldDisableField('submitbutton')"
               @click="handleSubmit"
             >
               {{
@@ -731,7 +802,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, nextTick } from 'vue'
+import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { STATUSES, BLANK_FORM_DATA } from '@/global'
@@ -751,6 +822,28 @@ const isEdit = ref(false)
 const fieldErrors = ref({})
 const isSubmitting = ref(false)
 const files = ref([])
+const projectNameError = ref('')
+
+// Admin detection
+const isAdmin = computed(() => {
+  return projectStore.user?.type === 'Admin' || projectStore.user?.isAdmin === true
+})
+
+// Employee field restrictions
+const itemsToNotDisable = ['uploadSketch', 'submitbutton', 'status', 'additionalInformation']
+const itemsToHide = ['price']
+
+// Check if field should be disabled for employees
+const shouldDisableField = (fieldName) => {
+  if (isAdmin.value || !isEdit.value) return false
+  return !itemsToNotDisable.includes(fieldName)
+}
+
+// Check if field should be hidden for employees
+const shouldHideField = (fieldName) => {
+  if (isAdmin.value || !isEdit.value) return false
+  return itemsToHide.includes(fieldName)
+}
 
 const states = ['AL', 'FL']
 
@@ -813,10 +906,10 @@ const postSpacingInputs = reactive({
 })
 
 const postSizeInputs = reactive({
-  opbPostSize: { h: '', w: '' },
-  epbPostSize: { h: '', w: '' },
-  pepbPostSize: { h: '', w: '' },
-  trussPostSize: { h: '', w: '' },
+  opbPostSize: { l: '', w: '' },
+  epbPostSize: { l: '', w: '' },
+  pepbPostSize: { l: '', w: '' },
+  trussPostSize: { l: '', w: '' },
 })
 
 const mainBldgPitchInputs = reactive({
@@ -889,6 +982,19 @@ function removeFileById(id) {
   }
 }
 
+function validateProjectNameLength() {
+  if (form.projectName && form.projectName.length > 25) {
+    fieldErrors.value.projectName =
+      'Maximum 25 characters allowed for project name. You can add more information in the notes section.'
+  } else if (
+    fieldErrors.value.projectName &&
+    fieldErrors.value.projectName.includes('Maximum 25 characters')
+  ) {
+    // Clear the length error but keep other validation errors
+    delete fieldErrors.value.projectName
+  }
+}
+
 function goToDashboard() {
   router.push('/dashboard')
 }
@@ -914,6 +1020,11 @@ function validateRequiredFields() {
     'signature',
     'orderDate',
   ]
+
+  // Add price field validation for admins
+  if (isAdmin.value) {
+    requiredFields.push('price')
+  }
 
   let hasErrors = false
 
@@ -973,6 +1084,8 @@ function validateScopeOfWork() {
       }
     }
   }
+
+  console.log('hasErrors', fieldErrors)
   return hasErrors
 }
 
@@ -1050,15 +1163,14 @@ async function handleSubmit() {
       existingImages: existingImages.value,
     }
 
-    console.log('formData', formData)
-
     if (isEdit.value) {
       let updatedProject = await API.updateProject(formData)
       projectStore.updateProject(formData.projectId, updatedProject)
       showSnackbar(`Project ${formData.projectId} updated successfully!`, 'success')
     } else {
-      projectStore.newProject(formData)
       let newProject = await API.newProject(formData)
+      delete newProject.sketchData
+      projectStore.newProject(newProject)
       showSnackbar(`Project ${newProject.data.projectId} created successfully!`, 'success')
     }
 
@@ -1110,12 +1222,13 @@ function parsePostSpacing(val) {
 }
 
 function parsePostSize(val) {
-  if (!val) return { h: '', w: '' }
+  if (!val) return { l: '', w: '' }
   const match = val.match(/(\d+)\s*[xX*]\s*(\d+)/)
+  console.log('match', match)
   if (match) {
-    return { h: match[1], w: match[2] }
+    return { l: match[1], w: match[2] }
   }
-  return { h: '', w: '' }
+  return { l: '', w: '' }
 }
 
 function parseMainBldgPitch(val) {
@@ -1233,9 +1346,9 @@ postSizeFields.forEach((field) => {
   watch(
     () => postSizeInputs[field],
     (newVal) => {
-      const { h, w } = newVal
-      if (h && w) {
-        form[field] = `${h}x${w}`
+      const { l, w } = newVal
+      if (l && w) {
+        form[field] = `${l}x${w}`
       } else {
         form[field] = ''
       }
@@ -1246,8 +1359,8 @@ postSizeFields.forEach((field) => {
   watch(
     () => form[field],
     (newVal) => {
-      const { h, w } = parsePostSize(newVal)
-      postSizeInputs[field].h = h
+      const { l, w } = parsePostSize(newVal)
+      postSizeInputs[field].l = l
       postSizeInputs[field].w = w
     },
     { immediate: true },
@@ -1723,7 +1836,7 @@ function loadProjectData() {
 .sow-input-container {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   border: 1px solid rgba(0, 0, 0, 0.4);
   border-radius: 4px;
   padding: 0 6px;
@@ -1782,5 +1895,42 @@ function loadProjectData() {
   margin-top: 4px;
   font-weight: 400;
   line-height: 1.2;
+}
+
+/* Admin-only pricing field styling */
+.admin-pricing-field {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 2px solid #ff9800;
+  border-radius: 8px;
+  margin: 0px 0;
+}
+
+.admin-pricing-field .v-text-field {
+  background: white;
+  border-radius: 4px;
+}
+
+/* Employee field restrictions styling */
+:deep(.v-field--disabled) {
+  background-color: #f5f5f5 !important;
+  opacity: 0.7;
+}
+
+:deep(.v-field--disabled .v-field__input) {
+  color: #666 !important;
+}
+
+:deep(.v-radio--disabled) {
+  opacity: 0.7;
+}
+
+:deep(.v-checkbox--disabled) {
+  opacity: 0.7;
+}
+
+:deep(.sow-input:disabled) {
+  background-color: #f5f5f5;
+  color: #666;
+  cursor: not-allowed;
 }
 </style>

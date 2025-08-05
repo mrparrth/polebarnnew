@@ -1,5 +1,6 @@
 let WIND_CALC_SHEET = `https://docs.google.com/spreadsheets/d/1Tw2dkZkjcKvajTliYFWxYmFSmTPO5-u1iQa_U2yK2-s/edit`
-let WIND_CALC_SLIDE = `https://docs.google.com/presentation/d/1QyOHy2kOWU03fmNT8aIy1yTsbTXnylDmLT-mKy7Oo1Y/edit`
+// let WIND_CALC_SLIDE = `https://docs.google.com/presentation/d/1QyOHy2kOWU03fmNT8aIy1yTsbTXnylDmLT-mKy7Oo1Y/edit` //TO DO - This is the original slide template
+let WIND_CALC_SLIDE = `https://docs.google.com/presentation/d/1apJuXIqwyFPkE-NcmVy91bzZuyTanzNmog4kqe5_jnM/edit`
 let OUTPUT_DOC_FOLDER = `https://drive.google.com/drive/folders/1PIAkAnbwZIoH_jrq-RV3bBz-m-CSm72G`
 let RISK_CATEG_MAP = {
   1: 'Category I : Buildings and other structures that represent a low hazard to human life in ',
@@ -9,7 +10,19 @@ let RISK_CATEG_MAP = {
 }
 
 function generatePresentation(projectData) {
-  let { siteAddress, city, state, country, zip } = projectData
+  let {
+    siteAddress,
+    city,
+    state,
+    country,
+    zip,
+    opbMainBldGpitch,
+    opbSize,
+    riskCategory,
+    windSpeed,
+    exposureCategory,
+  } = projectData
+
   projectData.fullAddress = [
     siteAddress.toProperCase(),
     city.toProperCase(),
@@ -21,7 +34,21 @@ function generatePresentation(projectData) {
     .join(', ')
   projectData.buildingType = 'Open Pole Barn'
 
-  // Define required fields based on what's used in the code
+  if (state != 'FL') {
+    console.log('Not a Florida project')
+    return { isOpenPoleBarn: false, errors: ['Not a Florida project'] }
+  }
+
+  if (!opbMainBldGpitch) {
+    console.log('Not an open pole barn form - no pitch')
+    return { isOpenPoleBarn: false, errors: ['Not an open pole barn form - no pitch'] }
+  }
+
+  if (!opbSize) {
+    console.log('Not an open pole barn form')
+    return { isOpenPoleBarn: false, errors: ['Not an open pole barn form'] }
+  }
+
   const requiredFields = [
     'opbMainBldGpitch',
     'opbSize',
@@ -40,26 +67,24 @@ function generatePresentation(projectData) {
   })
 
   // 2. Validate Risk Category
-  if (!RISK_CATEG_MAP[projectData.riskCategory]) {
+  if (!RISK_CATEG_MAP[riskCategory]) {
     validationErrors.push(
-      `Risk category '${projectData.riskCategory}' is not valid. Must be one of: ${Object.keys(RISK_CATEG_MAP).join(', ')}`,
+      `Risk category '${riskCategory}' is not valid. Must be one of: ${Object.keys(RISK_CATEG_MAP).join(', ')}`,
     )
   }
 
   // 3. Validate Pitch Format
-  if (projectData.opbMainBldGpitch) {
-    const pitchParts = projectData.opbMainBldGpitch.split('/')
+  if (opbMainBldGpitch) {
+    const pitchParts = opbMainBldGpitch.split('/')
     if (pitchParts.length !== 2) {
       validationErrors.push(
-        `Main building pitch should be in format 'x/12', got: '${projectData.opbMainBldGpitch}'`,
+        `Main building pitch should be in format 'x/12', got: '${opbMainBldGpitch}'`,
       )
     } else {
       const pitchValue = parseInt(pitchParts[0])
       const pitchBase = parseInt(pitchParts[1])
       if (isNaN(pitchValue) || isNaN(pitchBase)) {
-        validationErrors.push(
-          `Pitch values must be numeric, got: '${projectData.opbMainBldGpitch}'`,
-        )
+        validationErrors.push(`Pitch values must be numeric, got: '${opbMainBldGpitch}'`)
       } else if (pitchBase !== 12) {
         validationErrors.push(`Pitch base should be 12, got: '${pitchBase}'`)
       } else if (pitchValue <= 0) {
@@ -69,12 +94,10 @@ function generatePresentation(projectData) {
   }
 
   // 4. Validate Building Size Format (LxWxH)
-  if (projectData.opbSize) {
-    const sizeParts = projectData.opbSize.toLowerCase().split('x')
+  if (opbSize) {
+    const sizeParts = opbSize.toLowerCase().split('x')
     if (sizeParts.length !== 3) {
-      validationErrors.push(
-        `Open pole barn size should be in format 'LxWxH', got: '${projectData.opbSize}'`,
-      )
+      validationErrors.push(`Open pole barn size should be in format 'LxWxH', got: '${opbSize}'`)
     } else {
       const [length, width, height] = sizeParts
       const lengthNum = parseInt(length)
@@ -82,21 +105,19 @@ function generatePresentation(projectData) {
       const heightNum = parseInt(height)
 
       if (isNaN(lengthNum) || isNaN(widthNum) || isNaN(heightNum)) {
-        validationErrors.push(`Building dimensions must be numeric, got: '${projectData.opbSize}'`)
+        validationErrors.push(`Building dimensions must be numeric, got: '${opbSize}'`)
       } else if (lengthNum <= 0 || widthNum <= 0 || heightNum <= 0) {
-        validationErrors.push(
-          `Building dimensions must be positive values, got: '${projectData.opbSize}'`,
-        )
+        validationErrors.push(`Building dimensions must be positive values, got: '${opbSize}'`)
       }
     }
   }
 
   // 5. Validate Wind Speed Format
-  if (projectData.windSpeed) {
-    const windSpeedMatch = projectData.windSpeed.match(/^(\d+(?:\.\d+)?)(?:MPH|mph)?$/)
+  if (windSpeed) {
+    const windSpeedMatch = windSpeed.match(/^(\d+(?:\.\d+)?)(?:\s*(?:MPH|mph))?$/)
     if (!windSpeedMatch) {
       validationErrors.push(
-        `Wind speed should be numeric (optionally followed by 'MPH'), got: '${projectData.windSpeed}'`,
+        `Wind speed should be numeric (optionally followed by 'MPH'), got: '${windSpeed}'`,
       )
     } else {
       const windValue = parseFloat(windSpeedMatch[1])
@@ -107,41 +128,36 @@ function generatePresentation(projectData) {
   }
 
   // 6. Validate Exposure Category
-  if (projectData.exposureCategory) {
+  if (exposureCategory) {
     const validExposureCategories = ['B', 'C', 'D']
-    if (!validExposureCategories.includes(projectData.exposureCategory.toUpperCase())) {
+    if (!validExposureCategories.includes(exposureCategory.toUpperCase())) {
       validationErrors.push(
-        `Exposure category must be one of: ${validExposureCategories.join(', ')}, got: '${projectData.exposureCategory}'`,
+        `Exposure category must be one of: ${validExposureCategories.join(', ')}, got: '${exposureCategory}'`,
       )
     }
   }
 
-  // Throw error if any validations failed
+  if (!RISK_CATEG_MAP[riskCategory]) {
+    validationErrors.push(`Risk category is not in ${Object.keys(RISK_CATEG_MAP)}`)
+  }
+
+  if (!opbMainBldGpitch) {
+    validationErrors.push(`Open pole barn pitch is not defined`)
+  } else if (opbMainBldGpitch.split('/').length < 2) {
+    validationErrors.push(`The pitch should be in format of x/12`)
+  }
+
+  if (opbSize.toLowerCase().split('x').length < 3) {
+    validationErrors.push(`The openpolebarnsize should be in format of wxlxh`)
+  }
+
   if (validationErrors.length > 0) {
     const errorMessage = `Validation failed:\n${validationErrors.map((error) => `- ${error}`).join('\n')}`
     console.error(errorMessage)
-    return
+    return { isOpenPoleBarn: true, errors: validationErrors, isFileCreated: false }
   }
 
-  if (!RISK_CATEG_MAP[projectData.riskCategory]) {
-    console.error(`Risk category is not in ${Object.keys(RISK_CATEG_MAP)}`)
-    return
-  }
-
-  if (!projectData.opbMainBldGpitch) {
-    console.error(`Open pole barn pitch is not defined`)
-    return
-  } else if (projectData.opbMainBldGpitch.split('/').length < 2) {
-    console.error(`The pitch should be in format of x/12`)
-    return
-  }
-
-  if (projectData.opbSize.toLowerCase().split('x').length < 3) {
-    console.error(`The openpolebarnsize should be in format of wxlxh`)
-    return
-  }
-
-  let [measure1, measure2, measure3] = projectData.opbSize.toLowerCase().split('x')
+  let [measure1, measure2, measure3] = opbSize.toLowerCase().split('x')
   let numMeasure1 = Number(measure1)
   let numMeasure2 = Number(measure2)
   let numMeasure3 = Number(measure3)
@@ -157,18 +173,18 @@ function generatePresentation(projectData) {
 
     let windCalcSs = SpreadsheetApp.openByUrl(WIND_CALC_SHEET)
     let shCode = windCalcSs.getSheetByName('Code')
-    let pitch = projectData.opbMainBldGpitch.split('/')[0]
+    let pitch = opbMainBldGpitch.split('/')[0]
     shCode.getRange('E12').setValue(`Florida Building Code 2023`)
     shCode.getRange('RoofHt').setValue(`Utility & Miscellaneous`)
-    shCode.getRange('G20').setValue(RISK_CATEG_MAP[projectData.riskCategory])
+    shCode.getRange('G20').setValue(RISK_CATEG_MAP[riskCategory])
     shCode.getRange('F34').setValue(pitch)
     shCode.getRange('building_l').setValue(length)
     shCode.getRange('building_w').setValue(width)
     shCode.getRange('Roof_h').setValue(height)
 
     let shWind = windCalcSs.getSheetByName('Wind')
-    shWind.getRange('wind_speed').setValue(projectData.windSpeed.toLowerCase().replace('mph', ''))
-    shWind.getRange('G15').setValue(`Exposure ${projectData.exposureCategory}`)
+    shWind.getRange('wind_speed').setValue(windSpeed.toLowerCase().replace('mph', ''))
+    shWind.getRange('G15').setValue(`Exposure ${exposureCategory}`)
     shWind.getRange('G16').setValue(`Open Building`)
     shWind.getRange('G22').setValue(`Gable`)
     let shOpenBarn = windCalcSs.getSheetByName('Open Bldg')
@@ -205,7 +221,7 @@ function generatePresentation(projectData) {
     })
   })
 
-  flatData.riskcategoryRoman = new Array(projectData.riskCategory).fill(`I`).join('')
+  flatData.riskcategoryRoman = new Array(riskCategory).fill(`I`).join('')
 
   let errors = []
   let trussData = _getTrussData_(width)
@@ -213,10 +229,10 @@ function generatePresentation(projectData) {
     errors.push(`There is no truss data for width : ${width}`)
   }
 
-  let chartData = _getChartData_(projectData.windSpeed, projectData.exposureCategory, width, height)
+  let chartData = _getChartData_(windSpeed, exposureCategory, width, height)
   if (Object.keys(chartData).length == 0) {
     errors.push(
-      `There is no chart data for Wind Speed - ${projectData.windSpeed}, Exposure ${projectData.exposureCategory}, Width - ${width}, Height - ${height}`,
+      `There is no chart data for Wind Speed - ${windSpeed}, Exposure ${exposureCategory}, Width - ${width}, Height - ${height}`,
     )
   }
 
@@ -238,7 +254,13 @@ function generatePresentation(projectData) {
 
   let pdfUrl = _convertPresToPDF_(presOPB)
 
-  return { pdfUrl: pdfUrl.getUrl(), slideUrl: presOPB.getUrl(), errors }
+  return {
+    pdfUrl: pdfUrl.getUrl(),
+    slideUrl: presOPB.getUrl(),
+    errors,
+    isFileCreated: true,
+    isOpenPoleBarn: true,
+  }
 }
 
 function _getChartData_(windSpeed, exposure, width, height) {
