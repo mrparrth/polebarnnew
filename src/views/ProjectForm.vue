@@ -354,7 +354,30 @@
             </div>
 
             <hr class="section-divider" />
-
+            <v-row>
+              <v-col cols="4" md="4">
+                <v-checkbox
+                  v-model="form.standardTest"
+                  label="Name Only Standard"
+                  inline
+                  name="standardTest"
+                  :disabled="shouldDisableField('standardTest')"
+                  :error-messages="fieldErrors.standardTest"
+                  :error="!!fieldErrors.standardTest"
+                />
+              </v-col>
+              <v-col cols="4" md="4">
+                <v-checkbox
+                  v-model="form.standardTest2"
+                  label="Address Only Standard"
+                  inline
+                  name="standardTest2"
+                  :disabled="shouldDisableField('standardTest2')"
+                  :error-messages="fieldErrors.standardTest2"
+                  :error="!!fieldErrors.standardTest2"
+                />
+              </v-col>
+            </v-row>
             <v-row>
               <v-col cols="12" md="3">
                 <v-radio-group
@@ -767,7 +790,7 @@
             </div>
           </v-sheet>
 
-          <div class="text-center mb-4">
+          <div class="text-center mb-4 d-flex ga-2 justify-center">
             <v-btn
               color="red darken-2"
               type="submit"
@@ -787,14 +810,34 @@
                     : 'Submit Project'
               }}
             </v-btn>
+            <v-btn
+              v-if="errorMessage || successMessage"
+              color="primary"
+              type="submit"
+              size="large"
+              class="px-10 py-4 text-white font-weight-bold"
+              @click="goToDashboard"
+            >
+              Back to Dashboard
+            </v-btn>
           </div>
 
-          <v-alert v-if="errorMessage" type="error" variant="tonal" class="mt-4">{{
-            errorMessage
-          }}</v-alert>
-          <v-alert v-if="successMessage" type="success" variant="tonal" class="mt-4">{{
-            successMessage
-          }}</v-alert>
+          <v-alert
+            v-if="errorMessage"
+            name="project-error"
+            type="error"
+            variant="tonal"
+            class="mt-4"
+            >{{ errorMessage }}</v-alert
+          >
+          <v-alert
+            v-if="successMessage"
+            name="project-success"
+            type="success"
+            variant="tonal"
+            class="mt-4"
+            >{{ successMessage }}</v-alert
+          >
         </v-card>
       </v-col>
     </v-row>
@@ -1183,6 +1226,15 @@ async function handleSubmit() {
   }
 }
 
+function scrollToBottom() {
+  nextTick(() => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    })
+  })
+}
+
 function scrollToFirstError() {
   const firstErrorField = Object.keys(fieldErrors.value)[0]
   if (firstErrorField) {
@@ -1440,15 +1492,26 @@ watch(
 )
 
 function loadProjectData() {
-  const editProjectId = route.query.projectId
-  isEdit.value = !!editProjectId
+  const { startingProjectId, projectId: editingProjectId } = route.query
 
-  if (editProjectId) {
-    const editProjectInfo = projectStore.projects.find(
-      (project) => project.data.projectId === editProjectId,
-    )
+  if (startingProjectId || editingProjectId) {
+    let startingProject = startingProjectId
+      ? projectStore.projects.find((project) => project.data.projectId === startingProjectId)
+      : null
 
-    let editProject = editProjectInfo.data
+    let editingProject = editingProjectId
+      ? projectStore.projects.find((project) => project.data.projectId === editingProjectId)
+      : null
+
+    const editProjectInfo = (startingProject || editingProject)?.data
+    if (!editProjectInfo) {
+      errorMessage.value = `Project ${startingProjectId || editingProjectId} not found`
+      scrollToBottom()
+      return
+    }
+
+    isEdit.value = true
+    let editProject = editProjectInfo
     editProject.existingImages = editProjectInfo.images
 
     if (editProject) {

@@ -85,4 +85,21 @@ export class API {
 
     return result
   }
+
+  static getMetaData() {
+    let dataElem = document.getElementById('meta-data')
+    let data
+    if (isGoogleEnvironment) {
+      if (dataElem) {
+        data = JSON.parse(dataElem.getAttribute('meta-data'))
+        console.info('Metadata found in google environment', data)
+      } else {
+        console.error('Metadata not found')
+      }
+    } else {
+      data = Mock.getMetaData()
+    }
+
+    return data
+  }
 }

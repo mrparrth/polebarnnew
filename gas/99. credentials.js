@@ -6,11 +6,10 @@ const settings = {
   },
   secretJwtToken: `1gIugNMme8742WxT13h1CjxLchpAcYsW6U6tyV434`,
   exportDrive: '1XPwl5KDtLeoW-4TcGHr_1c6defz4BFn4',
-  appUrl:
-    'https://script.google.com/macros/s/AKfycbwlMhk694ZaK0lvZ-QK_CRzBmAYCpLru11AcS3cxV42B5Qt3lANM0kARfFbAdv6xdi--A/exec',
-  testMode: false,
+  appUrl: 'https://script.google.com/macros/s/AKfycbx-WLlepdmgDRnS0s-kbDtVnQLGKUlt-11hb1Q6Er10/dev', ///TO DO -
+  testMode: true,
 }
-
+//https://script.google.com/macros/s/AKfycbwlMhk694ZaK0lvZ-QK_CRzBmAYCpLru11AcS3cxV42B5Qt3lANM0kARfFbAdv6xdi--A/exec
 if (settings.testNewProject) {
   var CLIENT_ID = '841f323753d5f44eef3ac63b78b3ec685d81c0ce3bc4d7dbb138240269581840'
   var CLIENT_SECRET = 'e42aae8bb6428209a9bd2171419acd3a12fef133e16d859db58ec523fe57d3f9'

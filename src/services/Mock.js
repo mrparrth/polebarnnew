@@ -100,4 +100,8 @@ export class Mock {
   static simulateNetworkDelay(ms = DEFAULT_MOCK_API_DELAY) {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
+
+  static getMetaData() {
+    return { startingProjectId: '450.424' }
+  }
 }

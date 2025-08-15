@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Field Updates</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 30px 40px;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      .header .subtitle {
+        margin: 8px 0 0 0;
+        font-size: 16px;
+        opacity: 0.9;
+      }
+      .content {
+        padding: 10px;
+      }
+      .update-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white !important;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+      }
+      .greeting {
+        font-size: 18px;
+        color: #555;
+        margin-bottom: 20px;
+      }
+      .body-text {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 10px;
+      }
+      .project-info {
+        background: #f8f9fa;
+        border-left: 4px solid #3498db;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .project-info h3 {
+        margin: 0 0 10px 0;
+        color: #2c3e50;
+        font-size: 18px;
+      }
+      .project-details {
+        margin: 0;
+        color: #666;
+      }
+      .project-details strong {
+        color: #333;
+      }
+      .field-changes {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 25px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .field-changes h3 {
+        margin: 0 0 25px 0;
+        color: #2c3e50;
+        font-size: 20px;
+        text-align: center;
+        font-weight: 700;
+      }
+      .field-change-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      }
+      .field-change-item:last-child {
+        margin-bottom: 0;
+      }
+      .field-name {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 16px;
+        margin-bottom: 12px;
+        text-transform: capitalize;
+      }
+      .field-values {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .old-value,
+      .new-value {
+        width: 200px;
+        padding: 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        height: 50px;
+      }
+      .old-value {
+        background: #fff3cd;
+        border: 2px solid #f39c12;
+        color: #856404;
+      }
+      .new-value {
+        background: #d1ecf1;
+        border: 2px solid #3498db;
+        color: #0c5460;
+      }
+      .value-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        opacity: 0.9;
+      }
+      .arrow {
+        color: #3498db;
+        font-size: 20px;
+        font-weight: bold;
+        line-height: 1;
+        display: inline-block;
+        vertical-align: middle;
+        margin-top: 15px;
+      }
+      .action-buttons {
+        text-align: center;
+        margin: 30px 0;
+      }
+      .btn {
+        display: inline-block;
+        padding: 12px 30px;
+        margin: 0 10px;
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white !important;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(39, 174, 96, 0.4);
+      }
+      .btn-secondary {
+        background: linear-gradient(135deg, #3c94e7 0%, #2b88c0 100%);
+        color: white !important;
+        box-shadow: 0 2px 4px rgba(60, 148, 231, 0.3);
+      }
+      .btn-secondary:hover {
+        box-shadow: 0 4px 8px rgba(60, 148, 231, 0.4);
+      }
+      .footer {
+        background: #f8f9fa;
+        padding: 30px 40px;
+        text-align: center;
+        border-top: 1px solid #e9ecef;
+      }
+      .footer p {
+        margin: 5px 0;
+        color: #666;
+        font-size: 14px;
+      }
+      .footer .company-name {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 16px;
+      }
+      .update-summary {
+        background: #e8f5e8;
+        border: 1px solid #c8e6c9;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+      }
+      .update-summary h4 {
+        margin: 0 0 10px 0;
+        color: #2e7d32;
+        font-size: 16px;
+      }
+      .update-summary p {
+        margin: 0;
+        color: #388e3c;
+        line-height: 1.5;
+      }
+      @media only screen and (max-width: 600px) {
+        .email-container {
+          margin: 0;
+          box-shadow: none;
+        }
+        .header,
+        .content,
+        .footer {
+          padding: 20px;
+        }
+        .btn {
+          display: block;
+          margin: 10px 0;
+        }
+        .field-values {
+          flex-direction: column;
+          gap: 10px;
+        }
+        .arrow {
+          transform: rotate(90deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h1>Project Field Updates</h1>
+        <p class="subtitle">Ceed Civil Engineering</p>
+      </div>
+
+      <div class="content">
+        <p class="greeting">Hello,</p>
+        <p class="body-text">The following fields have been updated for the below project:</p>
+
+        <div class="project-info">
+          <h3>Project Details</h3>
+          <p class="project-details">
+            <strong>Project ID:</strong> <?= projectId ?><br />
+            <strong>Project Name:</strong> <?= projectName ?><br />
+            <strong>Updated By:</strong> <?= updatedBy ?><br />
+            <strong>Update Time:</strong> <?= new Date(updateTime).toLocaleString('en-US', { year:
+            'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+            timeZoneName: 'short' }) ?>
+          </p>
+        </div>
+
+        <div class="field-changes">
+          <h3>Field Changes</h3>
+          <? for (let i = 0; i < fieldChanges.length; i++) { ?>
+          <div class="field-change-item">
+            <div class="field-name"><?= fieldChanges[i].fieldName ?></div>
+            <div class="field-values">
+              <div class="old-value">
+                <div class="value-label">Previous Value</div>
+                <?= fieldChanges[i].oldValue || 'Not set' ?>
+              </div>
+              <div class="arrow">▶</div>
+              <div class="new-value">
+                <div class="value-label">New Value</div>
+                <?= fieldChanges[i].newValue || 'Not set' ?>
+              </div>
+            </div>
+          </div>
+          <? } ?>
+        </div>
+
+        <div class="action-buttons">
+          <a href="<?= dashboardUrl ?>" class="btn">View Project Details</a>
+          <a href="<?= driveFolder ?>" class="btn btn-secondary">Access Project Files</a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p class="company-name">Ceed Civil Engineering</p>
+        <p>Automated Field Update Notification System</p>
+      </div>
+    </div>
+  </body>
+</html>

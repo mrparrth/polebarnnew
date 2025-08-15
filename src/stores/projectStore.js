@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { API } from '@/services/apiService'
 
 export const useProjectStore = defineStore('project', () => {
   // State
   const projects = ref([])
   const isUpdating = ref(false)
   const user = ref(null)
+  const metaData = ref(API.getMetaData())
 
   function setUser(newUser) {
     user.value = newUser
@@ -44,6 +46,7 @@ export const useProjectStore = defineStore('project', () => {
     projects,
     isUpdating,
     user,
+    metaData,
     // Actions
     updateProject,
     newProject,

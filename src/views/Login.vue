@@ -110,7 +110,12 @@ const handleLogin = async () => {
     projectStore.setUser(result.user)
     localStorage.setItem('authToken', result.token)
     successMessage.value = 'Login successful!'
-    router.push('/form')
+    console.log('projectStore.metaData', projectStore.metaData)
+    if (projectStore.metaData.startingProjectId) {
+      router.push(`/form?startingProjectId=${projectStore.metaData.startingProjectId}`)
+    } else {
+      router.push('/form')
+    }
   } catch (error) {
     errorMessage.value = error.message
     throw error
@@ -126,7 +131,11 @@ const checkExistingSession = async () => {
     if (result.token) {
       localStorage.setItem('authToken', result.token)
       projectStore.setProjects(result.data)
-      router.push('/form')
+      if (projectStore.metaData.startingProjectId) {
+        router.push(`/form?startingProjectId=${projectStore.metaData.startingProjectId}`)
+      } else {
+        router.push('/form')
+      }
     }
   } catch (error) {
     errorMessage.value = error.message
@@ -145,7 +154,6 @@ onMounted(async () => {
     try {
       isLoading.value = true
       await handleLogin()
-      router.push('/form')
     } catch (error) {
       console.error(error)
     } finally {

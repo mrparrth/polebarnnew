@@ -1,3 +1,86 @@
+function testFieldChangeEmail() {
+  let data = {
+    addOnLeanToEpbPostSize: '',
+    overhangValue: '',
+    pepbPostSize: '',
+    addOnLeanToOpbPitch: '',
+    studSpacing: '16',
+    epbSize: '',
+    opbConnectSlab: 'OPTIONAL',
+    addOnLeanToPepbPostSize: '',
+    pepbConnectSlab: '',
+    addOnWindowEpbSize: '',
+    addOnLeanToEpbSlab: '',
+    opbMetalRoofPanelGauge: '26',
+    addOnLeanToPepbPitch: '',
+    addOnWindowEpbQty: '',
+    epbConnectSlab: '',
+    wetMapAndSeal: false,
+    addOnDoorPepbSize: '',
+    addOnDoorPepbQty: '',
+    addOnLeanToPepbSlab: '',
+    trussConnectSlab: '',
+    sketchData: [],
+    trussMainBldGpitch: '',
+    plywoodOnSiding: 'Yes',
+    zip: '560077',
+    addOnLeanToEpbPitch: '',
+    trussPostSize: '',
+    addOnWindowPepbQty: '',
+    opbSize: '24x24x10',
+    orderDate: '2025-08-04',
+    driveFolder: '',
+    studSpacingCustomValue: '',
+    opbMainBldGpitch: '4/12',
+    additionalInformation: 'Test',
+    windSpeed: '150 MPH',
+    epbMetalRoofPanelGauge: '',
+    price: '1',
+    epbPostSpacing: '',
+    city: 'Bengaluru',
+    addOnLeanToOpbPostSize: '',
+    addOnWindowPepbSize: '',
+    siteAddress: '28, First Floor, First Cross',
+    projectName: 'Test',
+    addOnWindowSelected: false,
+    addOnLeanToPepbSize: '',
+    addOnLeanToOpbSlab: '',
+    country: 'India',
+    orderedBy: 'Test',
+    trussSize: '',
+    trussMetalRoofPanelGauge: '',
+    opbPostSpacing: "12'",
+    riskCategory: '2',
+    epbPostSize: '',
+    trussPostSpacing: '',
+    existingImages: [],
+    addOnLeanToEpbSize: '',
+    exposureCategory: 'B',
+    signature: 'Test',
+    addOnDoorEpbQty: '',
+    status: 'New Request',
+    overhangType: 'standard',
+    addOnLeanToOpbSize: '',
+    pepbMetalRoofPanelGauge: '',
+    plywoodOnRoof: 'Yes',
+    opbPostSize: '6x6',
+    pepbSize: '',
+    epbMainBldGpitch: '',
+    projectId: '100.00',
+    addOnLeanToSelected: false,
+    addOnDoorSelected: false,
+    state: 'FL',
+    pepbMainBldGpitch: '',
+    pepbPostSpacing: '',
+    clientName: 'test test',
+    addOnDoorEpbSize: '',
+  }
+
+  let newData = { ...data }
+  newData.price = 2
+  newData.projectName = 'Test 2'
+  sendFieldChangeEmail(data, newData, { user: { name: 'Test User' } })
+}
 function testGgeneratePresentation() {
   let data = {
     addOnLeanToEpbPostSize: '',
@@ -85,6 +168,7 @@ function testStatusChange() {
   let newStatus = 'Rework'
   updateProjectStatus({ data: { projectId, newStatus } })
 }
+
 function testSendStatusChangeEmail() {
   let projectId = '450.461'
   let oldStatus = 'Rework'

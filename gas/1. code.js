@@ -117,8 +117,12 @@ const login = (payload) => new Auth().login(payload)
 
 const webAppURL = () => ScriptApp.getService().getUrl()
 
-const doGet = (e) =>
-  HtmlService.createTemplateFromFile('index').evaluate().setTitle(settings.appName)
+const doGet = (e) => {
+  let params = e.parameter
+  let template = HtmlService.createTemplateFromFile('index')
+  template.metaData = JSON.stringify(params)
+  return template.evaluate().setTitle(settings.appName)
+}
 
 const newProject = ({ data, token }) => {
   console.log(JSON.stringify(data), token)
@@ -264,11 +268,7 @@ const updateProject = ({ data, token }) => {
   console.log('New Price', newData.price, 'Old Price', oldData.price)
   if (newData.price && newData.price != oldData.price) {
     console.log(`Sending email for project price change`)
-    sendEmail(
-      'Project Price Changed For {{projectId}}',
-      'ceedcivil@gmail.com,RyanHoover@ceedcivil.com',
-      { ...data, oldPrice: oldData.price, newPrice: newData.price },
-    )
+    sendFieldChangeEmail(oldData, newData, userInfo)
   }
 
   return { data: newData, images: driveFileUrls }
@@ -401,7 +401,7 @@ const cleanupDelayedTrigger = (triggerId) => {
 }
 
 const sendNoPresentationEmail = ({ data, errors = [] }) => {
-  const subject = `PDF Generation Failed - ${data.clientName} - ${data.projectName}`
+  const subject = `PDF Generation Failed - ${data.projectId} - ${data.projectName}`
 
   const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -414,7 +414,7 @@ const sendNoPresentationEmail = ({ data, errors = [] }) => {
           </p>
 
           <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            PDF generation failed for <strong>${data.clientName}</strong> - <strong>${data.projectName}</strong>
+            PDF generation failed for <strong>${data.projectId}</strong> - <strong>${data.projectName}</strong>
           </p>
 
           <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
@@ -447,7 +447,7 @@ const sendNoPresentationEmail = ({ data, errors = [] }) => {
 }
 
 const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
-  const subject = `PDF Generated - ${data.clientName} - ${data.projectName}`
+  const subject = `PDF Generated - ${data.projectId} - ${data.projectName}`
 
   const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -460,7 +460,7 @@ const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
           </p>
 
           <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            PDF has been generated for <strong>${data.clientName}</strong> - <strong>${data.projectName}</strong>
+            PDF has been generated for <strong>${data.projectId}</strong> - <strong>${data.projectName}</strong>
           </p>
 
           <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
@@ -563,7 +563,7 @@ const generatePdfForRow = () => {
   let { pdfUrl, slideUrl, errors } = generatePresentation(dataRow)
 
   if (pdfUrl) {
-    const subject = `PDF Generated - ${dataRow.clientName} - ${dataRow.projectName}`
+    const subject = `PDF Generated - ${dataRow.projectId} - ${dataRow.projectName}`
 
     const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -576,7 +576,7 @@ const generatePdfForRow = () => {
           </p>
 
           <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            PDF has been generated for <strong>${dataRow.clientName}</strong> - <strong>${dataRow.projectName}</strong>
+            PDF has been generated for <strong>${dataRow.projectId}</strong> - <strong>${dataRow.projectName}</strong>
           </p>
 
           <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
@@ -626,12 +626,54 @@ const generatePdfForRow = () => {
   if (errors) ss.toast(`${errors.join('|')}`)
 }
 
-const otherFieldChangeEmail = (oldData, newData) => {
-  let preferences = getEmailPreferences(oldData, newData)
-  if (preferences) return
-  for (let preference of preferences) {
-    MailApp.sendEmail(preference.email, preference.subject, preference.body)
+const sendFieldChangeEmail = (oldData, newData, userInfo) => {
+  let trackingFields = ['status', 'projectName', 'clientName', 'price']
+  let fieldChanges = []
+
+  for (let field of trackingFields) {
+    if (oldData[field] !== newData[field]) {
+      fieldChanges.push({
+        fieldName: field,
+        oldValue: oldData[field],
+        newValue: newData[field],
+      })
+    }
   }
+
+  if (fieldChanges.length == 0) {
+    return
+  }
+
+  let subject = ''
+  if (fieldChanges.length == 1) {
+    subject = `${fieldChanges[0].fieldName} Updated - ${oldData.projectId} - ${oldData.projectName}`
+  } else {
+    subject = `Fields Updated - ${oldData.projectId} - ${oldData.projectName}`
+  }
+
+  const to = settings.testMode
+    ? 'iamparrth@gmail.com'
+    : 'ceedcivil@gmail.com,RyanHoover@ceedcivil.com'
+  const template = HtmlService.createTemplateFromFile('fieldChange')
+  template.projectId = oldData.projectId
+  template.clientName = oldData.clientName
+  template.projectName = oldData.projectName
+  template.updateTime = new Date().toISOString()
+  template.updatedBy = userInfo.user.name
+
+  template.fieldChanges = fieldChanges
+  template.updateSummary = fieldChanges
+    .map((change) => `${change.fieldName}: ${change.oldValue} → ${change.newValue}`)
+    .join(', ')
+  template.dashboardUrl = `${settings.appUrl}?startingProjectId=${oldData.projectId}`
+  template.driveFolder = oldData.driveFolder
+
+  const htmlBody = template.evaluate().getContent()
+
+  GmailApp.sendEmail(to, subject, htmlBody, {
+    htmlBody: htmlBody,
+    name: 'Ceed Civil Pole Barn Project Admin',
+  })
 }
 
 const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
@@ -641,7 +683,6 @@ const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
   let replacedEmailPref = replaceTemplateVariables(emailPref[0], projectData)
 
   const template = HtmlService.createTemplateFromFile('statusChange')
-  console.log(oldStatus, newStatus, getStatusClass(newStatus))
   template.projectId = projectData.projectId
   template.clientName = projectData.clientName
   template.projectName = projectData.projectName
@@ -652,7 +693,7 @@ const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
   template.statusText = newStatus
   template.driveFolder = projectData.driveFolder
   template.statusDescription = replacedEmailPref.description
-  template.dashboardUrl = settings.appUrl
+  template.dashboardUrl = `${settings.appUrl}?startingProjectId=${projectData.projectId}`
 
   const htmlBody = template.evaluate().getContent()
 
