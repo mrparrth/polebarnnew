@@ -1,7 +1,3 @@
-let WIND_CALC_SHEET = `https://docs.google.com/spreadsheets/d/1Tw2dkZkjcKvajTliYFWxYmFSmTPO5-u1iQa_U2yK2-s/edit`
-// let WIND_CALC_SLIDE = `https://docs.google.com/presentation/d/1QyOHy2kOWU03fmNT8aIy1yTsbTXnylDmLT-mKy7Oo1Y/edit` //TO DO - This is the original slide template
-let WIND_CALC_SLIDE = `https://docs.google.com/presentation/d/1apJuXIqwyFPkE-NcmVy91bzZuyTanzNmog4kqe5_jnM/edit`
-let OUTPUT_DOC_FOLDER = `https://drive.google.com/drive/folders/1PIAkAnbwZIoH_jrq-RV3bBz-m-CSm72G`
 let RISK_CATEG_MAP = {
   1: 'Category I : Buildings and other structures that represent a low hazard to human life in ',
   2: 'Category II : All bldgs and other structures except those listed in Categories I, III, & IV ',
@@ -16,8 +12,9 @@ function generatePresentation(projectData) {
     state,
     country,
     zip,
-    opbMainBldGpitch,
+    opbMainBldgPitch,
     opbSize,
+    opbPostSize,
     riskCategory,
     windSpeed,
     exposureCategory,
@@ -34,12 +31,17 @@ function generatePresentation(projectData) {
     .join(', ')
   projectData.buildingType = 'Open Pole Barn'
 
-  if (state != 'FL') {
+  if (!['FL', 'FLORIDA'].includes(state.toUpperCase())) {
     console.log('Not a Florida project')
     return { isOpenPoleBarn: false, errors: ['Not a Florida project'] }
   }
 
-  if (!opbMainBldGpitch) {
+  if (projectData.projectType !== 'typicalOpbOnly') {
+    console.log('Not a typical open pole barn form')
+    return { isOpenPoleBarn: false, errors: ['Not a typical open pole barn form'] }
+  }
+
+  if (!opbMainBldgPitch) {
     console.log('Not an open pole barn form - no pitch')
     return { isOpenPoleBarn: false, errors: ['Not an open pole barn form - no pitch'] }
   }
@@ -50,7 +52,7 @@ function generatePresentation(projectData) {
   }
 
   const requiredFields = [
-    'opbMainBldGpitch',
+    'opbMainBldgPitch',
     'opbSize',
     'riskCategory',
     'windSpeed',
@@ -74,17 +76,17 @@ function generatePresentation(projectData) {
   }
 
   // 3. Validate Pitch Format
-  if (opbMainBldGpitch) {
-    const pitchParts = opbMainBldGpitch.split('/')
+  if (opbMainBldgPitch) {
+    const pitchParts = opbMainBldgPitch.split('/')
     if (pitchParts.length !== 2) {
       validationErrors.push(
-        `Main building pitch should be in format 'x/12', got: '${opbMainBldGpitch}'`,
+        `Main building pitch should be in format 'x/12', got: '${opbMainBldgPitch}'`,
       )
     } else {
       const pitchValue = parseInt(pitchParts[0])
       const pitchBase = parseInt(pitchParts[1])
       if (isNaN(pitchValue) || isNaN(pitchBase)) {
-        validationErrors.push(`Pitch values must be numeric, got: '${opbMainBldGpitch}'`)
+        validationErrors.push(`Pitch values must be numeric, got: '${opbMainBldgPitch}'`)
       } else if (pitchBase !== 12) {
         validationErrors.push(`Pitch base should be 12, got: '${pitchBase}'`)
       } else if (pitchValue <= 0) {
@@ -141,9 +143,9 @@ function generatePresentation(projectData) {
     validationErrors.push(`Risk category is not in ${Object.keys(RISK_CATEG_MAP)}`)
   }
 
-  if (!opbMainBldGpitch) {
+  if (!opbMainBldgPitch) {
     validationErrors.push(`Open pole barn pitch is not defined`)
-  } else if (opbMainBldGpitch.split('/').length < 2) {
+  } else if (opbMainBldgPitch.split('/').length < 2) {
     validationErrors.push(`The pitch should be in format of x/12`)
   }
 
@@ -171,9 +173,9 @@ function generatePresentation(projectData) {
   try {
     lock.tryLock(30000)
 
-    let windCalcSs = SpreadsheetApp.openByUrl(WIND_CALC_SHEET)
+    let windCalcSs = SpreadsheetApp.openByUrl(settings.windCalcSheet)
     let shCode = windCalcSs.getSheetByName('Code')
-    let pitch = opbMainBldGpitch.split('/')[0]
+    let pitch = opbMainBldgPitch.split('/')[0]
     shCode.getRange('E12').setValue(`Florida Building Code 2023`)
     shCode.getRange('RoofHt').setValue(`Utility & Miscellaneous`)
     shCode.getRange('G20').setValue(RISK_CATEG_MAP[riskCategory])
@@ -221,7 +223,7 @@ function generatePresentation(projectData) {
     })
   })
 
-  flatData.riskcategoryRoman = new Array(riskCategory).fill(`I`).join('')
+  flatData.riskCategoryRoman = new Array(riskCategory).fill(`I`).join('')
 
   let errors = []
   let trussData = _getTrussData_(width)
@@ -229,7 +231,11 @@ function generatePresentation(projectData) {
     errors.push(`There is no truss data for width : ${width}`)
   }
 
+  //TODO: This is a temporary fix to ensure the post size is not too small for the width
   let chartData = _getChartData_(windSpeed, exposureCategory, width, height)
+  let chartPostSize = chartData.postSize.split('x')
+  let maxPostSize = Math.max(parseInt(chartPostSize[0]), parseInt(opbPostSize.split('x')[0]))
+  chartData.postSize = `${maxPostSize}x${maxPostSize}`
   if (Object.keys(chartData).length == 0) {
     errors.push(
       `There is no chart data for Wind Speed - ${windSpeed}, Exposure ${exposureCategory}, Width - ${width}, Height - ${height}`,
@@ -360,7 +366,7 @@ function _extractMergeFieldsFromRange_(textRange) {
 
 function _createNewSlideFromTemplate_(clientName, projectName) {
   // return SlidesApp.openByUrl(`https://docs.google.com/presentation/d/1SkOoKng6CVNzzTCyMILGNIBfojG7qvP-Vzf09YgXOjA/edit`)
-  let outputFolder = DriveApp.getFolderById(_getIdFromUrl_(OUTPUT_DOC_FOLDER))
+  let outputFolder = DriveApp.getFolderById(_getIdFromUrl_(settings.outputDocFolder))
 
   let documentName = `${clientName} - ${projectName} - ${Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm')}`
   let documentTemplate = DriveApp.getFileById(_getIdFromUrl_(WIND_CALC_SLIDE))
@@ -396,7 +402,7 @@ function _convertPresToPDF_(presentation) {
   const pdfFile = DriveApp.createFile(pdfBlob)
 
   DriveApp.getFileById(pdfFile.getId()).moveTo(
-    DriveApp.getFolderById(_getIdFromUrl_(OUTPUT_DOC_FOLDER)),
+    DriveApp.getFolderById(_getIdFromUrl_(settings.outputDocFolder)),
   )
 
   // DriveApp.getFileById(presentation.getId()).setTrashed(true)

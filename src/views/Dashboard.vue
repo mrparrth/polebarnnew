@@ -45,6 +45,7 @@
                       variant="outlined"
                       density="compact"
                       hide-details
+                      clearable
                       @input="filterProjects"
                     />
                   </v-col>
@@ -212,7 +213,7 @@ function formatDate(dateString) {
 }
 
 function getRowClass(item) {
-  if (item.data.state.toLowerCase() !== 'fl') {
+  if (!['FL', 'FLORIDA'].includes(item.data.state.toUpperCase())) {
     return 'non-florida-row'
   } else if (item.data.wetMapAndSeal) {
     return 'florida-wet-seal-row'

@@ -26,7 +26,7 @@ function sendEmail(draftSubject, sendTo, dataObject) {
 
   GmailApp.sendEmail(sendTo, emailObject.subject, emailObject.text, {
     htmlBody: emailObject.html,
-    name: 'Ceed Civil Pole Barn Project Admin',
+    name: settings.emailAliasName,
     attachments: emailObject.attachments,
     inlineImages: emailObject.inlineImages,
   })

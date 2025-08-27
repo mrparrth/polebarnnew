@@ -53,7 +53,7 @@
             </v-row>
             <div class="section-header mb-2">Order Information</div>
             <v-row>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.clientName"
                   label="Client Name"
@@ -66,7 +66,7 @@
                   :error="!!fieldErrors.clientName"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.projectName"
                   label="Project Name"
@@ -81,7 +81,9 @@
                   @input="validateProjectNameLength"
                 />
               </v-col>
-              <v-col cols="12" md="4">
+            </v-row>
+            <v-row>
+              <v-col cols="12" md="5">
                 <v-text-field
                   v-model="form.siteAddress"
                   label="Site Address"
@@ -94,8 +96,6 @@
                   :error="!!fieldErrors.siteAddress"
                 />
               </v-col>
-            </v-row>
-            <v-row>
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.city"
@@ -109,10 +109,10 @@
                   :error="!!fieldErrors.city"
                 />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-combobox
                   v-model="form.state"
-                  :items="states"
+                  :items="STATES"
                   label="Type or select a state"
                   dense
                   variant="outlined"
@@ -122,19 +122,8 @@
                   :error="!!fieldErrors.state"
                 />
               </v-col>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.country"
-                  label="Country"
-                  dense
-                  variant="outlined"
-                  name="country"
-                  :disabled="shouldDisableField('country')"
-                  :error-messages="fieldErrors.country"
-                  :error="!!fieldErrors.country"
-                />
-              </v-col>
-              <v-col cols="12" md="3">
+
+              <v-col cols="12" md="2">
                 <v-text-field
                   v-model="form.zip"
                   label="Zip"
@@ -150,22 +139,50 @@
           </v-sheet>
 
           <v-sheet class="page-section" elevation="1">
+            <div class="section-header">Project Type (Select One To Proceed)</div>
+            <v-row>
+              <v-col cols="12" md="12">
+                <v-radio-group
+                  v-model="form.projectType"
+                  inline
+                  name="projectType"
+                  :disabled="shouldDisableField('projectType')"
+                  :error-messages="fieldErrors.projectType"
+                  :error="!!fieldErrors.projectType"
+                  hide-details
+                >
+                  <v-radio
+                    label="Typical OPB ONLY / Name & Address Change ONLY"
+                    value="typicalOpbOnly"
+                    hide-details
+                  />
+                  <v-radio label="Custom" value="custom" hide-details />
+                </v-radio-group>
+              </v-col>
+            </v-row>
+          </v-sheet>
+
+          <v-sheet class="page-section" elevation="1" v-if="form.projectType || isEdit">
             <div class="section-header">Scope of Work</div>
+
             <div class="scope-table-wrapper">
               <table class="scope-table-v2">
                 <thead>
                   <tr>
                     <th class="scope-header">#</th>
-                    <th class="scope-header">Open Pole Barn</th>
-                    <th class="scope-header">Enclosed Pole</th>
-                    <th class="scope-header">Partially Enclosed Pole Barn</th>
-                    <th class="scope-header">Truss Only</th>
+                    <th
+                      v-for="column in visibleScopeColumns"
+                      :key="column.key"
+                      class="scope-header"
+                    >
+                      {{ column.label }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="row in scopeOfWorkRows" :key="row.label">
                     <th class="scope-label">{{ row.label }}</th>
-                    <td v-for="column in scopeColumns" :key="column.key">
+                    <td v-for="column in visibleScopeColumns" :key="column.key">
                       <div
                         v-if="row.key === 'Size'"
                         class="sow-input-container"
@@ -276,7 +293,7 @@
                       </div>
 
                       <div
-                        v-else-if="row.key === 'MainBldGpitch'"
+                        v-else-if="row.key === 'MainBldgPitch'"
                         class="sow-input-container"
                         tabindex="0"
                         :name="`${column.key}${row.key}`"
@@ -320,14 +337,14 @@
               </table>
             </div>
 
-            <div class="fake-table-row mb-4">
+            <div class="fake-table-row mb-4" v-if="form.projectType === 'custom'">
               <div class="scope-label overhang-label">Overhang</div>
               <div class="overhang-controls">
                 <v-radio-group
                   v-model="form.overhangType"
                   inline
                   hide-details
-                  name="overhangtype"
+                  name="overhangType"
                   :disabled="shouldDisableField('overhangType')"
                   :error-messages="fieldErrors.overhangType"
                   :error="!!fieldErrors.overhangType"
@@ -354,30 +371,7 @@
             </div>
 
             <hr class="section-divider" />
-            <v-row>
-              <v-col cols="4" md="4">
-                <v-checkbox
-                  v-model="form.standardTest"
-                  label="Name Only Standard"
-                  inline
-                  name="standardTest"
-                  :disabled="shouldDisableField('standardTest')"
-                  :error-messages="fieldErrors.standardTest"
-                  :error="!!fieldErrors.standardTest"
-                />
-              </v-col>
-              <v-col cols="4" md="4">
-                <v-checkbox
-                  v-model="form.standardTest2"
-                  label="Address Only Standard"
-                  inline
-                  name="standardTest2"
-                  :disabled="shouldDisableField('standardTest2')"
-                  :error-messages="fieldErrors.standardTest2"
-                  :error="!!fieldErrors.standardTest2"
-                />
-              </v-col>
-            </v-row>
+
             <v-row>
               <v-col cols="12" md="3">
                 <v-radio-group
@@ -531,16 +525,24 @@
             </v-row>
           </v-sheet>
 
-          <v-sheet class="page-section" elevation="1">
+          <v-sheet
+            class="page-section"
+            elevation="1"
+            v-if="form.projectType === 'custom' || isEdit"
+          >
             <div class="section-header">ADD-ONS</div>
             <div class="addons-table-wrapper">
               <table class="addons-table">
                 <thead>
                   <tr>
                     <th class="addons-header">Add-On</th>
-                    <th class="addons-header">Open Pole Barn</th>
-                    <th class="addons-header">Enclosed Pole</th>
-                    <th class="addons-header">Partially Enclosed Pole Barn</th>
+                    <th
+                      v-for="column in visibleAddonColumns"
+                      :key="column.key"
+                      class="addons-header"
+                    >
+                      {{ column.label }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -553,7 +555,7 @@
                         :disabled="shouldDisableField(addon.checkboxKey)"
                       />
                     </th>
-                    <td v-for="column in addonColumns" :key="column.key" class="addons-cell">
+                    <td v-for="column in visibleAddonColumns" :key="column.key" class="addons-cell">
                       <div v-if="addon.type === 'simple' && column.key === 'Opb'" class="na-text">
                         N/A
                       </div>
@@ -672,7 +674,7 @@
             </div>
           </v-sheet>
 
-          <v-sheet class="page-section" elevation="1">
+          <v-sheet class="page-section" elevation="1" v-if="form.projectType || isEdit">
             <div class="section-header">Order Information & Signature</div>
             <v-row>
               <v-col cols="12" md="4">
@@ -706,10 +708,10 @@
                   type="date"
                   dense
                   variant="outlined"
-                  name="orderdate"
+                  name="orderDate"
                   :disabled="shouldDisableField('orderDate')"
-                  :error-messages="fieldErrors.orderdate"
-                  :error="!!fieldErrors.orderdate"
+                  :error-messages="fieldErrors.orderDate"
+                  :error="!!fieldErrors.orderDate"
                 />
               </v-col>
             </v-row>
@@ -790,7 +792,10 @@
             </div>
           </v-sheet>
 
-          <div class="text-center mb-4 d-flex ga-2 justify-center">
+          <div
+            class="text-center mb-4 d-flex ga-2 justify-center"
+            v-if="form.projectType || isEdit"
+          >
             <v-btn
               color="red darken-2"
               type="submit"
@@ -848,7 +853,7 @@
 import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
-import { STATUSES, BLANK_FORM_DATA } from '@/global'
+import { STATUSES, BLANK_FORM_DATA, STATES } from '@/global'
 import { API } from '@/services/apiService'
 import { useSnackbar } from '@/composables/useSnackbar'
 
@@ -869,6 +874,7 @@ const projectNameError = ref('')
 
 // Admin detection
 const isAdmin = computed(() => {
+  console.log('projectStore.user', projectStore.user)
   return projectStore.user?.type === 'Admin' || projectStore.user?.isAdmin === true
 })
 
@@ -888,8 +894,6 @@ const shouldHideField = (fieldName) => {
   return itemsToHide.includes(fieldName)
 }
 
-const states = ['AL', 'FL']
-
 const scopeColumns = [
   { key: 'opb', label: 'Open Pole Barn' },
   { key: 'epb', label: 'Enclosed Pole' },
@@ -897,12 +901,28 @@ const scopeColumns = [
   { key: 'truss', label: 'Truss Only' },
 ]
 
+// Add computed properties for conditional column display
+const visibleScopeColumns = computed(() => {
+  if (form.projectType === 'typicalOpbOnly') {
+    return scopeColumns.filter((col) => col.key === 'opb')
+  }
+  return scopeColumns
+})
+
 // Add-ons configuration
 const addonColumns = [
   { key: 'Opb', label: 'Open Pole Barn' },
   { key: 'Epb', label: 'Enclosed Pole' },
   { key: 'Pepb', label: 'Partially Enclosed Pole Barn' },
 ]
+
+// Add computed property for visible addon columns
+const visibleAddonColumns = computed(() => {
+  if (form.projectType === 'typicalOpbOnly') {
+    return addonColumns.filter((col) => col.key === 'Opb')
+  }
+  return addonColumns
+})
 
 const addonsConfig = [
   {
@@ -929,7 +949,7 @@ const scopeOfWorkRows = [
   { key: 'Size', label: 'Size' },
   { key: 'PostSpacing', label: 'Post Spacing' },
   { key: 'PostSize', label: 'Post Size' },
-  { key: 'MainBldGpitch', label: 'Main Bldg. Pitch' },
+  { key: 'MainBldgPitch', label: 'Main Bldg. Pitch' },
   { key: 'MetalRoofPanelGauge', label: 'Metal Roof Panel Gauge' },
   { key: 'ConnectSlab', label: 'Concrete Slab (Y/N)' },
 ]
@@ -956,10 +976,10 @@ const postSizeInputs = reactive({
 })
 
 const mainBldgPitchInputs = reactive({
-  opbMainBldGpitch: { value: '' },
-  epbMainBldGpitch: { value: '' },
-  pepbMainBldGpitch: { value: '' },
-  trussMainBldGpitch: { value: '' },
+  opbMainBldgPitch: { value: '' },
+  epbMainBldgPitch: { value: '' },
+  pepbMainBldgPitch: { value: '' },
+  trussMainBldgPitch: { value: '' },
 })
 
 const windSpeedInput = reactive({
@@ -997,19 +1017,16 @@ function handleFileUpload(event) {
       preview: null,
       data: null,
       file: file,
+      isNew: true,
     }
 
-    if (fileObj.isImage) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        fileObj.preview = e.target.result
-        fileObj.data = e.target.result.split(',')[1]
-        uploadedFiles.value.push(fileObj)
-      }
-      reader.readAsDataURL(file)
-    } else {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      fileObj.preview = e.target.result
+      fileObj.data = e.target.result.split(',')[1]
       uploadedFiles.value.push(fileObj)
     }
+    reader.readAsDataURL(file)
   })
 }
 
@@ -1095,34 +1112,75 @@ function validateRequiredFields() {
 }
 
 function validateScopeOfWork() {
-  const scopeColumns = ['opb', 'epb', 'pepb', 'truss']
+  const columnsToValidate =
+    form.projectType === 'typicalOpbOnly' ? ['opb'] : ['opb', 'epb', 'pepb', 'truss']
   let hasErrors = false
 
-  for (const column of scopeColumns) {
+  for (const column of columnsToValidate) {
     const scopeFields = [
       'Size',
       'PostSpacing',
       'PostSize',
-      'MainBldGpitch',
+      'MainBldgPitch',
       'MetalRoofPanelGauge',
       'ConnectSlab',
     ]
 
     let columnHasValue = false
-    for (const field of scopeFields) {
-      const fieldName = `${column}${field}`
-      if (form[fieldName] && form[fieldName].toString().trim() !== '') {
-        columnHasValue = true
-        break
-      }
-    }
-
-    if (columnHasValue) {
+    if (form.projectType === 'typicalOpbOnly') {
       for (const field of scopeFields) {
         const fieldName = `${column}${field}`
         if (!form[fieldName] || form[fieldName].toString().trim() === '') {
           fieldErrors.value[fieldName] = 'This field is required'
           hasErrors = true
+        }
+      }
+    } else {
+      for (const field of scopeFields) {
+        const fieldName = `${column}${field}`
+        if (form[fieldName] && form[fieldName].toString().trim() !== '') {
+          columnHasValue = true
+          break
+        }
+        if (field === 'Size') {
+          let colSize = sizeInputs[column + 'Size']
+          if (colSize.l || colSize.w || colSize.h) {
+            columnHasValue = true
+            break
+          }
+        }
+        if (field === 'PostSize') {
+          let colPostSize = postSizeInputs[column + 'PostSize']
+          if (colPostSize.l || colPostSize.w) {
+            columnHasValue = true
+            break
+          }
+        }
+      }
+
+      if (columnHasValue) {
+        for (const field of scopeFields) {
+          const fieldName = `${column}${field}`
+          if (!form[fieldName] || form[fieldName].toString().trim() === '') {
+            fieldErrors.value[fieldName] = 'This field is required'
+            hasErrors = true
+          }
+
+          if (field === 'Size') {
+            let colSize = sizeInputs[column + 'Size']
+            if (!colSize.l || !colSize.w || !colSize.h) {
+              fieldErrors.value[fieldName] = 'This field is required'
+              hasErrors = true
+            }
+          }
+
+          if (field === 'PostSize') {
+            let colPostSize = postSizeInputs[column + 'PostSize']
+            if (!colPostSize.l || !colPostSize.w) {
+              fieldErrors.value[fieldName] = 'This field is required'
+              hasErrors = true
+            }
+          }
         }
       }
     }
@@ -1134,10 +1192,14 @@ function validateScopeOfWork() {
 
 function validateAddOns() {
   let hasErrors = false
+  const columnsToValidate =
+    form.projectType === 'typicalOpbOnly'
+      ? addonColumns.filter((col) => col.key === 'Opb')
+      : addonColumns
 
   for (const addon of addonsConfig) {
     if (form[addon.checkboxKey]) {
-      for (const column of addonColumns) {
+      for (const column of columnsToValidate) {
         const columnFields = getColumnFields(addon, column.key)
 
         if (columnFields.length === 0) continue
@@ -1193,18 +1255,22 @@ async function handleSubmit() {
   }
 
   try {
-    let sketchData = uploadedFiles.value.map((file) => ({
-      fileId: file.id,
-      fileName: file.name,
-      mimeType: file.mimeType,
-      data: file.data,
-    }))
+    let sketchData = uploadedFiles.value
+      .filter((file) => file.isNew)
+      .map((file) => ({
+        fileId: file.id,
+        fileName: file.name,
+        mimeType: file.mimeType,
+        data: file.data,
+      }))
 
     const formData = {
       ...form,
       sketchData,
       existingImages: existingImages.value,
     }
+
+    console.log('formData', formData)
 
     if (isEdit.value) {
       let updatedProject = await API.updateProject(formData)
@@ -1276,7 +1342,6 @@ function parsePostSpacing(val) {
 function parsePostSize(val) {
   if (!val) return { l: '', w: '' }
   const match = val.match(/(\d+)\s*[xX*]\s*(\d+)/)
-  console.log('match', match)
   if (match) {
     return { l: match[1], w: match[2] }
   }
@@ -1329,6 +1394,71 @@ function focusFirstInput(type, fieldName) {
   })
 }
 
+function loadProjectData() {
+  const { startingProjectId, projectId: editingProjectId } = route.query
+
+  if (startingProjectId || editingProjectId) {
+    let startingProject = startingProjectId
+      ? projectStore.projects.find((project) => project.data.projectId === startingProjectId)
+      : null
+
+    let editingProject = editingProjectId
+      ? projectStore.projects.find((project) => project.data.projectId === editingProjectId)
+      : null
+    console.log('startingProject', startingProject)
+    console.log('editingProject', editingProject)
+
+    const projectInfo = startingProject || editingProject
+    if (!projectInfo) {
+      errorMessage.value = `Project ${startingProjectId || editingProjectId} not found`
+      scrollToBottom()
+      return
+    }
+
+    isEdit.value = true
+    let editProject = projectInfo.data
+    editProject.existingImages = projectInfo.images
+
+    if (editProject) {
+      try {
+        Object.keys(editProject).forEach((key) => {
+          if (key in form) {
+            form[key] = editProject[key]
+          }
+        })
+
+        existingImages.value = editProject.existingImages
+        console.log('editProject', editProject, editProject.existingImages)
+        uploadedFiles.value = []
+        if (Array.isArray(editProject.existingImages)) {
+          editProject.existingImages.forEach((img) => {
+            uploadedFiles.value.push({
+              id: img.id || img.url + Math.random(),
+              name: img.name || 'File',
+              isImage: false,
+              preview: null,
+              url: img.url,
+              file: null,
+              existing: true,
+            })
+          })
+        }
+      } catch (error) {
+        console.error('Error populating form data:', error)
+        errorMessage.value = 'Error loading project data'
+      }
+    } else {
+      errorMessage.value = 'Project not found'
+    }
+  } else {
+    Object.keys(BLANK_FORM_DATA).forEach((key) => {
+      if (key in form) {
+        form[key] = BLANK_FORM_DATA[key]
+      }
+    })
+  }
+}
+
 const sizeFields = ['opbSize', 'epbSize', 'pepbSize', 'trussSize']
 const postSpacingFields = [
   'opbPostSpacing',
@@ -1338,10 +1468,10 @@ const postSpacingFields = [
 ]
 const postSizeFields = ['opbPostSize', 'epbPostSize', 'pepbPostSize', 'trussPostSize']
 const mainBldgPitchFields = [
-  'opbMainBldGpitch',
-  'epbMainBldGpitch',
-  'pepbMainBldGpitch',
-  'trussMainBldGpitch',
+  'opbMainBldgPitch',
+  'epbMainBldgPitch',
+  'pepbMainBldgPitch',
+  'trussMainBldgPitch',
 ]
 
 sizeFields.forEach((field) => {
@@ -1351,8 +1481,6 @@ sizeFields.forEach((field) => {
       const { l, w, h } = newVal
       if (l && w && h) {
         form[field] = `${l}x${w}x${h}`
-      } else {
-        form[field] = ''
       }
     },
     { deep: true },
@@ -1401,8 +1529,6 @@ postSizeFields.forEach((field) => {
       const { l, w } = newVal
       if (l && w) {
         form[field] = `${l}x${w}`
-      } else {
-        form[field] = ''
       }
     },
     { deep: true },
@@ -1468,16 +1594,49 @@ watch(
 watch(
   () => form,
   () => {
-    scopeColumns.forEach((column) => {
+    visibleScopeColumns.value.forEach((column) => {
       activeColumns[column.key] = columnHasData(column.key)
     })
   },
   { deep: true },
 )
 
+// Watch for scope of work changes and set default MetalRoofPanelGauge
+watch(
+  () => form,
+  () => {
+    const columns = ['opb', 'epb', 'pepb', 'truss']
+    columns.forEach((columnKey) => {
+      const gaugeField = `${columnKey}MetalRoofPanelGauge`
+
+      if (columnHasData(columnKey)) {
+        if (!form[gaugeField] || form[gaugeField].toString().trim() === '') {
+          form[gaugeField] = '26g'
+        }
+      }
+    })
+  },
+  { deep: true },
+)
+
+// Watch for projectType changes to update active columns
+watch(
+  () => form.projectType,
+  () => {
+    // Reset all active columns first
+    Object.keys(activeColumns).forEach((key) => {
+      activeColumns[key] = false
+    })
+    // Then set only visible columns
+    visibleScopeColumns.value.forEach((column) => {
+      activeColumns[column.key] = columnHasData(column.key)
+    })
+  },
+)
+
 onMounted(() => {
   loadProjectData()
-  scopeColumns.forEach((column) => {
+  visibleScopeColumns.value.forEach((column) => {
     activeColumns[column.key] = columnHasData(column.key)
   })
 })
@@ -1490,68 +1649,6 @@ watch(
     }
   },
 )
-
-function loadProjectData() {
-  const { startingProjectId, projectId: editingProjectId } = route.query
-
-  if (startingProjectId || editingProjectId) {
-    let startingProject = startingProjectId
-      ? projectStore.projects.find((project) => project.data.projectId === startingProjectId)
-      : null
-
-    let editingProject = editingProjectId
-      ? projectStore.projects.find((project) => project.data.projectId === editingProjectId)
-      : null
-
-    const editProjectInfo = (startingProject || editingProject)?.data
-    if (!editProjectInfo) {
-      errorMessage.value = `Project ${startingProjectId || editingProjectId} not found`
-      scrollToBottom()
-      return
-    }
-
-    isEdit.value = true
-    let editProject = editProjectInfo
-    editProject.existingImages = editProjectInfo.images
-
-    if (editProject) {
-      try {
-        Object.keys(editProject).forEach((key) => {
-          if (key in form) {
-            form[key] = editProject[key]
-          }
-        })
-
-        existingImages.value = editProject.existingImages
-        uploadedFiles.value = []
-        if (Array.isArray(editProject.existingImages)) {
-          editProject.existingImages.forEach((img) => {
-            uploadedFiles.value.push({
-              id: img.id || img.url + Math.random(),
-              name: img.name || 'File',
-              isImage: false,
-              preview: null,
-              url: img.url,
-              file: null,
-              existing: true,
-            })
-          })
-        }
-      } catch (error) {
-        console.error('Error populating form data:', error)
-        errorMessage.value = 'Error loading project data'
-      }
-    } else {
-      errorMessage.value = 'Project not found'
-    }
-  } else {
-    Object.keys(BLANK_FORM_DATA).forEach((key) => {
-      if (key in form) {
-        form[key] = BLANK_FORM_DATA[key]
-      }
-    })
-  }
-}
 </script>
 
 <style scoped>
@@ -1560,7 +1657,7 @@ function loadProjectData() {
   background: linear-gradient(135deg, #e8eafc 0%, #fbe9e7 100%);
 }
 .main-form-card {
-  background: #fff6f6;
+  background: #f9f5f5;
   border-radius: 18px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
 }
@@ -1691,7 +1788,7 @@ function loadProjectData() {
   transform: translateY(-50%);
 }
 .page-section {
-  background: #fff0f0;
+  background: #fafafa;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 16px;
@@ -1895,6 +1992,18 @@ function loadProjectData() {
   appearance: textfield;
 }
 
+/* Make disabled text darker and more readable without changing borders */
+:deep(.v-field--disabled) {
+  color: #212529 !important;
+  opacity: 0.8 !important;
+  -webkit-text-fill-color: #212529 !important;
+}
+
+:deep(.v-selection-control--disabled) {
+  color: #212529 !important;
+  opacity: 0.7 !important;
+  -webkit-text-fill-color: #212529 !important;
+}
 /* Size Input Container Styles */
 .sow-input-container {
   display: flex;
@@ -1975,7 +2084,7 @@ function loadProjectData() {
 
 /* Employee field restrictions styling */
 :deep(.v-field--disabled) {
-  background-color: #f5f5f5 !important;
+  background-color: #f2e9e9 !important;
   opacity: 0.7;
 }
 
@@ -1992,7 +2101,7 @@ function loadProjectData() {
 }
 
 :deep(.sow-input:disabled) {
-  background-color: #f5f5f5;
+  background-color: #f2e9e9;
   color: #666;
   cursor: not-allowed;
 }

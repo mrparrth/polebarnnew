@@ -102,6 +102,6 @@ export class Mock {
   }
 
   static getMetaData() {
-    return { startingProjectId: '450.424' }
+    return { startingProjectId: '999.999' }
   }
 }

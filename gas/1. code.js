@@ -2,7 +2,7 @@ class Auth {
   constructor() {
     this.ss = SpreadsheetApp.getActive()
     this.settings = settings
-    this.shUser = this.ss.getSheetByName(this.settings.sheetNames.user)
+    this.shUser = this.ss.getSheetByName('Users')
   }
 
   validateLogin(cookie) {
@@ -24,7 +24,7 @@ class Auth {
   getUserByEmail(email) {
     email = email.trim().toLowerCase()
     return _getItemsFromSheet_(
-      this.ss.getSheetByName(this.settings.sheetNames.user),
+      this.ss.getSheetByName('Users'),
       (v) => v.email.trim().toLowerCase() === email,
     )[0]
   }
@@ -32,7 +32,7 @@ class Auth {
   getUserByToken(token) {
     token = token.trim().toLowerCase()
     return _getItemsFromSheet_(
-      this.ss.getSheetByName(this.settings.sheetNames.user),
+      this.ss.getSheetByName('Users'),
       (v) => v.currentToken.trim().toLowerCase() === token,
     )[0]
   }
@@ -160,17 +160,17 @@ const newProject = ({ data, token }) => {
 
   data.driveFolder = folder.getUrl()
 
-  let fbInvoice = createFreshbooksInvoice(data)
-  data.fBInvoiceNo = fbInvoice.response.result.invoice.invoice_number
-  data.fBInvoiceId = fbInvoice.response.result.invoice.id
+  if (settings.createFbItems) {
+    let fbInvoice = createFreshbooksInvoice(data)
+    data.fBInvoiceNo = fbInvoice.response.result.invoice.invoice_number
+    data.fBInvoiceId = fbInvoice.response.result.invoice.id
 
-  try {
-    if (!settings.testMode) {
+    try {
       shareInvoiceWithClient(data.fBInvoiceId)
       data.fbInvoiceLink = getSharableFBInvoiceLink(data.fBInvoiceId)
+    } catch (e) {
+      console.log(e)
     }
-  } catch (e) {
-    console.log(e)
   }
 
   try {
@@ -258,7 +258,6 @@ const updateProject = ({ data, token }) => {
   console.log(`${row} - rowData ${JSON.stringify(rowData)}`)
 
   //Send email
-  if (settings.testMode) return { data: newData, images: driveFileUrls }
   if (data.status && projectInfo.status !== data.status) {
     data.oldStatus = projectInfo.status
     sendStatusChangeEmail(data.oldStatus, data.status, data)
@@ -333,7 +332,7 @@ const getSubmissionData = (token) => {
 const createDelayedPresentationEmailTrigger = ({ data, pdfUrl, slideUrl, errors }) => {
   const trigger = ScriptApp.newTrigger('executeDelayedPresentationEmail')
     .timeBased()
-    .after(2 * 60 * 60 * 1000)
+    .after(settings.testMode ? 1000 : settings.presentationSendDelay)
     .create()
 
   const triggerData = {
@@ -341,12 +340,12 @@ const createDelayedPresentationEmailTrigger = ({ data, pdfUrl, slideUrl, errors 
     pdfUrl,
     slideUrl,
     errors,
-    triggerId: trigger.getUniqueId(),
+    triggerUid: trigger.getUniqueId().toString(),
     createdAt: new Date().toISOString(),
   }
 
   PropertiesService.getScriptProperties().setProperty(
-    trigger.getUniqueId(),
+    trigger.getUniqueId().toString(),
     JSON.stringify(triggerData),
   )
 
@@ -358,20 +357,21 @@ const createDelayedPresentationEmailTrigger = ({ data, pdfUrl, slideUrl, errors 
 const executeDelayedPresentationEmail = (event) => {
   console.log(event)
   try {
-    const property = PropertiesService.getScriptProperties().getProperty(event.triggerId)
+    let property = PropertiesService.getScriptProperties().getProperty(event.triggerUid.toString())
+    if (!property) property = PropertiesService.getScriptProperties().getProperty(event.triggerUid)
 
     if (property) {
       try {
         const triggerData = JSON.parse(property)
 
-        console.log(`Executing delayed presentation email for trigger: ${triggerData.triggerId}`)
+        console.log(`Executing delayed presentation email for trigger: ${triggerData.triggerUid}`)
 
         sendPresentationEmail(triggerData)
 
-        cleanupDelayedTrigger(event.triggerId)
+        cleanupDelayedTrigger(event.triggerUid)
       } catch (parseError) {
         console.error(`Error parsing trigger data for key ${key}:`, parseError)
-        PropertiesService.getScriptProperties().deleteProperty(event.triggerId)
+        PropertiesService.getScriptProperties().deleteProperty(event.triggerUid.toString())
       }
     }
   } catch (error) {
@@ -379,24 +379,24 @@ const executeDelayedPresentationEmail = (event) => {
   }
 }
 
-const cleanupDelayedTrigger = (triggerId) => {
+const cleanupDelayedTrigger = (triggerUid) => {
   try {
-    PropertiesService.getScriptProperties().deleteProperty(triggerId)
+    PropertiesService.getScriptProperties().deleteProperty(triggerUid.toString())
 
-    if (triggerId) {
+    if (triggerUid) {
       const triggers = ScriptApp.getProjectTriggers()
       for (const trigger of triggers) {
-        if (trigger.getUniqueId() === triggerId) {
+        if (trigger.getUniqueId() === triggerUid) {
           ScriptApp.deleteTrigger(trigger)
-          console.log(`Deleted trigger: ${triggerId}`)
+          console.log(`Deleted trigger: ${triggerUid}`)
           break
         }
       }
     }
 
-    console.log(`Cleaned up delayed trigger: ${triggerId}`)
+    console.log(`Cleaned up delayed trigger: ${triggerUid}`)
   } catch (error) {
-    console.error(`Error cleaning up trigger ${triggerId}:`, error)
+    console.error(`Error cleaning up trigger ${triggerUid}:`, error)
   }
 }
 
@@ -437,13 +437,22 @@ const sendNoPresentationEmail = ({ data, errors = [] }) => {
       `
 
   // Send email
-  MailApp.sendEmail({
-    to: settings.testMode
-      ? 'iamparrth@gmail.com,erparthas@gmail.com'
-      : 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com',
-    subject: subject,
-    htmlBody: htmlBody,
-  })
+  GmailApp.sendEmail(
+    settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.noPresentation,
+    subject,
+    htmlBody,
+    {
+      htmlBody: htmlBody,
+      name: settings.emailAliasName,
+    },
+  )
+  // MailApp.sendEmail({
+  //   to: settings.testMode
+  //     ? 'iamparrth@gmail.com,erparthas@gmail.com'
+  //     : settings.emailTos.noPresentation,
+  //   subject: subject,
+  //   htmlBody: htmlBody,
+  // })
 }
 
 const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
@@ -496,13 +505,23 @@ const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
         </div>
       `
 
-  MailApp.sendEmail({
-    to: settings.testMode
-      ? 'iamparrth@gmail.com,erparthas@gmail.com'
-      : 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com',
-    subject: subject,
-    htmlBody: htmlBody,
-  })
+  GmailApp.sendEmail(
+    settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.presentation,
+    subject,
+    htmlBody,
+    {
+      htmlBody: htmlBody,
+      name: settings.emailAliasName,
+    },
+  )
+
+  // MailApp.sendEmail({
+  //   to: settings.testMode
+  //     ? 'iamparrth@gmail.com,erparthas@gmail.com'
+  //     : settings.emailTos.presentation,
+  //   subject: subject,
+  //   htmlBody: htmlBody,
+  // })
 }
 
 const getDataByProjectName_ = (projectId) => {
@@ -613,12 +632,15 @@ const generatePdfForRow = () => {
       `
 
     // Send email
-    if (!settings.testMode)
-      MailApp.sendEmail({
-        to: 'ryanhoover@ceedcivil.com,Mehta@ceedcivil.com', //'iamparrth@gmail.com,erparthas@gmail.com',
-        subject: subject,
+    GmailApp.sendEmail(
+      settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.presentation,
+      subject,
+      htmlBody,
+      {
         htmlBody: htmlBody,
-      })
+        name: settings.emailAliasName,
+      },
+    )
 
     _openLink_(pdfUrl)
   }
@@ -651,9 +673,8 @@ const sendFieldChangeEmail = (oldData, newData, userInfo) => {
     subject = `Fields Updated - ${oldData.projectId} - ${oldData.projectName}`
   }
 
-  const to = settings.testMode
-    ? 'iamparrth@gmail.com'
-    : 'ceedcivil@gmail.com,RyanHoover@ceedcivil.com'
+  const to = settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.fieldChange
+
   const template = HtmlService.createTemplateFromFile('fieldChange')
   template.projectId = oldData.projectId
   template.clientName = oldData.clientName
@@ -672,15 +693,15 @@ const sendFieldChangeEmail = (oldData, newData, userInfo) => {
 
   GmailApp.sendEmail(to, subject, htmlBody, {
     htmlBody: htmlBody,
-    name: 'Ceed Civil Pole Barn Project Admin',
+    name: settings.emailAliasName,
   })
 }
 
 const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
-  let emailPref = getEmailPreferences(oldStatus, newStatus)
-  if (!emailPref?.length) return
+  let emailPref = getEmailPreferences(oldStatus, newStatus)?.[0]
+  if (!emailPref) return
 
-  let replacedEmailPref = replaceTemplateVariables(emailPref[0], projectData)
+  let replacedEmailPref = replaceTemplateVariables(emailPref, projectData)
 
   const template = HtmlService.createTemplateFromFile('statusChange')
   template.projectId = projectData.projectId
@@ -703,7 +724,7 @@ const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
     htmlBody,
     {
       htmlBody: htmlBody,
-      name: 'Ceed Civil Pole Barn Project Admin',
+      name: settings.emailAliasName,
     },
   )
 }
