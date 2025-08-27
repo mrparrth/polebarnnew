@@ -208,22 +208,24 @@ const newProject = ({ data, token }) => {
   return { data, images: driveFileUrls }
 }
 
-const updateProject = ({ data, token }) => {
-  console.log(JSON.stringify(data), token)
+const updateProject = ({ data: projectUpdates, token }) => {
+  console.log(JSON.stringify(projectUpdates), token)
 
   let time = new Date()
   let userInfo = new Auth().login({ token })
   let ss = SpreadsheetApp.getActive()
-  let files = data.sketchData || []
-  let existingImages = data.existingImages || []
-  delete data.sketchData
-  delete data.existingImages
+  let files = projectUpdates.sketchData || []
+  let existingImages = projectUpdates.existingImages || []
+  delete projectUpdates.sketchData
+  delete projectUpdates.existingImages
 
-  let projectInfo = getDataByProjectName_(data.projectId)
-  let row = projectInfo['_row_']
+  let currentProject = getDataByProjectName_(projectUpdates.projectId)
+  let row = currentProject['_row_']
 
   let driveFileUrls = []
-  let folder = _getOrCreateFolder_(['Project - ' + data.projectId + ' ' + data.projectName])
+  let folder = _getOrCreateFolder_([
+    'Project - ' + projectUpdates.projectId + ' ' + projectUpdates.projectName,
+  ])
 
   for (let file of files) {
     let fileData = Utilities.newBlob(
@@ -240,28 +242,32 @@ const updateProject = ({ data, token }) => {
   }
 
   //updates the properties present in the sheet.
-  let oldData = { ...projectInfo.data }
-  let newData = { ...projectInfo.data, ...data }
-  for (let property in data) {
-    newData[property] = data[property]
+  let oldData = { ...currentProject.data }
+  let newData = { ...currentProject.data, ...projectUpdates }
+  for (let property in projectUpdates) {
+    newData[property] = projectUpdates[property]
+  }
+
+  //Send email
+  if (projectUpdates.status && currentProject.status !== projectUpdates.status) {
+    projectUpdates.oldStatus = currentProject.status
+    if (projectUpdates.status == 'S&S') {
+      projectUpdates.ssAt = new Date().toISOString()
+    }
+    sendStatusChangeEmail(projectUpdates.oldStatus, projectUpdates.status, projectUpdates)
   }
 
   let rowData = [
     time,
     userInfo.user.email,
-    data.projectId,
+    projectUpdates.projectId,
     JSON.stringify(newData),
     JSON.stringify(driveFileUrls),
-    data.status,
-    data.price,
+    projectUpdates.status,
+    projectUpdates.price,
   ]
   console.log(`${row} - rowData ${JSON.stringify(rowData)}`)
 
-  //Send email
-  if (data.status && projectInfo.status !== data.status) {
-    data.oldStatus = projectInfo.status
-    sendStatusChangeEmail(data.oldStatus, data.status, data)
-  }
   ss.getSheetByName('Submission').getRange(row, 1, 1, rowData.length).setValues([rowData])
 
   console.log('New Price', newData.price, 'Old Price', oldData.price)
@@ -282,6 +288,9 @@ const updateProjectStatus = ({ data: { projectId, newStatus } }) => {
     project.data.status = newStatus
     project.status = newStatus
     project.data.oldstatus = currentStatus
+    if (newStatus == 'S&S') {
+      project.data.ssAt = new Date().toISOString()
+    }
 
     let rowData = Object.values(project)
     rowData[3] = JSON.stringify(rowData[3])
@@ -295,6 +304,47 @@ const updateProjectStatus = ({ data: { projectId, newStatus } }) => {
       .setValues([rowData])
 
     sendStatusChangeEmail(currentStatus, newStatus, project.data)
+  }
+}
+
+const autoArchiveProjects = () => {
+  let ss = SpreadsheetApp.getActive()
+  let sh = ss.getSheetByName('Submission')
+  let data = _getSheetValuesAsJson_(sh)
+  let currentDate = new Date().toISOString()
+
+  let updatedData = []
+  let atLeastOneUpdate = false
+  for (let row of data) {
+    if (
+      row.data.status == 'S&S' &&
+      row.data.ssAt &&
+      new Date(row.data.ssAt) < new Date(currentDate) &&
+      new Date(row.data.ssAt) < new Date(currentDate) - 1000 * 60 * 60 * 24 * 20 //20 days
+    ) {
+      console.log(`Archieving Project ${row.projectId}`)
+      row.data.status = 'Archived'
+      row.data.archivedAt = currentDate
+      row.status = 'Archived'
+
+      let rowData = Object.values(row)
+      rowData[3] = JSON.stringify(rowData[3])
+      rowData[4] = JSON.stringify(rowData[4])
+      rowData.pop()
+
+      updatedData.push(rowData)
+      atLeastOneUpdate = true
+    } else {
+      let rowData = Object.values(row)
+      rowData[3] = JSON.stringify(rowData[3])
+      rowData[4] = JSON.stringify(rowData[4])
+      rowData.pop()
+      updatedData.push(rowData)
+    }
+  }
+
+  if (atLeastOneUpdate) {
+    sh.getRange(2, 1, updatedData.length, updatedData[0].length).setValues(updatedData)
   }
 }
 

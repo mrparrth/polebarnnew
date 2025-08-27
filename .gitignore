@@ -30,3 +30,6 @@ coverage
 *.tsbuildinfo
 
 gas/credentials.js
+gas/css.html
+gas/js.html
+.clasp.json
