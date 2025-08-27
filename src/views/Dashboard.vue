@@ -66,6 +66,7 @@
                   :headers="headers"
                   :items="filteredProjects"
                   :loading="loading"
+                  :items-per-page="-1"
                   class="projects-table flex-grow-1"
                   hover
                   item-value="id"
