@@ -567,7 +567,6 @@
                           dense
                           variant="outlined"
                           hide-details
-                          type="number"
                           :disabled="
                             shouldDisableField(`${addon.key}${column.key}Qty`) ||
                             !form[addon.checkboxKey]
@@ -581,7 +580,6 @@
                           dense
                           variant="outlined"
                           hide-details
-                          type="number"
                           :disabled="
                             shouldDisableField(`${addon.key}${column.key}Size`) ||
                             !form[addon.checkboxKey]
@@ -597,7 +595,6 @@
                           dense
                           variant="outlined"
                           hide-details
-                          type="number"
                           :disabled="
                             shouldDisableField(`${addon.key}${column.key}Size`) ||
                             !form[addon.checkboxKey]
@@ -611,7 +608,6 @@
                           dense
                           variant="outlined"
                           hide-details
-                          type="number"
                           :disabled="
                             shouldDisableField(`${addon.key}${column.key}Pitch`) ||
                             !form[addon.checkboxKey]
@@ -659,7 +655,6 @@
                           dense
                           variant="outlined"
                           hide-details
-                          type="number"
                           :disabled="
                             shouldDisableField(`${addon.key}${column.key}PostSize`) ||
                             !form[addon.checkboxKey]
@@ -1068,7 +1063,6 @@ function validateRequiredFields() {
     'siteAddress',
     'city',
     'state',
-    'country',
     'zip',
     'riskCategory',
     'exposureCategory',
