@@ -1,7 +1,7 @@
 class Auth {
   constructor() {
     this.ss = SpreadsheetApp.getActive()
-    this.settings = settings
+    this.settings = _getSettings_()
     this.shUser = this.ss.getSheetByName('Users')
   }
 
@@ -50,6 +50,8 @@ class Auth {
 
   login(loginInfo) {
     console.log(loginInfo)
+    let projectData = _getSheetValuesAsJson_(this.ss.getSheetByName('Submission'))
+    let paperCopyData = _getSheetValuesAsJson_(this.ss.getSheetByName('PaperCopy'))
 
     let { data: { email, password } = {}, token } = loginInfo
     if (token && token !== 'null') {
@@ -68,18 +70,24 @@ class Auth {
         this.updateUserToken(tokenUser)
         return 'Invalid login'
       }
-      let data = _getSheetValuesAsJson_(SpreadsheetApp.getActive().getSheetByName('Submission'))
 
-      let dashboardData = data.map(({ data, images }) => {
+      let dashboardData = projectData.map(({ data, images }) => {
         return { data, images }
       })
 
       delete tokenUser.password
 
+      //TODO: get paper copy stats from the database
       return {
         user: tokenUser,
         token,
-        data: dashboardData,
+        data: [...dashboardData, ...paperCopyData],
+        paperCopyData,
+        paperCopyStock: {
+          openPoleBarn: { qty: this.settings.openPoleBarn },
+          leanTo: { qty: this.settings.leanTo },
+          singleSlope: { qty: this.settings.singleSlope },
+        },
       }
     }
 
@@ -93,16 +101,22 @@ class Auth {
       user.currentToken = token
 
       this.updateUserToken(user)
-      let data = _getSheetValuesAsJson_(SpreadsheetApp.getActive().getSheetByName('Submission'))
 
-      let dashboardData = data.map(({ data, images }) => {
+      let dashboardData = projectData.map(({ data, images }) => {
         return { data, images }
       })
 
+      //TODO: get paper copy stats from the database
       return {
         user,
         token,
-        data: dashboardData,
+        data: [...dashboardData, ...paperCopyData],
+        paperCopyData,
+        paperCopyStock: {
+          openPoleBarn: { qty: this.settings.openPoleBarn },
+          leanTo: { qty: this.settings.leanTo },
+          singleSlope: { qty: this.settings.singleSlope },
+        },
       }
     }
 
@@ -119,14 +133,16 @@ const webAppURL = () => ScriptApp.getService().getUrl()
 
 const doGet = (e) => {
   let params = e.parameter
+  let settings = _getSettings_()
   let template = HtmlService.createTemplateFromFile('index')
+  params.lowStockThreshold = settings.lowStockThreshold
   template.metaData = JSON.stringify(params)
   return template.evaluate().setTitle(settings.appName)
 }
 
 const newProject = ({ data, token }) => {
   console.log(JSON.stringify(data), token)
-
+  let settings = _getSettings_()
   let time = new Date()
   let userInfo = new Auth().login({ token })
   if (!userInfo.user) throw 'Invalid login. Please login again and try'
@@ -177,9 +193,9 @@ const newProject = ({ data, token }) => {
     let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
 
     if (isFileCreated) {
-      data.presentationUrl = pdfUrl
+      data.pdfUrl = pdfUrl
     } else {
-      data.presentationUrl = ''
+      data.pdfUrl = ''
     }
 
     if (isOpenPoleBarn && !isFileCreated) {
@@ -307,6 +323,110 @@ const updateProjectStatus = ({ data: { projectId, newStatus } }) => {
   }
 }
 
+const newPaperCopyProject = ({ data: paperStock, token }) => {
+  console.log(JSON.stringify(paperStock), token)
+  let userInfo = new Auth().login({ token })
+  if (!userInfo.user) throw 'Invalid login. Please login again and try'
+
+  paperStock.projectId = 'pc_' + Utilities.getUuid().substring(0, 6)
+  paperStock.projectSubType = 'paperCopySold'
+  paperStock.projectType = 'paperCopy'
+  paperStock.orderDate = new Date().toISOString()
+
+  let ss = SpreadsheetApp.getActive()
+  let shSubmission = ss.getSheetByName('PaperCopy')
+
+  let lock = LockService.getScriptLock()
+  try {
+    lock.waitLock(30000)
+    let settings = _getSettings_()
+    let openPoleBarn = settings.openPoleBarn - (paperStock.opbPaperSold || 0)
+    let leanTo = settings.leanTo - (paperStock.leanToPaperSold || 0)
+    let singleSlope = settings.singleSlope - (paperStock.singleSlopePaperSold || 0)
+
+    let shSettings = SpreadsheetApp.getActive().getSheetByName('Settings')
+    let opbRow = _getItemsFromSheet_(shSettings).find(
+      (row) => row.key == 'Open Pole Barn',
+    )._rowIndex
+
+    shSubmission.appendRow([
+      new Date(),
+      userInfo.user.email,
+      'Paper Copy Sold',
+      paperStock.projectId,
+      JSON.stringify(paperStock),
+    ])
+    shSettings.getRange(opbRow, 2, 3, 1).setValues([[openPoleBarn], [leanTo], [singleSlope]])
+  } catch (e) {
+    console.error(e)
+  } finally {
+    lock.releaseLock()
+  }
+}
+
+const updatePaperCopyStock = ({ data: paperStock, token }) => {
+  console.log(JSON.stringify(paperStock), token)
+  let { openPoleBarn, leanTo, singleSlope } = paperStock
+  let shSettings = SpreadsheetApp.getActive().getSheetByName('Settings')
+  let opbRow = _getItemsFromSheet_(shSettings).find((row) => row.key == 'Open Pole Barn')._rowIndex
+  let settings = _getSettings_()
+
+  shSettings
+    .getRange(opbRow, 2, 3, 1)
+    .setValues([
+      [openPoleBarn?.qty || settings.openPoleBarn],
+      [leanTo?.qty || settings.leanTo],
+      [singleSlope?.qty || settings.singleSlope],
+    ])
+}
+
+const orderPaperCopy = ({ data: paperStock, token }) => {
+  let settings = _getSettings_()
+
+  paperStock.projectId = 'pc_' + Utilities.getUuid().substring(0, 6)
+  paperStock.projectSubType = 'paperCopyRequest'
+  paperStock.projectType = 'paperCopy'
+  paperStock.orderDate = new Date().toISOString()
+
+  let { openPoleBarn, leanTo, singleSlope } = paperStock
+  let userInfo = new Auth().login({ token })
+  if (!userInfo.user) throw 'Invalid login. Please login again and try'
+
+  let totalQuantity = (openPoleBarn || 0) + (leanTo || 0) + (singleSlope || 0)
+  let orderItemCount = (openPoleBarn ? 1 : 0) + (leanTo ? 1 : 0) + (singleSlope ? 1 : 0)
+
+  const template = HtmlService.createTemplateFromFile('paperCopyOrder')
+  template.openPoleBarn = openPoleBarn
+  template.leanTo = leanTo
+  template.singleSlope = singleSlope
+  template.totalQuantity = totalQuantity
+  template.orderItemCount = orderItemCount
+  template.dashboardUrl = settings.appUrl
+  template.userName = userInfo.user.name
+
+  const htmlBody = template.evaluate().getContent()
+
+  GmailApp.sendEmail(
+    settings.testMode ? 'iamparrth@gmail.com' : settings.paperRequestEmail,
+    'New Paper Copy Order is Submitted',
+    htmlBody,
+    {
+      htmlBody: htmlBody,
+      name: settings.emailAliasName,
+    },
+  )
+
+  SpreadsheetApp.getActive()
+    .getSheetByName('PaperCopy')
+    .appendRow([
+      new Date(),
+      userInfo.user.email,
+      'Paper Copy Request',
+      paperStock.projectId,
+      JSON.stringify(paperStock),
+    ])
+}
+
 const autoArchiveProjects = () => {
   let ss = SpreadsheetApp.getActive()
   let sh = ss.getSheetByName('Submission')
@@ -382,7 +502,11 @@ const getSubmissionData = (token) => {
 const createDelayedPresentationEmailTrigger = ({ data, pdfUrl, slideUrl, errors }) => {
   const trigger = ScriptApp.newTrigger('executeDelayedPresentationEmail')
     .timeBased()
-    .after(settings.testMode ? 1000 : settings.presentationSendDelay)
+    .after(
+      settings.testMode
+        ? 1000
+        : settings.presentationSendDelay + Math.random() * 1 * 60 * 60 * 1000,
+    )
     .create()
 
   const triggerData = {
@@ -418,6 +542,9 @@ const executeDelayedPresentationEmail = (event) => {
 
         sendPresentationEmail(triggerData)
 
+        updateProjectStatus({
+          data: { projectId: triggerData.data.projectId, newStatus: 'For Review by BW' },
+        })
         cleanupDelayedTrigger(event.triggerUid)
       } catch (parseError) {
         console.error(`Error parsing trigger data for key ${key}:`, parseError)
@@ -451,6 +578,7 @@ const cleanupDelayedTrigger = (triggerUid) => {
 }
 
 const sendNoPresentationEmail = ({ data, errors = [] }) => {
+  const settings = _getSettings_()
   const subject = `PDF Generation Failed - ${data.projectId} - ${data.projectName}`
 
   const htmlBody = `
@@ -488,7 +616,7 @@ const sendNoPresentationEmail = ({ data, errors = [] }) => {
 
   // Send email
   GmailApp.sendEmail(
-    settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.noPresentation,
+    settings.testMode ? 'iamparrth@gmail.com' : settings.noPresentationEmail,
     subject,
     htmlBody,
     {
@@ -496,13 +624,6 @@ const sendNoPresentationEmail = ({ data, errors = [] }) => {
       name: settings.emailAliasName,
     },
   )
-  // MailApp.sendEmail({
-  //   to: settings.testMode
-  //     ? 'iamparrth@gmail.com,erparthas@gmail.com'
-  //     : settings.emailTos.noPresentation,
-  //   subject: subject,
-  //   htmlBody: htmlBody,
-  // })
 }
 
 const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
@@ -556,7 +677,7 @@ const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
       `
 
   GmailApp.sendEmail(
-    settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.presentation,
+    settings.testMode ? 'iamparrth@gmail.com' : settings.presentationEmail,
     subject,
     htmlBody,
     {
@@ -564,14 +685,6 @@ const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
       name: settings.emailAliasName,
     },
   )
-
-  // MailApp.sendEmail({
-  //   to: settings.testMode
-  //     ? 'iamparrth@gmail.com,erparthas@gmail.com'
-  //     : settings.emailTos.presentation,
-  //   subject: subject,
-  //   htmlBody: htmlBody,
-  // })
 }
 
 const getDataByProjectName_ = (projectId) => {
@@ -628,7 +741,7 @@ const generatePdfForRow = () => {
 
   let dataRow = data.find((dr) => dr._row_ == activeRow)?.data
   if (!dataRow) return
-
+  let settings = _getSettings_()
   let { pdfUrl, slideUrl, errors } = generatePresentation(dataRow)
 
   if (pdfUrl) {
@@ -683,7 +796,7 @@ const generatePdfForRow = () => {
 
     // Send email
     GmailApp.sendEmail(
-      settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.presentation,
+      settings.testMode ? 'iamparrth@gmail.com' : settings.presentationEmail,
       subject,
       htmlBody,
       {
@@ -699,6 +812,7 @@ const generatePdfForRow = () => {
 }
 
 const sendFieldChangeEmail = (oldData, newData, userInfo) => {
+  let settings = _getSettings_()
   let trackingFields = ['status', 'projectName', 'clientName', 'price']
   let fieldChanges = []
 
@@ -723,7 +837,7 @@ const sendFieldChangeEmail = (oldData, newData, userInfo) => {
     subject = `Fields Updated - ${oldData.projectId} - ${oldData.projectName}`
   }
 
-  const to = settings.testMode ? 'iamparrth@gmail.com' : settings.emailTos.fieldChange
+  const to = settings.testMode ? 'iamparrth@gmail.com' : settings.fieldChangeEmail
 
   const template = HtmlService.createTemplateFromFile('fieldChange')
   template.projectId = oldData.projectId
@@ -748,6 +862,7 @@ const sendFieldChangeEmail = (oldData, newData, userInfo) => {
 }
 
 const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
+  let settings = _getSettings_()
   let emailPref = getEmailPreferences(oldStatus, newStatus)?.[0]
   if (!emailPref) return
 

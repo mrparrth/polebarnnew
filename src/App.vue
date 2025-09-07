@@ -19,6 +19,9 @@
         <v-btn color="white" variant="text" @click="snackbar.show = false"> Close </v-btn>
       </template>
     </v-snackbar>
+
+    <PaperCopyRequest v-model="projectStore.showPaperCopyRequest" />
+    <PaperCopyInfo v-model="projectStore.showPaperCopyInfo" />
   </v-app>
 </template>
 
@@ -26,9 +29,13 @@
 import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 import { useSnackbar } from '@/composables/useSnackbar'
+import { useProjectStore } from '@/stores/projectStore'
+import PaperCopyRequest from '@/components/PaperCopyRequest.vue'
+import PaperCopyInfo from '@/components/PaperCopyInfo.vue'
 
 const router = useRouter()
 const { snackbar } = useSnackbar()
+const projectStore = useProjectStore()
 
 onMounted(() => {
   router.push('/login')

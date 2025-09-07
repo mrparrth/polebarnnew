@@ -1,3 +1,19 @@
+function testLogin() {
+  let authApp = new Auth()
+  let test = authApp.login({ token: 'mdkbv1by.al' })
+  console.log(JSON.stringify(test.paperCopyData))
+  debugger
+}
+
+function testPaperCopyProject() {
+  let token = 'mdkbv1by.al'
+  // let data = { "state": "Karnatak", "status": "", "clientName": "test test", "siteAddress": "28, First Floor, First Cross", "city": "Bengaluru", "projectType": "paperCopy", "singleSlopePaperSold": 9, "zip": "560077", "orderDate": "2025-09-06" }  // new project
+  // newPaperCopyProject({ data, token })
+  // let data = {"leanTo":{"qty":4}}  //update
+  // updatePaperCopyStock({data, token})
+  let data = { openPoleBarn: 10, leanTo: 10 } //orderpapercopy
+  orderPaperCopy({ data, token })
+}
 function testUpdateProject() {
   let data = {
     country: 'India',
@@ -351,8 +367,7 @@ function testPresentationEmail() {
       exposureCategory: 'B',
       fullAddress: '28, First Floor, First Cross, Bengaluru, Florida, India, 560077',
       buildingType: 'Open Pole Barn',
-      presentationUrl:
-        'https://drive.google.com/file/d/1iBccgDu3eCtcADanseHu3_J-ChooD37v/view?usp=drivesdk',
+      pdfUrl: 'https://drive.google.com/file/d/1iBccgDu3eCtcADanseHu3_J-ChooD37v/view?usp=drivesdk',
     },
     pdfUrl: 'https://drive.google.com/file/d/1iBccgDu3eCtcADanseHu3_J-ChooD37v/view?usp=drivesdk',
     slideUrl: 'https://docs.google.com/open?id=1uj1HvSX-VX1HFrY1qVvECqenmZzn9hIo9ysXum-1_pQ',

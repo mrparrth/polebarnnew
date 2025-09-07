@@ -45,6 +45,7 @@ export class API {
 
   static async autoLogin() {
     const result = await this.execute('login')
+    console.log('autoLogin result', result)
     if (result.token) {
       localStorage.setItem('authToken', result.token)
     }
@@ -70,6 +71,24 @@ export class API {
 
   static async newProject(projectData) {
     const result = await this.execute('newProject', projectData)
+
+    return result
+  }
+
+  static async newPaperCopyProject(projectData) {
+    const result = await this.execute('newPaperCopyProject', projectData)
+
+    return result
+  }
+
+  static async orderPaperCopy(orderQuantities) {
+    const result = await this.execute('orderPaperCopy', orderQuantities)
+
+    return result
+  }
+
+  static async updatePaperCopyStock(paperStock) {
+    const result = await this.execute('updatePaperCopyStock', paperStock)
 
     return result
   }

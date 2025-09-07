@@ -3,19 +3,28 @@
     <v-row justify="center" align="center" class="fill-height">
       <v-col cols="12" class="fill-height">
         <v-card elevation="8" class="pa-0 rounded-xl main-form-card fill-height">
-          <v-sheet class="header-bar d-flex align-center px-6 py-4" elevation="0">
+          <v-sheet class="header-bar d-flex align-center py-4 position-relative" elevation="0">
             <v-img
               src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg"
               height="100"
               width="100"
-              class="mr-10 rounded-lg"
+              class="rounded-lg position-absolute"
+              style="left: 30px; top: 50%; transform: translateY(-50%)"
             />
-            <div class="flex-grow-1 text-center mr-10">
-              <h2 class="form-title mb-0">Site Specific Pole Barn Order Form & Agreement</h2>
+            <div class="position-absolute w-100 d-flex justify-center">
+              <h2 class="form-title mb-0 text-center">
+                Site Specific Pole Barn <br />Order Form & Agreement
+              </h2>
             </div>
-            <v-btn color="primary" variant="flat" class="ml-auto" @click="newProject"
-              >New Project</v-btn
+            <div
+              class="position-absolute d-flex flex-column"
+              style="right: 20px; top: 33px; gap: 10px"
             >
+              <v-btn v-if="isAdmin" color="secondary" variant="flat" @click="updatePaperStock"
+                >Update Paper Stock</v-btn
+              >
+              <v-btn color="primary" variant="flat" @click="newProject">New Project</v-btn>
+            </div>
           </v-sheet>
           <v-main class="dashboard-main">
             <v-row class="px-6 py-2">
@@ -37,7 +46,7 @@
               <!-- Search Bar and Controls -->
               <v-card-text class="py-3 px-5">
                 <v-row class="pr-2">
-                  <v-col cols="8">
+                  <v-col cols="7">
                     <v-text-field
                       v-model="searchQuery"
                       placeholder="Search projects..."
@@ -49,7 +58,18 @@
                       @input="filterProjects"
                     />
                   </v-col>
-                  <v-col cols="4" class="d-flex justify-end align-center">
+                  <v-col cols="3" class="d-flex justify-end align-center">
+                    <v-select
+                      v-model="projectTypeFilter"
+                      label="Project Type"
+                      hide-details
+                      density="compact"
+                      :items="Object.entries(projectTypeOptions)"
+                      item-title="1"
+                      item-value="0"
+                    />
+                  </v-col>
+                  <v-col cols="2" class="d-flex justify-end align-center">
                     <v-checkbox
                       v-model="showArchived"
                       label="Show Archived"
@@ -110,7 +130,11 @@
                           icon
                           @click.stop="viewDetails(item)"
                         >
-                          <v-icon>mdi-pencil</v-icon>
+                          <v-icon>{{
+                            isAdmin && item.data.projectType !== 'paperCopy'
+                              ? 'mdi-pencil'
+                              : 'mdi-eye'
+                          }}</v-icon>
                         </v-btn>
                       </td>
                     </tr>
@@ -123,6 +147,9 @@
       </v-col>
     </v-row>
   </v-container>
+
+  <PaperCopyStockRequest />
+  <PaperCopyStockInfo v-model="paperStockDialog" />
 </template>
 
 <script setup>
@@ -131,13 +158,18 @@ import { useRouter } from 'vue-router'
 import { API } from '@/services/apiService'
 import { useProjectStore } from '@/stores/projectStore'
 import { useSnackbar } from '@/composables/useSnackbar'
+import PaperCopyStockRequest from '@/components/PaperCopyRequest.vue'
+import PaperCopyStockInfo from '@/components/PaperCopyInfo.vue'
 
 const router = useRouter()
 const projectStore = useProjectStore()
 const loading = ref(false)
 const searchQuery = ref('')
+const projectTypeFilter = ref('allPoleBarnTypes')
 const showArchived = ref(false)
 const { showSnackbar } = useSnackbar()
+
+const paperStockDialog = ref(false)
 
 const projects = ref(projectStore.projects)
 
@@ -172,6 +204,16 @@ const headers = computed(() => {
   }
 })
 
+const projectTypeOptions = {
+  all: 'All',
+  allPoleBarnTypes: 'All Pole Barn Types',
+  typicalOpbOnly: 'Typical OPB ONLY / Name & Address Change ONLY',
+  customPoleBarn: 'Custom Pole Barn',
+  paperCopy: 'All Paper Copy',
+  paperCopyRequest: 'Paper Copy Request',
+  paperCopySold: 'Paper Copy Sold',
+}
+
 const statusOptions = [
   'New Request',
   'Accepted',
@@ -189,6 +231,38 @@ const filteredProjects = computed(() => {
 
   if (!showArchived.value) {
     filtered = filtered.filter((project) => project.data.status !== 'Archived')
+  }
+  if (projectTypeFilter.value) {
+    filtered = filtered.filter((project) => {
+      if (projectTypeFilter.value === 'all') {
+        return true
+      } else if (project.data.projectType === projectTypeFilter.value) {
+        return true
+      } else if (projectTypeFilter.value === 'allPoleBarnTypes') {
+        return (
+          project.data.projectType === 'customPoleBarn' ||
+          project.data.projectType === 'typicalOpbOnly' ||
+          !project.data.projectType
+        )
+      } else if (projectTypeFilter.value === 'customPoleBarn' && !project.data.projectType) {
+        return true
+      } else if (
+        projectTypeFilter.value === 'paperCopy' &&
+        project.data.projectType === 'paperCopy'
+      ) {
+        return true
+      } else if (
+        projectTypeFilter.value === 'paperCopyRequest' &&
+        project.data.projectSubType === 'paperCopyRequest'
+      ) {
+        return true
+      } else if (
+        projectTypeFilter.value === 'paperCopySold' &&
+        project.data.projectSubType === 'paperCopySold'
+      ) {
+        return true
+      }
+    })
   }
 
   if (searchQuery.value) {
@@ -213,8 +287,12 @@ function formatDate(dateString) {
   })
 }
 
+function updatePaperStock() {
+  paperStockDialog.value = true
+}
+
 function getRowClass(item) {
-  if (!['FL', 'FLORIDA'].includes(item.data.state.toUpperCase())) {
+  if (!['FL', 'FLORIDA'].includes(item.data.state?.toUpperCase())) {
     return 'non-florida-row'
   } else if (item.data.wetMapAndSeal) {
     return 'florida-wet-seal-row'

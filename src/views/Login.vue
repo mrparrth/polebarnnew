@@ -106,12 +106,12 @@ const handleLogin = async () => {
   try {
     localStorage.removeItem('authToken')
     const result = await API.login(formData.username, formData.password)
-    console.log('result', result)
     projectStore.setProjects(result.data)
     projectStore.setUser(result.user)
+    projectStore.setPaperCopyStock(result.paperCopyStock)
     localStorage.setItem('authToken', result.token)
     successMessage.value = 'Login successful!'
-    console.log('projectStore.metaData', projectStore.metaData)
+
     if (projectStore.metaData.startingProjectId) {
       router.push(`/form?startingProjectId=${projectStore.metaData.startingProjectId}`)
     } else {
@@ -132,7 +132,9 @@ const checkExistingSession = async () => {
     if (result.token) {
       projectStore.setProjects(result.data)
       projectStore.setUser(result.user)
+      projectStore.setPaperCopyStock(result.paperCopyStock)
       localStorage.setItem('authToken', result.token)
+
       if (projectStore.metaData.startingProjectId) {
         router.push(`/form?startingProjectId=${projectStore.metaData.startingProjectId}`)
       } else {
@@ -141,7 +143,7 @@ const checkExistingSession = async () => {
     }
   } catch (error) {
     errorMessage.value = error.message
-    console.error(`Auto login failed: Do try to login manually`)
+    console.error(`Auto login failed: Do try to login manually`, errorMessage.value)
   } finally {
     isLoading.value = false
   }

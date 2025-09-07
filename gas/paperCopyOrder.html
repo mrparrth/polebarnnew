@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paper Copy Order Request</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
+        padding: 30px 40px;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      .header .subtitle {
+        margin: 8px 0 0 0;
+        font-size: 16px;
+        opacity: 0.9;
+      }
+      .content {
+        padding: 40px;
+      }
+      .order-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+      }
+      .greeting {
+        font-size: 18px;
+        color: #555;
+        margin-bottom: 20px;
+      }
+      .order-info {
+        background: #f8f9fa;
+        border-left: 4px solid #ff9800;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .order-info h3 {
+        margin: 0 0 10px 0;
+        color: #2c3e50;
+        font-size: 18px;
+      }
+      .order-details {
+        margin: 0;
+        color: #666;
+      }
+      .order-details strong {
+        color: #333;
+      }
+      .order-items {
+        margin: 30px 0;
+      }
+      .order-items h3 {
+        color: #2c3e50;
+        border-bottom: 2px solid #ff9800;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-size: 18px;
+      }
+      .item-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease;
+      }
+      .item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .item-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .item-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+      }
+      .item-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        margin-right: 20px;
+        width: 70%;
+      }
+      .item-quantity {
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 16px;
+        text-align: right;
+        width: 30%;
+      }
+      .total-section {
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 8px;
+        text-align: center;
+        margin: 30px 0;
+      }
+      .total-section h3 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+      }
+      .total-quantity {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 0;
+      }
+      .action-required {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+      }
+      .action-required h4 {
+        margin: 0 0 10px 0;
+        color: #856404;
+        font-size: 16px;
+      }
+      .action-required p {
+        margin: 0;
+        color: #856404;
+        line-height: 1.5;
+      }
+      .action-buttons {
+        text-align: center;
+        margin: 30px 0;
+      }
+      .btn {
+        display: inline-block;
+        padding: 12px 30px;
+        margin: 0 10px;
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white !important;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(39, 174, 96, 0.4);
+      }
+      .btn-secondary {
+        background: linear-gradient(135deg, #3c94e7 0%, #2b88c0 100%);
+        color: white !important;
+        box-shadow: 0 2px 4px rgba(60, 148, 231, 0.3);
+      }
+      .btn-secondary:hover {
+        box-shadow: 0 4px 8px rgba(60, 148, 231, 0.4);
+      }
+      .footer {
+        background: #f8f9fa;
+        padding: 30px 40px;
+        text-align: center;
+        border-top: 1px solid #e9ecef;
+      }
+      .footer p {
+        margin: 5px 0;
+        color: #666;
+        font-size: 14px;
+      }
+      .footer .company-name {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 16px;
+      }
+      .urgent-badge {
+        background: #f44336;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-left: 10px;
+      }
+      @media only screen and (max-width: 600px) {
+        .email-container {
+          margin: 0;
+          box-shadow: none;
+        }
+        .header,
+        .content,
+        .footer {
+          padding: 20px;
+        }
+        .btn {
+          display: block;
+          margin: 10px 0;
+        }
+        .item-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .item-quantity {
+          margin-top: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h1>Paper Copy Order Request</h1>
+        <p class="subtitle">Ceed Civil Engineering</p>
+      </div>
+
+      <div class="content">
+        <p class="greeting">Hello,</p>
+
+        <div class="order-info">New paper copy order is placed by <?= userName ?><br /></div>
+
+        <div class="order-items">
+          <h3>Paper Copy Types Ordered</h3>
+
+          <? if (openPoleBarn > 0) { ?>
+          <div class="item-card">
+            <div class="item-header">
+              <h4 class="item-title">Open Pole Barn</h4>
+              <div class="item-quantity">
+                <?= openPoleBarn ?>
+                copies
+              </div>
+            </div>
+          </div>
+          <? } ?> <? if (leanTo > 0) { ?>
+          <div class="item-card">
+            <div class="item-header">
+              <h4 class="item-title">Lean To</h4>
+              <div class="item-quantity">
+                <?= leanTo ?>
+                copies
+              </div>
+            </div>
+          </div>
+          <? } ?> <? if (singleSlope > 0) { ?>
+          <div class="item-card">
+            <div class="item-header">
+              <h4 class="item-title">Single Slope</h4>
+              <div class="item-quantity">
+                <?= singleSlope ?>
+                copies
+              </div>
+            </div>
+          </div>
+          <? } ?>
+        </div>
+
+        <div class="total-section">
+          <h3>Order Summary</h3>
+          <p class="total-quantity">
+            <?= totalQuantity ?>
+            Total Copies
+          </p>
+          <p style="margin: 10px 0 0 0; opacity: 0.9">
+            <?= orderItemCount ?> different paper copy type<?= orderItemCount > 1 ? 's' : '' ?>
+            ordered
+          </p>
+        </div>
+
+        <div class="action-required">
+          <h4>Action Required</h4>
+          <p>Please process this paper copy order and update the inventory levels in the system.</p>
+        </div>
+
+        <div class="action-buttons">
+          <a href="<?= dashboardUrl ?>" class="btn">View Dashboard</a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p class="company-name">Ceed Civil Engineering</p>
+      </div>
+    </div>
+  </body>
+</html>

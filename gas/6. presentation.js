@@ -20,6 +20,8 @@ function generatePresentation(projectData) {
     exposureCategory,
   } = projectData
 
+  let settings = _getSettings_()
+
   projectData.fullAddress = [
     siteAddress.toProperCase(),
     city.toProperCase(),

@@ -137,7 +137,49 @@ export const BLANK_FORM_DATA = {
   addOnLeanToPepbPostSize: '',
   orderedBy: '',
   signature: '',
-  orderDate: '',
+  orderDate: new Date().toISOString().split('T')[0],
   additionalInformation: '',
   driveFolder: '',
+  opbPaperSold: '',
+  leanToPaperSold: '',
+  singleSlopePaperSold: '',
+}
+
+export const PAPER_COPY_TYPES = {
+  openPoleBarn: 'Open Pole Barn',
+  leanTo: 'Lean To',
+  singleSlope: 'Single Slope',
+}
+
+export const PAPER_COPY_ICONS = {
+  openPoleBarn: 'mdi-home-variant',
+  leanTo: 'mdi-home-roof',
+  singleSlope: 'mdi-home-city',
+}
+
+export const PAPER_COPY_THRESHOLDS = {
+  lowStock: 3,
+  warningStock: 5,
+  goodStock: 10,
+}
+
+export const PAPER_COPY_STOCK_COLORS = {
+  lowStock: 'error',
+  warningStock: 'warning',
+  goodStock: 'success',
+}
+
+export const PAPER_COPY_CARD_CSS_CLASSES = {
+  lowStock: 'low-stock-card',
+  warningStock: 'warning-stock-card',
+  goodStock: 'good-stock-card',
+}
+
+export const GET_STOCK_LEVEL_KEY = (stock) => {
+  stock = stock || 0
+  return stock <= PAPER_COPY_THRESHOLDS.lowStock
+    ? 'lowStock'
+    : stock <= PAPER_COPY_THRESHOLDS.warningStock
+      ? 'warningStock'
+      : 'goodStock'
 }

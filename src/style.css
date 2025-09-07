@@ -2,3 +2,29 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #e8eafc 0%, #fbe9e7 100%);
 }
+
+.stock-item-card {
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+  border-left: 4px solid;
+}
+
+.stock-item-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.good-stock-card {
+  border-left-color: #4caf50 !important;
+  background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+}
+
+.warning-stock-card {
+  border-left-color: #ff9800 !important;
+  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d1 100%);
+}
+
+.low-stock-card {
+  border-left-color: #f44336 !important;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+}

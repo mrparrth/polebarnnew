@@ -1,10 +1,12 @@
 import LOCAL_DATA from '@/data/data.json'
 import { DEFAULT_MOCK_API_DELAY } from '../global'
+import PAPER_COPY_STATS from '@/data/paperCopyStats.json'
+import PAPER_COPY_DATA from '@/data/paperCopyData.json'
 
 const FAKE_USER = {
   email: 'test@test.com',
   password: '123456',
-  type: 'Admin1',
+  type: 'Admin',
   token: 'dev_fake_token_123456',
 }
 
@@ -23,6 +25,9 @@ export class Mock {
       updateProject: () => this.handleMockUpdateProject(data),
       updateProjectStatus: () => this.handleMockUpdateProjectStatus(data),
       getLatestData: () => this.handleMockGetLatestData(),
+      newPaperCopyProject: () => this.handleMockNewPaperCopyProject(data),
+      orderPaperCopy: () => this.handleMockOrderPaperCopy(data),
+      updatePaperCopyStock: () => this.handleMockUpdatePaperCopyStock(data),
     }
 
     const handler = handlers[functionName]
@@ -45,6 +50,8 @@ export class Mock {
           user: FAKE_USER,
           token: `dev_fake_token_123456`,
           data: LOCAL_DATA,
+          paperCopyStock: PAPER_COPY_STATS,
+          paperCopyData: PAPER_COPY_DATA,
         }
       }
       localStorage.removeItem('authToken')
@@ -56,6 +63,8 @@ export class Mock {
         user: FAKE_USER,
         token: `dev_fake_token_123456`,
         data: LOCAL_DATA,
+        paperCopyStock: PAPER_COPY_STATS,
+        paperCopyData: PAPER_COPY_DATA,
       }
     }
 
@@ -68,6 +77,8 @@ export class Mock {
         user: FAKE_USER,
         token: `dev_fake_token_123456`,
         data: LOCAL_DATA,
+        paperCopyStock: PAPER_COPY_STATS,
+        paperCopyData: PAPER_COPY_DATA,
       }
     }
   }
@@ -78,7 +89,13 @@ export class Mock {
 
   static handleMockNewProject(data) {
     console.log('handleMockNewProject', data)
-    data.projectId = '999.999'
+    data.projectId = Math.random().toString(36).substring(2, 15)
+    return { data, images: [] }
+  }
+
+  static handleMockNewPaperCopyProject(data) {
+    console.log('handleMockNewPaperCopyProject', data)
+    data.projectId = Math.random().toString(36).substring(2, 15)
     return { data, images: [] }
   }
 
@@ -97,11 +114,23 @@ export class Mock {
     return { success: true }
   }
 
+  static handleMockOrderPaperCopy(data) {
+    console.log('handleMockOrderPaperCopy', data)
+    return { success: true }
+  }
+
+  static handleMockUpdatePaperCopyStock(data) {
+    console.log('handleMockUpdatePaperCopyStock', data)
+    return { success: true }
+  }
+
   static simulateNetworkDelay(ms = DEFAULT_MOCK_API_DELAY) {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   static getMetaData() {
-    return { startingProjectId: '999.999' }
+    return { startingProjectId: 'pc_f96d301a', lowStockThreshold: 1 }
+    // http://localhost:5173/form?projectId=pc_f96d301a
+    // return { lowStockThreshold: 3 }
   }
 }

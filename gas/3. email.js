@@ -17,6 +17,7 @@
 // }
 
 function sendEmail(draftSubject, sendTo, dataObject) {
+  let settings = _getSettings_()
   console.log(`${settings.testMode ? 'TEST MODE' : ''} - Sending Emails For ${draftSubject}`)
   if (settings.testMode) return
 

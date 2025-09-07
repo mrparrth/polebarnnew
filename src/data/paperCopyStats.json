@@ -1,0 +1,11 @@
+{
+  "openPoleBarn": {
+    "qty": 3
+  },
+  "leanTo": {
+    "qty": 3
+  },
+  "singleSlope": {
+    "qty": 10
+  }
+}

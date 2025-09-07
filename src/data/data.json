@@ -1,5 +1,122 @@
 [
   {
+    "date": "2025-09-06T17:52:15.245Z",
+    "user": "admin@ceedcivil.com",
+    "projectType": "Paper Copy Sold",
+    "projectId": "pc_2e0d157e",
+    "data": {
+      "state": "Karnatak",
+      "status": "",
+      "clientName": "test test",
+      "siteAddress": "28, First Floor, First Cross",
+      "city": "Bengaluru",
+      "projectType": "paperCopy",
+      "singleSlopePaperSold": 9,
+      "zip": "560077",
+      "orderDate": "2025-09-06",
+      "projectId": "pc_77d6681b",
+      "projectSubType": "paperCopySold"
+    },
+    "_row_": 2
+  },
+  {
+    "date": "2025-09-06T17:53:11.567Z",
+    "user": "admin@ceedcivil.com",
+    "projectType": "Paper Copy Request",
+    "projectId": "pc_f96d301a",
+    "data": {
+      "openPoleBarn": 10,
+      "leanTo": 10,
+      "projectId": "pc_f96d301a",
+      "projectSubType": "paperCopyRequest",
+      "projectType": "paperCopy"
+    },
+    "_row_": 3
+  },
+  {
+    "data": {
+      "epbPostSpacing": "",
+      "addOnWindowSelected": false,
+      "pepbMainBldgPitch": "",
+      "addOnLeanToOpbPostSize": "6X6",
+      "pepbMetalRoofPanelGauge": "",
+      "addOnLeanToOpbSlab": "No",
+      "epbConnectSlab": "",
+      "opbConnectSlab": "NO",
+      "clientName": "FLORIDA POLE BARN",
+      "opbMainBldgPitch": "4/12",
+      "opbMetalRoofPanelGauge": "26",
+      "addOnLeanToSelected": true,
+      "addOnLeanToPepbSize": "",
+      "overhangType": "standard",
+      "plywoodOnSiding": "No",
+      "pepbPostSpacing": "",
+      "plywoodOnRoof": "No",
+      "opbSize": "40x48x12",
+      "trussConnectSlab": "",
+      "epbSize": "",
+      "addOnWindowEpbSize": "",
+      "epbMainBldgPitch": "",
+      "trussPostSize": "",
+      "addOnDoorSelected": false,
+      "siteAddress": "22932 QUAIL GROVE RD",
+      "addOnLeanToPepbPostSize": "",
+      "addOnDoorPepbQty": "",
+      "pepbConnectSlab": "",
+      "epbMetalRoofPanelGauge": "",
+      "existingImages": [],
+      "studSpacingCustomValue": "STANDARD",
+      "trussMainBldgPitch": "",
+      "overhangValue": "",
+      "addOnWindowEpbQty": "",
+      "windSpeed": "145MPH",
+      "studSpacing": "custom",
+      "addOnLeanToPepbPitch": "",
+      "pepbSize": "",
+      "opbPostSize": "8x8",
+      "trussMetalRoofPanelGauge": "",
+      "status": "Rework",
+      "addOnLeanToOpbSize": "(1) 12X48X10",
+      "riskCategory": "1",
+      "opbPostSpacing": "12'",
+      "projectId": "450.438",
+      "addOnLeanToEpbSize": "",
+      "orderDate": "2025-06-26",
+      "zip": "32736",
+      "orderedBy": "JESSIE CHANEY",
+      "trussPostSpacing": "",
+      "country": "USA",
+      "price": "360.00",
+      "addOnLeanToEpbPitch": "",
+      "trussSize": "",
+      "addOnDoorEpbSize": "",
+      "addOnLeanToOpbPitch": "1/12",
+      "state": "FL",
+      "addOnWindowPepbSize": "",
+      "addOnWindowPepbQty": "",
+      "exposureCategory": "B",
+      "signature": "JESSIE CHANEY",
+      "pepbPostSize": "",
+      "additionalInformation": "DIGITAL  OPEN POLE BARN WITH (1) LEAN-TO PLAN WITH CUSTOMER'S NAME, ADDRESS AND BARN SIZE IN TITLE BLOCK\nNO CUSTOM DETAILS\n\n**REWORK 08-27-2025  Contractor informed us the building size was submitted in error. please change the title block to show 40x48x12. All other details are correct.**",
+      "epbPostSize": "",
+      "projectName": "ETHAN BURROWES",
+      "city": "EUSTIS",
+      "addOnDoorEpbQty": "",
+      "addOnDoorPepbSize": "",
+      "wetMapAndSeal": false,
+      "driveFolder": "https://drive.google.com/drive/folders/1pVyzdBpQ1H0JFwxprFsB6M1FnNj0XfvM",
+      "fBInvoiceNo": "0002030",
+      "fBInvoiceId": 991755,
+      "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5OTE3NTUiLCJleHAiOjE3ODI0ODY0MzgsImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.pm0jVyDpp9EEI3ZXBOrECgSXdruqDPj8qpzkIJpn7iQ?type=secondary&share_method=share_link",
+      "oldstatus": "S&S",
+      "addOnLeanToPepbSlab": "",
+      "addOnLeanToEpbPostSize": "",
+      "addOnLeanToEpbSlab": "",
+      "projectType": ""
+    },
+    "images": []
+  },
+  {
     "data": {
       "trussPostSpacing": "",
       "zip": "33813",
@@ -6452,7 +6569,7 @@
       "fBInvoiceNo": "0002025",
       "fBInvoiceId": 988201,
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5ODgyMDEiLCJleHAiOjE3ODE3OTE2ODUsImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.aVlIn1tPb2e2lZnWRla8DfnQ83R13dlBsneU1bR0sDo?type=secondary&share_method=share_link",
-      "presentationUrl": "https://drive.google.com/file/d/1BedTia44cSFp6a0yperrsx3gmFRDLb4r/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1BedTia44cSFp6a0yperrsx3gmFRDLb4r/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7168,7 +7285,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5OTc5MDUiLCJleHAiOjE3ODM1MzM1MzUsImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.8apvfjJ9ahf412oPYi3ClDdoEMW69JvpQ_MjzvE_Pec?type=secondary&share_method=share_link",
       "fullAddress": "16860 Beach Road, Perry, Fl, United States, 32348",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1QCjl4JXmLuDEPG2YpETgCBYPVGU6H5D0/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1QCjl4JXmLuDEPG2YpETgCBYPVGU6H5D0/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7248,7 +7365,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5OTc5MjUiLCJleHAiOjE3ODM1MzY3NjIsImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.wA-FMn805zNhXdjXQPDNtrqL8PQdmGQshCQ89L2IIyw?type=secondary&share_method=share_link",
       "fullAddress": "3623 Berger Road, Lutz, Fl, Usa, 33548",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1awvx7E9-oSSs_mj33zQ_XDWvjCLHCht1/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1awvx7E9-oSSs_mj33zQ_XDWvjCLHCht1/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7329,7 +7446,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5OTgyNDciLCJleHAiOjE3ODM2MDQ0OTMsImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.vc0rpAGFF5tIYPHzKNN8oDMHngOsXtnmkLJzSxh9kuQ?type=secondary&share_method=share_link",
       "fullAddress": "22190 Cr 33, Groveland, Fl, Usa, 34736",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1OFDbCGegAFzpQjE2Qo6Sosq_Ow8BAfCF/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1OFDbCGegAFzpQjE2Qo6Sosq_Ow8BAfCF/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7410,7 +7527,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5OTgyNTUiLCJleHAiOjE3ODM2MDYwNzEsImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.3HUl1Rh1epYHgpc5TdkSDWOZ9ls_Biwyro3GwIDvwkQ?type=secondary&share_method=share_link",
       "fullAddress": "12500 Prosper Dr, Southport, Fl, Usa, 32409",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1i9PlqVA4R1OAvU5_mmZ1dh8sVbYvD8Ir/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1i9PlqVA4R1OAvU5_mmZ1dh8sVbYvD8Ir/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7490,7 +7607,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5OTg0MDciLCJleHAiOjE3ODM2MjQyOTEsImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.WWXk13GY6mGkgcpprv7KNC61ThLQCguI847eS253A_Q?type=secondary&share_method=share_link",
       "fullAddress": "11911 Jasmine Street, Fountain, Fl, Usa, 32438",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1PL8Qog_AVp4Z_lw-2XYvY0pR418XwSrr/view?usp=drivesdk",
+      "pdfUrl": "https://drive.google.com/file/d/1PL8Qog_AVp4Z_lw-2XYvY0pR418XwSrr/view?usp=drivesdk",
       "addOnLeanToOpbSlab": "No"
     },
     "images": []
@@ -7741,7 +7858,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiIxMDAyNDA3IiwiZXhwIjoxNzg0MTI2ODUyLCJsZXZlbCI6MCwiYnVzaW5lc3NfaWQiOm51bGwsImlkZW50aXR5X2lkIjpudWxsfQ.HFPwhmSAz9U4o7re6dsJ4bbRzZzIsyd3Y16mcGC-xZQ?type=secondary&share_method=share_link",
       "fullAddress": "10620 Hudson Ave., Hudson, Fl, United States, 34669",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/12gruBSIUEDh5MR2OYEIGpBRsE-tCeeMF/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/12gruBSIUEDh5MR2OYEIGpBRsE-tCeeMF/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7821,7 +7938,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiIxMDAyOTg1IiwiZXhwIjoxNzg0MjE0MTg2LCJsZXZlbCI6MCwiYnVzaW5lc3NfaWQiOm51bGwsImlkZW50aXR5X2lkIjpudWxsfQ.Hy8Rq9GO8T8QvXTdq__73ZbaT4wfY58-bSJGaIZLqgY?type=secondary&share_method=share_link",
       "fullAddress": "100 Hearn Blvd, Panama City Beach, Fl, Usa, 32413",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1rxUpKGFY2qvqb6SUwVD0vGm9zfpl2bIf/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1rxUpKGFY2qvqb6SUwVD0vGm9zfpl2bIf/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7901,7 +8018,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiIxMDAyOTg3IiwiZXhwIjoxNzg0MjE0NTEzLCJsZXZlbCI6MCwiYnVzaW5lc3NfaWQiOm51bGwsImlkZW50aXR5X2lkIjpudWxsfQ.7RydvCMmtOnSwG56mviGkacOq1xzHd08AMt8oHPvbhc?type=secondary&share_method=share_link",
       "fullAddress": "21020 Keyton Beach Drive, Perry, Fl, Usa, 32348",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1vp90G6YSbGdJIsxxY3RG_B2k2-Hr2heZ/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1vp90G6YSbGdJIsxxY3RG_B2k2-Hr2heZ/view?usp=drivesdk"
     },
     "images": []
   },
@@ -7981,7 +8098,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiIxMDAzMTUzIiwiZXhwIjoxNzg0MjMzNDY2LCJsZXZlbCI6MCwiYnVzaW5lc3NfaWQiOm51bGwsImlkZW50aXR5X2lkIjpudWxsfQ.87oSX2xf0mOOuNX6G8YwCNQINqSXrQ5zsk-_wudOZxg?type=secondary&share_method=share_link",
       "fullAddress": "40712 E 9th Ave, Umatilla, Fl, Usa, 32784",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/12OZEBLIQERLBZ2n7FCLo4V_l9_Ax-14v/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/12OZEBLIQERLBZ2n7FCLo4V_l9_Ax-14v/view?usp=drivesdk"
     },
     "images": []
   },
@@ -8311,7 +8428,7 @@
       "fbInvoiceLink": "https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiIxMDA2MTA3IiwiZXhwIjoxNzg0ODI2OTExLCJsZXZlbCI6MCwiYnVzaW5lc3NfaWQiOm51bGwsImlkZW50aXR5X2lkIjpudWxsfQ.C58grh2rLsZCNC1LpERB9D8vapdxLyGkEhhZVREo46g?type=secondary&share_method=share_link",
       "fullAddress": "946 Desoto Blvd N, Naples, Fl, Usa, 34120",
       "buildingType": "Open Pole Barn",
-      "presentationUrl": "https://drive.google.com/file/d/1ezdRiUlbla0jGEBAmIF8U8GVDcJ8yWML/view?usp=drivesdk"
+      "pdfUrl": "https://drive.google.com/file/d/1ezdRiUlbla0jGEBAmIF8U8GVDcJ8yWML/view?usp=drivesdk"
     },
     "images": []
   }

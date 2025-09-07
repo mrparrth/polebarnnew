@@ -219,12 +219,14 @@
             <strong>Project Name:</strong> <?= projectName ?><br />
             <? if(isNewProject) { ?>
             <strong>Status:</strong> <?= newStatus ?> <? } else { ?>
-            <strong>Previous Status:</strong> <?= oldStatus ?><br />
-            <strong>New Status:</strong> <?= newStatus ?> <? } ?>
+            <strong>Previous Status:</strong> <?= oldStatus ?> <? } ?>
           </p>
         </div>
 
         <div class="action-buttons">
+          <? if(pdfUrl) { ?>
+          <a href="<?= pdfUrl ?>" class="btn">View Plan Document</a>
+          <? } else { ?>
           <a href="<?= dashboardUrl ?>" class="btn">View Project Details</a>
           <a href="<?= driveFolder ?>" class="btn btn-secondary">Access Project Files</a>
         </div>
