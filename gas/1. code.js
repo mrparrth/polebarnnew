@@ -1,3 +1,22 @@
+const login = (payload) => JSON.stringify(new Auth().login(payload))
+const doGet = (e) => new App().doGet(e)
+const newProject = (payload) => new App().newProject(payload)
+const updateProject = (payload) => new App().updateProject(payload)
+const updateProjectStatus = (payload) => new App().updateProjectStatus(payload)
+const newPaperCopyProject = (payload) => new App().newPaperCopyProject(payload)
+const updatePaperCopyStock = (payload) => new App().updatePaperCopyStock(payload)
+const orderPaperCopy = (payload) => new App().orderPaperCopy(payload)
+
+const autoArchiveProjects = (payload) => new App().autoArchiveProjects(payload)
+const getSubmissionData = (payload) => new App().getSubmissionData(payload)
+const markAsArchived = (payload) => new App().markAsArchived(payload)
+
+const createDelayedPresentationEmailTrigger = (payload) =>
+  new App().createDelayedPresentationEmailTrigger(payload)
+const executeDelayedPresentationEmail = (payload) =>
+  new App().executeDelayedPresentationEmail(payload)
+
+const includes = (e) => HtmlService.createHtmlOutputFromFile(e).getContent()
 class Auth {
   constructor() {
     this.ss = SpreadsheetApp.getActive()
@@ -82,7 +101,6 @@ class Auth {
         user: tokenUser,
         token,
         data: [...dashboardData, ...paperCopyData],
-        paperCopyData,
         paperCopyStock: {
           openPoleBarn: { qty: this.settings.openPoleBarn },
           leanTo: { qty: this.settings.leanTo },
@@ -106,12 +124,10 @@ class Auth {
         return { data, images }
       })
 
-      //TODO: get paper copy stats from the database
       return {
         user,
         token,
         data: [...dashboardData, ...paperCopyData],
-        paperCopyData,
         paperCopyStock: {
           openPoleBarn: { qty: this.settings.openPoleBarn },
           leanTo: { qty: this.settings.leanTo },
@@ -121,467 +137,485 @@ class Auth {
     }
 
     return {
-      user: null,
+      user: {},
       token: null,
     }
   }
 }
 
-const login = (payload) => new Auth().login(payload)
-
-const webAppURL = () => ScriptApp.getService().getUrl()
-
-const doGet = (e) => {
-  let params = e.parameter
-  let settings = _getSettings_()
-  let template = HtmlService.createTemplateFromFile('index')
-  params.lowStockThreshold = settings.lowStockThreshold
-  template.metaData = JSON.stringify(params)
-  return template.evaluate().setTitle(settings.appName)
-}
-
-const newProject = ({ data, token }) => {
-  console.log(JSON.stringify(data), token)
-  let settings = _getSettings_()
-  let time = new Date()
-  let userInfo = new Auth().login({ token })
-  if (!userInfo.user) throw 'Invalid login. Please login again and try'
-
-  let ss = SpreadsheetApp.getActive()
-  let shSubmission = ss.getSheetByName('Submission')
-
-  let cache = PropertiesService.getScriptProperties()
-  let currentProjectId = cache.getProperty('currentProjectId')
-
-  let [projectBase, projectPart] = currentProjectId.toString().split('.')
-  let newProjectId = projectBase + '.' + (parseInt(projectPart) + 1).toString()
-  cache.setProperty('currentProjectId', newProjectId)
-
-  data.projectId = newProjectId
-  let files = data.sketchData || []
-  delete data.sketchData
-
-  let driveFileUrls = []
-  let folder = _getOrCreateFolder_(['Project - ' + data.projectId + ' ' + data.projectName])
-
-  for (let file of files) {
-    let fileData = Utilities.newBlob(
-      Utilities.base64Decode(file.data),
-      file.mimeType,
-      file.fileName,
-    )
-    let driveFile = folder.createFile(fileData)
-    driveFileUrls.push({ id: file.fileId, url: driveFile.getUrl(), name: file.fileName })
+class App {
+  constructor() {
+    this.settings = _getSettings_()
+    this.authApp = new Auth()
+    this.ss = SpreadsheetApp.getActive()
+    this.shSubmission = this.ss.getSheetByName('Submission')
+    this.shPaperCopy = this.ss.getSheetByName('PaperCopy')
+    this.shSettings = this.ss.getSheetByName('Settings')
+    this.cache = PropertiesService.getScriptProperties()
+    this.emailApp = new EmailApp()
   }
 
-  data.driveFolder = folder.getUrl()
+  doGet(e) {
+    let params = e.parameter
+    let template = HtmlService.createTemplateFromFile('index')
+    params.lowStockThreshold = this.settings.lowPaperStockThreshold
+    template.metaData = JSON.stringify(params)
+    return template.evaluate().setTitle(this.settings.appName)
+  }
 
-  if (settings.createFbItems) {
-    let fbInvoice = createFreshbooksInvoice(data)
-    data.fBInvoiceNo = fbInvoice.response.result.invoice.invoice_number
-    data.fBInvoiceId = fbInvoice.response.result.invoice.id
+  getDataByProjectName(projectId) {
+    let allData = _getSheetValuesAsJson_(this.shSubmission)
+    let data = allData.find((row) => row.projectId == projectId)
+
+    if (data.images)
+      data.images = data.images.map(({ id, url, name }) => {
+        return { id, url, name }
+      }) //: _driveFileExportUrl_(url)
+    return data
+  }
+
+  newProject({ data, token }) {
+    console.log(JSON.stringify(data), token)
+    let time = new Date()
+    let userInfo = this.authApp.login({ token })
+    if (!userInfo.user) throw 'Invalid login. Please login again and try'
+
+    let currentProjectId = this.cache.getProperty('currentProjectId')
+
+    let [projectBase, projectPart] = currentProjectId.toString().split('.')
+    let newProjectId = projectBase + '.' + (parseInt(projectPart) + 1).toString()
+    this.cache.setProperty('currentProjectId', newProjectId)
+
+    data.projectId = newProjectId
+    let files = data.sketchData || []
+    delete data.sketchData
+
+    let driveFileUrls = []
+    let folder = _getOrCreateFolder_(['Project - ' + data.projectId + ' ' + data.projectName])
+
+    for (let file of files) {
+      let fileData = Utilities.newBlob(
+        Utilities.base64Decode(file.data),
+        file.mimeType,
+        file.fileName,
+      )
+      let driveFile = folder.createFile(fileData)
+      driveFileUrls.push({ id: file.fileId, url: driveFile.getUrl(), name: file.fileName })
+    }
+
+    data.driveFolder = folder.getUrl()
+
+    if (this.settings.createFbItems) {
+      let fbInvoice = createFreshbooksInvoice(data)
+      data.fBInvoiceNo = fbInvoice.response.result.invoice.invoice_number
+      data.fBInvoiceId = fbInvoice.response.result.invoice.id
+
+      try {
+        shareInvoiceWithClient(data.fBInvoiceId)
+        data.fbInvoiceLink = getSharableFBInvoiceLink(data.fBInvoiceId)
+      } catch (e) {
+        console.log(e)
+      }
+    }
 
     try {
-      shareInvoiceWithClient(data.fBInvoiceId)
-      data.fbInvoiceLink = getSharableFBInvoiceLink(data.fBInvoiceId)
+      let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
+
+      if (isFileCreated) {
+        data.pdfUrl = pdfUrl
+      } else {
+        data.pdfUrl = ''
+      }
+
+      if (isOpenPoleBarn && !isFileCreated) {
+        this.emailApp.sendNoPresentationEmail({ data, errors })
+      }
+
+      if (isFileCreated) {
+        createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors })
+      }
     } catch (e) {
       console.log(e)
     }
+
+    this.emailApp.sendStatusChangeEmail('', 'New Project', data)
+
+    this.shSubmission.appendRow([
+      time,
+      userInfo.user.email,
+      data.projectId,
+      JSON.stringify(data),
+      JSON.stringify(driveFileUrls),
+      data.status,
+      data.price,
+    ])
+
+    return { data, images: driveFileUrls }
   }
 
-  try {
-    let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
+  updateProject({ data: projectUpdates, token }) {
+    console.log(JSON.stringify(projectUpdates), token)
 
-    if (isFileCreated) {
-      data.pdfUrl = pdfUrl
-    } else {
-      data.pdfUrl = ''
+    let time = new Date()
+    let userInfo = this.authApp.login({ token })
+    let files = projectUpdates.sketchData || []
+    let existingImages = projectUpdates.existingImages || []
+    delete projectUpdates.sketchData
+    delete projectUpdates.existingImages
+
+    let currentProject = this.getDataByProjectName(projectUpdates.projectId)
+    let row = currentProject['_row_']
+
+    let driveFileUrls = []
+    let folder = _getOrCreateFolder_([
+      'Project - ' + projectUpdates.projectId + ' ' + projectUpdates.projectName,
+    ])
+
+    for (let file of files) {
+      let fileData = Utilities.newBlob(
+        Utilities.base64Decode(file.data),
+        file.mimeType,
+        file.fileName,
+      )
+      let driveFile = folder.createFile(fileData)
+      driveFileUrls.push({ id: file.fileId, url: driveFile.getUrl(), name: file.fileName })
     }
 
-    if (isOpenPoleBarn && !isFileCreated) {
-      sendNoPresentationEmail({ data, errors })
+    for (let { id, url, name } of existingImages) {
+      driveFileUrls.push({ id, url, name })
     }
 
-    if (isFileCreated) {
-      createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors })
-    }
-  } catch (e) {
-    console.log(e)
-  }
-
-  sendStatusChangeEmail('', 'New Project', data)
-
-  shSubmission.appendRow([
-    time,
-    userInfo.user.email,
-    data.projectId,
-    JSON.stringify(data),
-    JSON.stringify(driveFileUrls),
-    data.status,
-    data.price,
-  ])
-
-  return { data, images: driveFileUrls }
-}
-
-const updateProject = ({ data: projectUpdates, token }) => {
-  console.log(JSON.stringify(projectUpdates), token)
-
-  let time = new Date()
-  let userInfo = new Auth().login({ token })
-  let ss = SpreadsheetApp.getActive()
-  let files = projectUpdates.sketchData || []
-  let existingImages = projectUpdates.existingImages || []
-  delete projectUpdates.sketchData
-  delete projectUpdates.existingImages
-
-  let currentProject = getDataByProjectName_(projectUpdates.projectId)
-  let row = currentProject['_row_']
-
-  let driveFileUrls = []
-  let folder = _getOrCreateFolder_([
-    'Project - ' + projectUpdates.projectId + ' ' + projectUpdates.projectName,
-  ])
-
-  for (let file of files) {
-    let fileData = Utilities.newBlob(
-      Utilities.base64Decode(file.data),
-      file.mimeType,
-      file.fileName,
-    )
-    let driveFile = folder.createFile(fileData)
-    driveFileUrls.push({ id: file.fileId, url: driveFile.getUrl(), name: file.fileName })
-  }
-
-  for (let { id, url, name } of existingImages) {
-    driveFileUrls.push({ id, url, name })
-  }
-
-  //updates the properties present in the sheet.
-  let oldData = { ...currentProject.data }
-  let newData = { ...currentProject.data, ...projectUpdates }
-  for (let property in projectUpdates) {
-    newData[property] = projectUpdates[property]
-  }
-
-  //Send email
-  if (projectUpdates.status && currentProject.status !== projectUpdates.status) {
-    projectUpdates.oldStatus = currentProject.status
-    if (projectUpdates.status == 'S&S') {
-      projectUpdates.ssAt = new Date().toISOString()
-    }
-    sendStatusChangeEmail(projectUpdates.oldStatus, projectUpdates.status, projectUpdates)
-  }
-
-  let rowData = [
-    time,
-    userInfo.user.email,
-    projectUpdates.projectId,
-    JSON.stringify(newData),
-    JSON.stringify(driveFileUrls),
-    projectUpdates.status,
-    projectUpdates.price,
-  ]
-  console.log(`${row} - rowData ${JSON.stringify(rowData)}`)
-
-  ss.getSheetByName('Submission').getRange(row, 1, 1, rowData.length).setValues([rowData])
-
-  console.log('New Price', newData.price, 'Old Price', oldData.price)
-  if (newData.price && newData.price != oldData.price) {
-    console.log(`Sending email for project price change`)
-    sendFieldChangeEmail(oldData, newData, userInfo)
-  }
-
-  return { data: newData, images: driveFileUrls }
-}
-
-const updateProjectStatus = ({ data: { projectId, newStatus } }) => {
-  console.log(`Updating ${projectId} with status ${newStatus}`)
-  let project = getDataByProjectName_(projectId)
-  let currentStatus = project.data.status
-
-  if (currentStatus && currentStatus !== newStatus) {
-    project.data.status = newStatus
-    project.status = newStatus
-    project.data.oldstatus = currentStatus
-    if (newStatus == 'S&S') {
-      project.data.ssAt = new Date().toISOString()
+    //updates the properties present in the sheet.
+    let oldData = { ...currentProject.data }
+    let newData = { ...currentProject.data, ...projectUpdates }
+    for (let property in projectUpdates) {
+      newData[property] = projectUpdates[property]
     }
 
-    let rowData = Object.values(project)
-    rowData[3] = JSON.stringify(rowData[3])
-    rowData[4] = JSON.stringify(rowData[4])
-    rowData.pop()
+    //Send email
+    if (projectUpdates.status && currentProject.status !== projectUpdates.status) {
+      projectUpdates.oldStatus = currentProject.status
+      if (projectUpdates.status == 'S&S') {
+        projectUpdates.ssAt = new Date().toISOString()
+      }
+      this.emailApp.sendStatusChangeEmail(
+        projectUpdates.oldStatus,
+        projectUpdates.status,
+        projectUpdates,
+      )
+    }
 
-    console.log(`Updating ${projectId} with status ${newStatus} at row ${project['_row_']}`)
-    SpreadsheetApp.getActive()
-      .getSheetByName('Submission')
-      .getRange(project['_row_'], 1, 1, rowData.length)
-      .setValues([rowData])
+    let rowData = [
+      time,
+      userInfo.user.email,
+      projectUpdates.projectId,
+      JSON.stringify(newData),
+      JSON.stringify(driveFileUrls),
+      projectUpdates.status,
+      projectUpdates.price,
+    ]
+    console.log(`${row} - rowData ${JSON.stringify(rowData)}`)
 
-    sendStatusChangeEmail(currentStatus, newStatus, project.data)
+    this.shSubmission.getRange(row, 1, 1, rowData.length).setValues([rowData])
+
+    console.log('New Price', newData.price, 'Old Price', oldData.price)
+    if (newData.price && newData.price != oldData.price) {
+      console.log(`Sending email for project price change`)
+      this.emailApp.sendFieldChangeEmail(oldData, newData, userInfo)
+    }
+
+    return { data: newData, images: driveFileUrls }
   }
-}
 
-const newPaperCopyProject = ({ data: paperStock, token }) => {
-  console.log(JSON.stringify(paperStock), token)
-  let userInfo = new Auth().login({ token })
-  if (!userInfo.user) throw 'Invalid login. Please login again and try'
+  updateProjectStatus({ data: { projectId, newStatus } }) {
+    console.log(`Updating ${projectId} with status ${newStatus}`)
+    let project = this.getDataByProjectName(projectId)
+    let currentStatus = project.data.status
 
-  paperStock.projectId = 'pc_' + Utilities.getUuid().substring(0, 6)
-  paperStock.projectSubType = 'paperCopySold'
-  paperStock.projectType = 'paperCopy'
-  paperStock.orderDate = new Date().toISOString()
+    if (currentStatus && currentStatus !== newStatus) {
+      project.data.status = newStatus
+      project.status = newStatus
+      project.data.oldstatus = currentStatus
+      if (newStatus == 'S&S') {
+        project.data.ssAt = new Date().toISOString()
+      }
 
-  let ss = SpreadsheetApp.getActive()
-  let shSubmission = ss.getSheetByName('PaperCopy')
+      let rowData = Object.values(project)
+      rowData[3] = JSON.stringify(rowData[3])
+      rowData[4] = JSON.stringify(rowData[4])
+      rowData.pop()
 
-  let lock = LockService.getScriptLock()
-  try {
-    lock.waitLock(30000)
-    let settings = _getSettings_()
-    let openPoleBarn = settings.openPoleBarn - (paperStock.opbPaperSold || 0)
-    let leanTo = settings.leanTo - (paperStock.leanToPaperSold || 0)
-    let singleSlope = settings.singleSlope - (paperStock.singleSlopePaperSold || 0)
+      console.log(`Updating ${projectId} with status ${newStatus} at row ${project['_row_']}`)
+      this.shSubmission.getRange(project['_row_'], 1, 1, rowData.length).setValues([rowData])
 
-    let shSettings = SpreadsheetApp.getActive().getSheetByName('Settings')
-    let opbRow = _getItemsFromSheet_(shSettings).find(
+      this.emailApp.sendStatusChangeEmail(currentStatus, newStatus, project.data)
+    }
+  }
+
+  newPaperCopyProject({ data: paperStock, token }) {
+    console.log(JSON.stringify(paperStock), token)
+    let userInfo = this.authApp.login({ token })
+    if (!userInfo.user) throw 'Invalid login. Please login again and try'
+
+    let lock = LockService.getScriptLock()
+    try {
+      lock.waitLock(30000)
+      let openPoleBarn = this.settings.openPoleBarn - (paperStock.opbPaperSold || 0)
+      let leanTo = this.settings.leanTo - (paperStock.leanToPaperSold || 0)
+      let singleSlope = this.settings.singleSlope - (paperStock.singleSlopePaperSold || 0)
+
+      let opbRow = _getItemsFromSheet_(this.shSettings).find(
+        (row) => row.key == 'Open Pole Barn',
+      )._rowIndex
+
+      this.shPaperCopy.appendRow([
+        new Date(),
+        userInfo.user.email,
+        'Paper Copy Sold',
+        paperStock.projectId,
+        JSON.stringify(paperStock),
+      ])
+      this.shSettings.getRange(opbRow, 2, 3, 1).setValues([[openPoleBarn], [leanTo], [singleSlope]])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      lock.releaseLock()
+    }
+  }
+
+  updatePaperCopyStock({ data: paperStock, token }) {
+    console.log(JSON.stringify(paperStock), token)
+    let { openPoleBarn, leanTo, singleSlope } = paperStock
+    let opbRow = _getItemsFromSheet_(this.shSettings).find(
       (row) => row.key == 'Open Pole Barn',
     )._rowIndex
 
-    shSubmission.appendRow([
-      new Date(),
-      userInfo.user.email,
-      'Paper Copy Sold',
-      paperStock.projectId,
-      JSON.stringify(paperStock),
-    ])
-    shSettings.getRange(opbRow, 2, 3, 1).setValues([[openPoleBarn], [leanTo], [singleSlope]])
-  } catch (e) {
-    console.error(e)
-  } finally {
-    lock.releaseLock()
+    this.shSettings
+      .getRange(opbRow, 2, 3, 1)
+      .setValues([
+        [openPoleBarn?.qty || this.settings.openPoleBarn],
+        [leanTo?.qty || this.settings.leanTo],
+        [singleSlope?.qty || this.settings.singleSlope],
+      ])
   }
-}
 
-const updatePaperCopyStock = ({ data: paperStock, token }) => {
-  console.log(JSON.stringify(paperStock), token)
-  let { openPoleBarn, leanTo, singleSlope } = paperStock
-  let shSettings = SpreadsheetApp.getActive().getSheetByName('Settings')
-  let opbRow = _getItemsFromSheet_(shSettings).find((row) => row.key == 'Open Pole Barn')._rowIndex
-  let settings = _getSettings_()
+  orderPaperCopy({ data: paperStock, token }) {
+    console.log({ data: paperStock, token })
 
-  shSettings
-    .getRange(opbRow, 2, 3, 1)
-    .setValues([
-      [openPoleBarn?.qty || settings.openPoleBarn],
-      [leanTo?.qty || settings.leanTo],
-      [singleSlope?.qty || settings.singleSlope],
-    ])
-}
+    let { openPoleBarn, leanTo, singleSlope } = paperStock
+    let userInfo = this.authApp.login({ token })
+    if (!userInfo.user) throw 'Invalid login. Please login again and try'
 
-const orderPaperCopy = ({ data: paperStock, token }) => {
-  let settings = _getSettings_()
+    let totalQuantity = (openPoleBarn || 0) + (leanTo || 0) + (singleSlope || 0)
+    let orderItemCount = (openPoleBarn ? 1 : 0) + (leanTo ? 1 : 0) + (singleSlope ? 1 : 0)
 
-  paperStock.projectId = 'pc_' + Utilities.getUuid().substring(0, 6)
-  paperStock.projectSubType = 'paperCopyRequest'
-  paperStock.projectType = 'paperCopy'
-  paperStock.orderDate = new Date().toISOString()
+    const template = HtmlService.createTemplateFromFile('paperCopyOrder')
+    template.openPoleBarn = openPoleBarn
+    template.leanTo = leanTo
+    template.singleSlope = singleSlope
+    // template.totalQuantity = totalQuantity
+    // template.orderItemCount = orderItemCount
+    template.dashboardUrl = this.settings.appUrl
+    template.userName = userInfo.user.name
 
-  let { openPoleBarn, leanTo, singleSlope } = paperStock
-  let userInfo = new Auth().login({ token })
-  if (!userInfo.user) throw 'Invalid login. Please login again and try'
+    const htmlBody = template.evaluate().getContent()
 
-  let totalQuantity = (openPoleBarn || 0) + (leanTo || 0) + (singleSlope || 0)
-  let orderItemCount = (openPoleBarn ? 1 : 0) + (leanTo ? 1 : 0) + (singleSlope ? 1 : 0)
+    GmailApp.sendEmail(
+      this.settings.testMode ? 'iamparrth@gmail.com' : this.settings.paperRequestEmail,
+      'New Paper Copy Order is Submitted',
+      htmlBody,
+      {
+        htmlBody: htmlBody,
+        name: this.settings.emailAliasName,
+      },
+    )
 
-  const template = HtmlService.createTemplateFromFile('paperCopyOrder')
-  template.openPoleBarn = openPoleBarn
-  template.leanTo = leanTo
-  template.singleSlope = singleSlope
-  template.totalQuantity = totalQuantity
-  template.orderItemCount = orderItemCount
-  template.dashboardUrl = settings.appUrl
-  template.userName = userInfo.user.name
-
-  const htmlBody = template.evaluate().getContent()
-
-  GmailApp.sendEmail(
-    settings.testMode ? 'iamparrth@gmail.com' : settings.paperRequestEmail,
-    'New Paper Copy Order is Submitted',
-    htmlBody,
-    {
-      htmlBody: htmlBody,
-      name: settings.emailAliasName,
-    },
-  )
-
-  SpreadsheetApp.getActive()
-    .getSheetByName('PaperCopy')
-    .appendRow([
+    this.shPaperCopy.appendRow([
       new Date(),
       userInfo.user.email,
       'Paper Copy Request',
       paperStock.projectId,
       JSON.stringify(paperStock),
     ])
-}
 
-const autoArchiveProjects = () => {
-  let ss = SpreadsheetApp.getActive()
-  let sh = ss.getSheetByName('Submission')
-  let data = _getSheetValuesAsJson_(sh)
-  let currentDate = new Date().toISOString()
-
-  let updatedData = []
-  let atLeastOneUpdate = false
-  for (let row of data) {
-    if (
-      row.data.status == 'S&S' &&
-      row.data.ssAt &&
-      new Date(row.data.ssAt) < new Date(currentDate) &&
-      new Date(row.data.ssAt) < new Date(currentDate) - 1000 * 60 * 60 * 24 * 20 //20 days
-    ) {
-      console.log(`Archieving Project ${row.projectId}`)
-      row.data.status = 'Archived'
-      row.data.archivedAt = currentDate
-      row.status = 'Archived'
-
-      let rowData = Object.values(row)
-      rowData[3] = JSON.stringify(rowData[3])
-      rowData[4] = JSON.stringify(rowData[4])
-      rowData.pop()
-
-      updatedData.push(rowData)
-      atLeastOneUpdate = true
-    } else {
-      let rowData = Object.values(row)
-      rowData[3] = JSON.stringify(rowData[3])
-      rowData[4] = JSON.stringify(rowData[4])
-      rowData.pop()
-      updatedData.push(rowData)
-    }
+    return { data: paperStock }
   }
 
-  if (atLeastOneUpdate) {
-    sh.getRange(2, 1, updatedData.length, updatedData[0].length).setValues(updatedData)
-  }
-}
+  autoArchiveProjects() {
+    let data = _getSheetValuesAsJson_(this.shSubmission)
+    let currentDate = new Date().toISOString()
 
-const getEmailDraft_ = (oldStatus, newStatus) => {
-  let ss = SpreadsheetApp.getActive()
-  let sh = ss.getSheetByName('Emails')
-  let emailData = _getSheetValuesAsJson_(sh)
+    let updatedData = []
+    let atLeastOneUpdate = false
+    for (let row of data) {
+      if (
+        row.data.status == 'S&S' &&
+        row.data.ssAt &&
+        new Date(row.data.ssAt) < new Date(currentDate) &&
+        new Date(row.data.ssAt) < new Date(currentDate) - 1000 * 60 * 60 * 24 * 20 //20 days
+      ) {
+        console.log(`Archieving Project ${row.projectId}`)
+        row.data.status = 'Archived'
+        row.data.archivedAt = currentDate
+        row.status = 'Archived'
 
-  let foundEmailDetail = emailData
-    .filter(({ statusFrom, statusTo }) => !!statusFrom || !!statusTo)
-    .find(
-      ({ statusFrom, statusTo }) =>
-        ['', 'all', oldStatus.toLowerCase()].includes(statusFrom.toLowerCase()) &&
-        ['', 'all', newStatus.toLowerCase()].includes(statusTo.toLowerCase()),
-    )
+        let rowData = Object.values(row)
+        rowData[3] = JSON.stringify(rowData[3])
+        rowData[4] = JSON.stringify(rowData[4])
+        rowData.pop()
 
-  return foundEmailDetail || {}
-}
-
-const getSubmissionData = (token) => {
-  let userInfo = new Auth().login({ token })
-  if (!userInfo) throw 'Timed Out, please log in again'
-
-  let ss = SpreadsheetApp.getActive()
-
-  let data = _getSheetValuesAsJson_(ss.getSheetByName('Submission'))
-
-  let dashboardData = data.map(({ data, images }) => {
-    return { data, images }
-  })
-
-  return dashboardData
-}
-
-const createDelayedPresentationEmailTrigger = ({ data, pdfUrl, slideUrl, errors }) => {
-  const trigger = ScriptApp.newTrigger('executeDelayedPresentationEmail')
-    .timeBased()
-    .after(
-      settings.testMode
-        ? 1000
-        : settings.presentationSendDelay + Math.random() * 1 * 60 * 60 * 1000,
-    )
-    .create()
-
-  const triggerData = {
-    data,
-    pdfUrl,
-    slideUrl,
-    errors,
-    triggerUid: trigger.getUniqueId().toString(),
-    createdAt: new Date().toISOString(),
-  }
-
-  PropertiesService.getScriptProperties().setProperty(
-    trigger.getUniqueId().toString(),
-    JSON.stringify(triggerData),
-  )
-
-  console.log(`Created delayed presentation email trigger: ${trigger.getUniqueId()}`)
-
-  return trigger.getUniqueId()
-}
-
-const executeDelayedPresentationEmail = (event) => {
-  console.log(event)
-  try {
-    let property = PropertiesService.getScriptProperties().getProperty(event.triggerUid.toString())
-    if (!property) property = PropertiesService.getScriptProperties().getProperty(event.triggerUid)
-
-    if (property) {
-      try {
-        const triggerData = JSON.parse(property)
-
-        console.log(`Executing delayed presentation email for trigger: ${triggerData.triggerUid}`)
-
-        sendPresentationEmail(triggerData)
-
-        updateProjectStatus({
-          data: { projectId: triggerData.data.projectId, newStatus: 'For Review by BW' },
-        })
-        cleanupDelayedTrigger(event.triggerUid)
-      } catch (parseError) {
-        console.error(`Error parsing trigger data for key ${key}:`, parseError)
-        PropertiesService.getScriptProperties().deleteProperty(event.triggerUid.toString())
+        updatedData.push(rowData)
+        atLeastOneUpdate = true
+      } else {
+        let rowData = Object.values(row)
+        rowData[3] = JSON.stringify(rowData[3])
+        rowData[4] = JSON.stringify(rowData[4])
+        rowData.pop()
+        updatedData.push(rowData)
       }
     }
-  } catch (error) {
-    console.error('Error in executeDelayedPresentationEmail:', error)
+
+    if (atLeastOneUpdate) {
+      this.shSubmission
+        .getRange(2, 1, updatedData.length, updatedData[0].length)
+        .setValues(updatedData)
+    }
   }
-}
 
-const cleanupDelayedTrigger = (triggerUid) => {
-  try {
-    PropertiesService.getScriptProperties().deleteProperty(triggerUid.toString())
+  getSubmissionData(token) {
+    let userInfo = this.authApp.login({ token })
+    if (!userInfo) throw 'Timed Out, please log in again'
 
-    if (triggerUid) {
-      const triggers = ScriptApp.getProjectTriggers()
-      for (const trigger of triggers) {
-        if (trigger.getUniqueId() === triggerUid) {
-          ScriptApp.deleteTrigger(trigger)
-          console.log(`Deleted trigger: ${triggerUid}`)
-          break
+    let data = _getSheetValuesAsJson_(this.shSubmission)
+
+    let dashboardData = data.map(({ data, images }) => {
+      return { data, images }
+    })
+
+    return dashboardData
+  }
+
+  markAsArchived() {
+    let activeSheet = this.ss.getActiveSheet()
+
+    if (activeSheet.getName() !== 'Submission') {
+      SpreadsheetApp.getUi().alert('Please select some rows in submission sheet and try again')
+      return
+    }
+
+    let activeRng = activeSheet.getActiveRange()
+    let activeRow = activeRng.getRow()
+    let totalRows = activeRng.getNumRows()
+
+    let data = _getSheetValuesAsJson_(activeSheet)
+    let selectedData = data.slice(activeRow - 2, activeRow + totalRows - 2)
+    let updatedData = []
+    for (let row of selectedData) {
+      Object.assign(row.data, { status: 'Archived' })
+      updatedData.push([JSON.stringify(row.data)])
+    }
+
+    console.log(Object.keys(data[0]))
+    let dataColumn = Object.keys(data[0]).indexOf('data') + 1
+    let statusColumn = Object.keys(data[0]).indexOf('status') + 1
+
+    if (dataColumn == 0 || statusColumn == 0) throw `Can't find data or status column!`
+
+    if (updatedData.length == 0) return
+    activeSheet.getRange(activeRow, dataColumn, totalRows, 1).setValues(updatedData)
+    activeSheet.getRange(activeRow, statusColumn, totalRows, 1).setValue('Archived')
+  }
+
+  createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors }) {
+    const trigger = ScriptApp.newTrigger('executeDelayedPresentationEmail')
+      .timeBased()
+      .after(
+        this.settings.testMode
+          ? 1000
+          : this.settings.reportSendDelay + Math.random() * 1 * 60 * 60 * 1000,
+      )
+      .create()
+
+    const triggerData = {
+      data,
+      pdfUrl,
+      slideUrl,
+      errors,
+      triggerUid: trigger.getUniqueId().toString(),
+      createdAt: new Date().toISOString(),
+    }
+
+    this.cache.setProperty(trigger.getUniqueId().toString(), JSON.stringify(triggerData))
+
+    console.log(`Created delayed presentation email trigger: ${trigger.getUniqueId()}`)
+
+    return trigger.getUniqueId()
+  }
+
+  executeDelayedPresentationEmail(event) {
+    console.log(event)
+    try {
+      let property = this.cache.getProperty(event.triggerUid.toString())
+      if (!property) property = this.cache.getProperty(event.triggerUid)
+
+      if (property) {
+        try {
+          const triggerData = JSON.parse(property)
+
+          console.log(`Executing delayed presentation email for trigger: ${triggerData.triggerUid}`)
+
+          // sendPresentationEmail(triggerData)
+
+          this.updateProjectStatus({
+            data: { projectId: triggerData.data.projectId, newStatus: 'For Review by BW' },
+          })
+
+          this.cleanupDelayedTrigger(event.triggerUid)
+        } catch (parseError) {
+          console.error(`Error parsing trigger data for key ${key}:`, parseError)
+          this.cache.deleteProperty(event.triggerUid.toString())
         }
       }
+    } catch (error) {
+      console.error('Error in executeDelayedPresentationEmail:', error)
     }
+  }
 
-    console.log(`Cleaned up delayed trigger: ${triggerUid}`)
-  } catch (error) {
-    console.error(`Error cleaning up trigger ${triggerUid}:`, error)
+  cleanupDelayedTrigger(triggerUid) {
+    try {
+      this.cache.deleteProperty(triggerUid.toString())
+
+      if (triggerUid) {
+        const triggers = ScriptApp.getProjectTriggers()
+        for (const trigger of triggers) {
+          if (trigger.getUniqueId() === triggerUid) {
+            ScriptApp.deleteTrigger(trigger)
+            console.log(`Deleted trigger: ${triggerUid}`)
+            break
+          }
+        }
+      }
+
+      console.log(`Cleaned up delayed trigger: ${triggerUid}`)
+    } catch (error) {
+      console.error(`Error cleaning up trigger ${triggerUid}:`, error)
+    }
   }
 }
 
-const sendNoPresentationEmail = ({ data, errors = [] }) => {
-  const settings = _getSettings_()
-  const subject = `PDF Generation Failed - ${data.projectId} - ${data.projectName}`
+class EmailApp {
+  constructor() {
+    this.settings = _getSettings_()
+    this.cache = PropertiesService.getScriptProperties()
+    this.ss = SpreadsheetApp.getActive()
+    this.shSubmission = this.ss.getSheetByName('Submission')
+    this.shEmails = this.ss.getSheetByName('Email Preferences')
+  }
 
-  const htmlBody = `
+  sendNoPresentationEmail({ data, errors = [] }) {
+    const subject = `PDF Generation Failed - ${data.projectId} - ${data.projectName}`
+
+    const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #721c24; border-bottom: 2px solid #f5c6cb; padding-bottom: 10px;">
             PDF Generation Failed
@@ -614,22 +648,22 @@ const sendNoPresentationEmail = ({ data, errors = [] }) => {
         </div>
       `
 
-  // Send email
-  GmailApp.sendEmail(
-    settings.testMode ? 'iamparrth@gmail.com' : settings.noPresentationEmail,
-    subject,
-    htmlBody,
-    {
-      htmlBody: htmlBody,
-      name: settings.emailAliasName,
-    },
-  )
-}
+    // Send email
+    GmailApp.sendEmail(
+      this.settings.testMode ? 'iamparrth@gmail.com' : this.settings.noPresentationEmail,
+      subject,
+      htmlBody,
+      {
+        htmlBody: htmlBody,
+        name: this.settings.emailAliasName,
+      },
+    )
+  }
 
-const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
-  const subject = `PDF Generated - ${data.projectId} - ${data.projectName}`
+  sendPresentationEmail({ data, pdfUrl, slideUrl, errors = [] }) {
+    const subject = `PDF Generated - ${data.projectId} - ${data.projectName}`
 
-  const htmlBody = `
+    const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
             PDF Generated Successfully
@@ -676,78 +710,30 @@ const sendPresentationEmail = ({ data, pdfUrl, slideUrl, errors = [] }) => {
         </div>
       `
 
-  GmailApp.sendEmail(
-    settings.testMode ? 'iamparrth@gmail.com' : settings.presentationEmail,
-    subject,
-    htmlBody,
-    {
-      htmlBody: htmlBody,
-      name: settings.emailAliasName,
-    },
-  )
-}
-
-const getDataByProjectName_ = (projectId) => {
-  let ss = SpreadsheetApp.getActive()
-  let shSubmission = ss.getSheetByName('Submission')
-  let allData = _getSheetValuesAsJson_(shSubmission)
-  let data = allData.find((row) => row.projectId == projectId)
-
-  if (data.images)
-    data.images = data.images.map(({ id, url, name }) => {
-      return { id, url, name }
-    }) //: _driveFileExportUrl_(url)
-  return data
-}
-
-const markAsArchived = () => {
-  let ss = SpreadsheetApp.getActive()
-  let activeSheet = ss.getActiveSheet()
-
-  if (activeSheet.getName() !== '_BU_Submission') {
-    SpreadsheetApp.getUi().alert('Please select some rows in submission sheet and try again')
-    return
+    GmailApp.sendEmail(
+      this.settings.testMode ? 'iamparrth@gmail.com' : this.settings.presentationEmail,
+      subject,
+      htmlBody,
+      {
+        htmlBody: htmlBody,
+        name: this.settings.emailAliasName,
+      },
+    )
   }
 
-  let activeRng = activeSheet.getActiveRange()
-  let activeRow = activeRng.getRow()
-  let totalRows = activeRng.getNumRows()
+  generatePdfForRow() {
+    if (this.ss.getActiveSheet().getName() !== 'Submission') return
+    let data = _getSheetValuesAsJson_(this.shSubmission)
+    let activeRow = this.shSubmission.getActiveRange().getRow()
 
-  let data = _getSheetValuesAsJson_(activeSheet)
-  let selectedData = data.slice(activeRow - 2, activeRow + totalRows - 2)
-  let updatedData = []
-  for (let row of selectedData) {
-    Object.assign(row.data, { status: 'Archived' })
-    updatedData.push([JSON.stringify(row.data)])
-  }
+    let dataRow = data.find((dr) => dr._row_ == activeRow)?.data
+    if (!dataRow) return
+    let { pdfUrl, slideUrl, errors } = generatePresentation(dataRow)
 
-  console.log(Object.keys(data[0]))
-  let dataColumn = Object.keys(data[0]).indexOf('data') + 1
-  let statusColumn = Object.keys(data[0]).indexOf('status') + 1
+    if (pdfUrl) {
+      const subject = `PDF Generated - ${dataRow.projectId} - ${dataRow.projectName}`
 
-  if (dataColumn == 0 || statusColumn == 0) throw `Can't find data or status column!`
-
-  if (updatedData.length == 0) return
-  activeSheet.getRange(activeRow, dataColumn, totalRows, 1).setValues(updatedData)
-  activeSheet.getRange(activeRow, statusColumn, totalRows, 1).setValue('Archived')
-}
-
-const generatePdfForRow = () => {
-  let ss = SpreadsheetApp.getActive()
-  let sh = ss.getSheetByName('Submission')
-  let data = _getSheetValuesAsJson_(sh)
-  if (ss.getActiveSheet().getName() !== 'Submission') return
-  let activeRow = sh.getActiveRange().getRow()
-
-  let dataRow = data.find((dr) => dr._row_ == activeRow)?.data
-  if (!dataRow) return
-  let settings = _getSettings_()
-  let { pdfUrl, slideUrl, errors } = generatePresentation(dataRow)
-
-  if (pdfUrl) {
-    const subject = `PDF Generated - ${dataRow.projectId} - ${dataRow.projectName}`
-
-    const htmlBody = `
+      const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
             PDF Generated Successfully
@@ -794,136 +780,166 @@ const generatePdfForRow = () => {
         </div>
       `
 
-    // Send email
-    GmailApp.sendEmail(
-      settings.testMode ? 'iamparrth@gmail.com' : settings.presentationEmail,
-      subject,
-      htmlBody,
-      {
-        htmlBody: htmlBody,
-        name: settings.emailAliasName,
-      },
-    )
+      // Send email
+      GmailApp.sendEmail(
+        this.settings.testMode ? 'iamparrth@gmail.com' : this.settings.presentationEmail,
+        subject,
+        htmlBody,
+        {
+          htmlBody: htmlBody,
+          name: this.settings.emailAliasName,
+        },
+      )
 
-    _openLink_(pdfUrl)
+      _openLink_(pdfUrl)
+    }
+
+    if (errors) this.ss.toast(`${errors.join('|')}`)
   }
 
-  if (errors) ss.toast(`${errors.join('|')}`)
-}
+  sendFieldChangeEmail(oldData, newData, userInfo) {
+    let trackingFields = ['status', 'projectName', 'clientName', 'price']
+    let fieldChanges = []
 
-const sendFieldChangeEmail = (oldData, newData, userInfo) => {
-  let settings = _getSettings_()
-  let trackingFields = ['status', 'projectName', 'clientName', 'price']
-  let fieldChanges = []
+    for (let field of trackingFields) {
+      if (oldData[field] !== newData[field]) {
+        fieldChanges.push({
+          fieldName: field,
+          oldValue: oldData[field],
+          newValue: newData[field],
+        })
+      }
+    }
 
-  for (let field of trackingFields) {
-    if (oldData[field] !== newData[field]) {
-      fieldChanges.push({
-        fieldName: field,
-        oldValue: oldData[field],
-        newValue: newData[field],
-      })
+    if (fieldChanges.length == 0) {
+      return
+    }
+
+    let subject = ''
+    if (fieldChanges.length == 1) {
+      subject = `${fieldChanges[0].fieldName} Updated - ${oldData.projectId} - ${oldData.projectName}`
+    } else {
+      subject = `Fields Updated - ${oldData.projectId} - ${oldData.projectName}`
+    }
+
+    const to = this.settings.testMode ? 'iamparrth@gmail.com' : this.settings.fieldChangeEmail
+
+    const template = HtmlService.createTemplateFromFile('fieldChange')
+    template.projectId = oldData.projectId
+    template.clientName = oldData.clientName
+    template.projectName = oldData.projectName
+    template.updateTime = new Date().toISOString()
+    template.updatedBy = userInfo.user.name
+
+    template.fieldChanges = fieldChanges
+    template.updateSummary = fieldChanges
+      .map((change) => `${change.fieldName}: ${change.oldValue} → ${change.newValue}`)
+      .join(', ')
+    template.dashboardUrl = `${this.settings.appUrl}?startingProjectId=${oldData.projectId}`
+    template.driveFolder = oldData.driveFolder
+
+    const htmlBody = template.evaluate().getContent()
+
+    GmailApp.sendEmail(to, subject, htmlBody, {
+      htmlBody: htmlBody,
+      name: this.settings.emailAliasName,
+    })
+  }
+
+  sendStatusChangeEmail(oldStatus, newStatus, projectData) {
+    let emailPref = this.getEmailPreferences(oldStatus, newStatus)?.[0]
+    if (!emailPref) return
+
+    let replacedEmailPref = this.replaceTemplateVariables(emailPref, projectData)
+
+    if (newStatus == 'For Review by BW') {
+      GmailApp.sendEmail(
+        this.settings.testMode ? 'iamparrth@gmail.com' : replacedEmailPref.to,
+        replacedEmailPref.subject,
+        `Hello,
+
+        Project ${projectData.projectId} has been completed and is READY FOR BW REVIEW.
+        ${
+          projectData.pdfUrl
+            ? `
+        Please review the document:
+            ${projectData.pdfUrl}
+          `
+            : ''
+        }
+        Project Tracker Dashboard:
+            ${this.settings.appUrl}?startingProjectId=${projectData.projectId}`,
+        {
+          name: this.settings.emailAliasName,
+        },
+      )
+    } else {
+      const template = HtmlService.createTemplateFromFile('statusChange')
+      template.projectId = projectData.projectId
+      template.clientName = projectData.clientName
+      template.projectName = projectData.projectName
+      template.isNewProject = !oldStatus
+      template.oldStatus = oldStatus || ''
+      template.newStatus = newStatus
+      template.statusClass = this.getStatusClass(newStatus)
+      template.statusText = newStatus
+      template.driveFolder = projectData.driveFolder
+      template.statusDescription = replacedEmailPref.description
+      template.dashboardUrl = `${this.settings.appUrl}?startingProjectId=${projectData.projectId}`
+
+      const htmlBody = template.evaluate().getContent()
+
+      GmailApp.sendEmail(
+        this.settings.testMode ? 'iamparrth@gmail.com' : replacedEmailPref.to,
+        replacedEmailPref.subject,
+        htmlBody,
+        {
+          htmlBody: htmlBody,
+          name: this.settings.emailAliasName,
+        },
+      )
     }
   }
 
-  if (fieldChanges.length == 0) {
-    return
+  getEmailPreferences(oldStatus, newStatus) {
+    let preferences = _getItemsFromSheet_(
+      this.shEmails,
+      (v) =>
+        (v.statusFrom === oldStatus || v.statusFrom === 'All') &&
+        (v.statusTo === newStatus || v.statusTo === 'All'),
+    )
+
+    return preferences
   }
 
-  let subject = ''
-  if (fieldChanges.length == 1) {
-    subject = `${fieldChanges[0].fieldName} Updated - ${oldData.projectId} - ${oldData.projectName}`
-  } else {
-    subject = `Fields Updated - ${oldData.projectId} - ${oldData.projectName}`
+  getStatusClass(status) {
+    const statusClasses = {
+      'New Project': 'pending',
+      'For Review by BW': 'pending',
+      'Approved by BW': 'approved',
+      'S&S': 'complete',
+      Reworked: 'rework',
+      Delivered: 'delivered', // New purple badge
+    }
+
+    return statusClasses[status] || 'pending'
   }
 
-  const to = settings.testMode ? 'iamparrth@gmail.com' : settings.fieldChangeEmail
+  replaceTemplateVariables(emailPref, projectData) {
+    let replacedEmailPref = JSON.stringify(emailPref)
+    replacedEmailPref = replacedEmailPref.replace(/{{[^{}]+}}/g, (key) => {
+      return (projectData[key.replace(/[{}]+/g, '')] || '')
+        .toString()
+        .replace(/[\\]/g, '\\\\')
+        .replace(/[\"]/g, '\\\"')
+        .replace(/[\/]/g, '\\/')
+        .replace(/[\b]/g, '\\b')
+        .replace(/[\f]/g, '\\f')
+        .replace(/[\n]/g, '\\n')
+        .replace(/[\r]/g, '\\r')
+        .replace(/[\t]/g, '\\t')
+    })
 
-  const template = HtmlService.createTemplateFromFile('fieldChange')
-  template.projectId = oldData.projectId
-  template.clientName = oldData.clientName
-  template.projectName = oldData.projectName
-  template.updateTime = new Date().toISOString()
-  template.updatedBy = userInfo.user.name
-
-  template.fieldChanges = fieldChanges
-  template.updateSummary = fieldChanges
-    .map((change) => `${change.fieldName}: ${change.oldValue} → ${change.newValue}`)
-    .join(', ')
-  template.dashboardUrl = `${settings.appUrl}?startingProjectId=${oldData.projectId}`
-  template.driveFolder = oldData.driveFolder
-
-  const htmlBody = template.evaluate().getContent()
-
-  GmailApp.sendEmail(to, subject, htmlBody, {
-    htmlBody: htmlBody,
-    name: settings.emailAliasName,
-  })
-}
-
-const sendStatusChangeEmail = (oldStatus, newStatus, projectData) => {
-  let settings = _getSettings_()
-  let emailPref = getEmailPreferences(oldStatus, newStatus)?.[0]
-  if (!emailPref) return
-
-  let replacedEmailPref = replaceTemplateVariables(emailPref, projectData)
-
-  const template = HtmlService.createTemplateFromFile('statusChange')
-  template.projectId = projectData.projectId
-  template.clientName = projectData.clientName
-  template.projectName = projectData.projectName
-  template.isNewProject = !oldStatus
-  template.oldStatus = oldStatus || ''
-  template.newStatus = newStatus
-  template.statusClass = getStatusClass(newStatus)
-  template.statusText = newStatus
-  template.driveFolder = projectData.driveFolder
-  template.statusDescription = replacedEmailPref.description
-  template.dashboardUrl = `${settings.appUrl}?startingProjectId=${projectData.projectId}`
-
-  const htmlBody = template.evaluate().getContent()
-
-  GmailApp.sendEmail(
-    settings.testMode ? 'iamparrth@gmail.com' : replacedEmailPref.to,
-    replacedEmailPref.subject,
-    htmlBody,
-    {
-      htmlBody: htmlBody,
-      name: settings.emailAliasName,
-    },
-  )
-}
-
-const getEmailPreferences = (oldStatus, newStatus) => {
-  let preferences = _getItemsFromSheet_(
-    SpreadsheetApp.getActive().getSheetByName('Email Preferences'),
-    (v) =>
-      (v.statusFrom === oldStatus || v.statusFrom === 'All') &&
-      (v.statusTo === newStatus || v.statusTo === 'All'),
-  )
-
-  return preferences
-}
-
-const getStatusClass = (status) => {
-  const statusClasses = {
-    'New Project': 'pending',
-    'For Review by BW': 'pending',
-    'Approved by BW': 'approved',
-    'S&S': 'complete',
-    Reworked: 'rework',
-    Delivered: 'delivered', // New purple badge
+    return JSON.parse(replacedEmailPref)
   }
-
-  return statusClasses[status] || 'pending'
 }
-
-const replaceTemplateVariables = (emailPref, projectData) => {
-  let replacedEmailPref = JSON.stringify(emailPref)
-  replacedEmailPref = replacedEmailPref.replace(/{{[^{}]+}}/g, (key) => {
-    return escapeData_(projectData[key.replace(/[{}]+/g, '')] || '')
-  })
-  return JSON.parse(replacedEmailPref)
-}
-
-const includes = (e) => HtmlService.createHtmlOutputFromFile(e).getContent()

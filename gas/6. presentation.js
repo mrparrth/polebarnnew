@@ -20,7 +20,7 @@ function generatePresentation(projectData) {
     exposureCategory,
   } = projectData
 
-  let settings = _getSettings_()
+  this.settings = _getSettings_()
 
   projectData.fullAddress = [
     siteAddress.toProperCase(),
@@ -175,7 +175,7 @@ function generatePresentation(projectData) {
   try {
     lock.tryLock(30000)
 
-    let windCalcSs = SpreadsheetApp.openByUrl(settings.windCalcSheet)
+    let windCalcSs = SpreadsheetApp.openByUrl(this.settings.windCalcSheet)
     let shCode = windCalcSs.getSheetByName('Code')
     let pitch = opbMainBldgPitch.split('/')[0]
     shCode.getRange('E12').setValue(`Florida Building Code 2023`)
@@ -260,10 +260,20 @@ function generatePresentation(projectData) {
   presOPB.saveAndClose()
   Utilities.sleep(3000)
 
-  let pdfUrl = _convertPresToPDF_(presOPB)
+  let pdfFile = _convertPresToPDF_(presOPB)
+
+  let outputFolder
+  if (projectData.driveFolder) {
+    let rootFolder = DriveApp.getFolderById(_getIdFromUrl_(projectData.driveFolder))
+    outputFolder = rootFolder.createFolder('InReview')
+  } else {
+    outputFolder = DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder))
+  }
+
+  pdfFile.moveTo(outputFolder)
 
   return {
-    pdfUrl: pdfUrl.getUrl(),
+    pdfUrl: pdfFile.getUrl(),
     slideUrl: presOPB.getUrl(),
     errors,
     isFileCreated: true,
@@ -367,11 +377,12 @@ function _extractMergeFieldsFromRange_(textRange) {
 }
 
 function _createNewSlideFromTemplate_(clientName, projectName) {
+  this.settings = _getSettings_()
   // return SlidesApp.openByUrl(`https://docs.google.com/presentation/d/1SkOoKng6CVNzzTCyMILGNIBfojG7qvP-Vzf09YgXOjA/edit`)
-  let outputFolder = DriveApp.getFolderById(_getIdFromUrl_(settings.outputDocFolder))
+  let outputFolder = DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder))
 
-  let documentName = `${clientName} - ${projectName} - ${Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm')}`
-  let documentTemplate = DriveApp.getFileById(_getIdFromUrl_(WIND_CALC_SLIDE))
+  let documentName = `${clientName} - ${projectName}}`
+  let documentTemplate = DriveApp.getFileById(_getIdFromUrl_(this.settings.windCalcSlide))
 
   let document = documentTemplate.makeCopy()
   document.moveTo(outputFolder)
@@ -388,6 +399,7 @@ function _getIdFromUrl_(url) {
 }
 
 function _convertPresToPDF_(presentation) {
+  this.settings = _getSettings_()
   let url = `https://docs.google.com/presentation/d/${presentation.getId()}/export?format=pdf`
   console.log(url)
   let options = {
@@ -404,7 +416,7 @@ function _convertPresToPDF_(presentation) {
   const pdfFile = DriveApp.createFile(pdfBlob)
 
   DriveApp.getFileById(pdfFile.getId()).moveTo(
-    DriveApp.getFolderById(_getIdFromUrl_(settings.outputDocFolder)),
+    DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder)),
   )
 
   // DriveApp.getFileById(presentation.getId()).setTrashed(true)

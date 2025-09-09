@@ -194,7 +194,7 @@ function decreaseStock(type) {
 }
 
 function handleCancel() {
-  emit('update:modelValue', false)
+  dismissDialog()
   updatedPaperStock.value = JSON.parse(JSON.stringify(origPaperStock.value))
 }
 
@@ -206,11 +206,13 @@ async function handleSave() {
         ([key, value]) => value.qty != origPaperStock.value[key].qty,
       ),
     )
-    API.updatePaperCopyStock(dataToSend)
+    await API.updatePaperCopyStock(dataToSend)
+
+    showSnackbar('Paper stock updated successfully!', 'success')
 
     projectStore.setPaperCopyStock(updatedPaperStock.value, false)
 
-    emit('update:modelValue', false)
+    dismissDialog()
   } catch (error) {
     showSnackbar('Error saving paper stock:', error)
   } finally {
@@ -221,6 +223,10 @@ async function handleSave() {
 function handlePlaceOrder() {
   projectStore.setShowPaperCopyRequest(true)
 
+  dismissDialog()
+}
+
+function dismissDialog() {
   emit('update:modelValue', false)
 }
 </script>

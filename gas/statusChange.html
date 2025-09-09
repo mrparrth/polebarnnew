@@ -22,7 +22,7 @@
       .header {
         background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
         color: white;
-        padding: 30px 40px;
+        padding: 16px 40px;
         text-align: center;
       }
       .header h1 {
@@ -37,7 +37,7 @@
         opacity: 0.9;
       }
       .content {
-        padding: 40px;
+        padding: 16px 40px;
       }
       .status-badge {
         display: inline-block;
@@ -202,8 +202,6 @@
       </div>
 
       <div class="content">
-        <div class="status-badge <?= statusClass ?>"><?= statusText ?></div>
-
         <p class="greeting">Hello,</p>
 
         <div class="status-description">
@@ -224,9 +222,6 @@
         </div>
 
         <div class="action-buttons">
-          <? if(pdfUrl) { ?>
-          <a href="<?= pdfUrl ?>" class="btn">View Plan Document</a>
-          <? } else { ?>
           <a href="<?= dashboardUrl ?>" class="btn">View Project Details</a>
           <a href="<?= driveFolder ?>" class="btn btn-secondary">Access Project Files</a>
         </div>

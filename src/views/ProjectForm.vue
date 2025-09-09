@@ -69,6 +69,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.clientName"
+                  :class="{ required: isRequired('clientName') }"
                   label="Client Name"
                   dense
                   variant="outlined"
@@ -82,6 +83,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.projectName"
+                  :class="{ required: isRequired('projectName') }"
                   label="Project Name"
                   dense
                   variant="outlined"
@@ -96,9 +98,10 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="12" md="5">
+              <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.siteAddress"
+                  :class="{ required: isRequired('siteAddress') }"
                   label="Site Address"
                   dense
                   variant="outlined"
@@ -112,6 +115,7 @@
               <v-col cols="12" md="3">
                 <v-text-field
                   v-model="form.city"
+                  :class="{ required: isRequired('city') }"
                   label="City"
                   dense
                   variant="outlined"
@@ -122,10 +126,11 @@
                   :error="!!fieldErrors.city"
                 />
               </v-col>
-              <v-col cols="12" md="2">
+              <v-col cols="12" md="3">
                 <v-combobox
                   v-model="form.state"
                   :items="STATES"
+                  :class="{ required: isRequired('state') }"
                   label="State"
                   dense
                   variant="outlined"
@@ -139,6 +144,7 @@
               <v-col cols="12" md="2">
                 <v-text-field
                   v-model="form.zip"
+                  :class="{ required: isRequired('zip') }"
                   label="Zip"
                   dense
                   variant="outlined"
@@ -175,7 +181,7 @@
                   />
                 </v-col>
                 <v-col cols="6" xs="12">
-                  <v-radio label="Custom Pole Barn" value="custom" hide-details />
+                  <v-radio label="Custom Pole Barn" value="customPoleBarn" hide-details />
                 </v-col>
                 <v-col cols="6" xs="12" v-if="!isEdit || form.projectType === 'paperCopy'">
                   <v-radio label="Paper Copy" value="paperCopy" hide-details />
@@ -813,13 +819,14 @@
               </div>
             </v-sheet>
           </div>
-          <div>
+          <div v-if="form.projectType || isEdit">
             <v-sheet class="page-section" elevation="1">
               <div class="section-header">Order Information & Signature</div>
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.orderedBy"
+                    :class="{ required: isRequired('orderedBy') }"
                     label="Ordered by"
                     dense
                     variant="outlined"
@@ -832,6 +839,7 @@
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.signature"
+                    :class="{ required: isRequired('signature') }"
                     :disabled="shouldDisableField('signature')"
                     label="Signature"
                     dense
@@ -844,6 +852,7 @@
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="form.orderDate"
+                    :class="{ required: isRequired('orderDate') }"
                     label="Order Date"
                     type="date"
                     dense
@@ -859,6 +868,7 @@
                 <v-col cols="12">
                   <v-textarea
                     v-model="form.additionalInformation"
+                    :class="{ required: isRequired('additionalInformation') }"
                     label="Additional Information/Notes"
                     rows="4"
                     dense
@@ -950,6 +960,7 @@
               :loading="isSubmitting"
               :disabled="isSubmitting || shouldDisableField('submitbutton')"
               @click="handleSubmit"
+              name="submitbutton"
             >
               {{
                 isSubmitting
@@ -1003,6 +1014,7 @@ import { STATUSES, BLANK_FORM_DATA, STATES } from '@/global'
 import { API } from '@/services/apiService'
 import { useSnackbar } from '@/composables/useSnackbar'
 import PaperCopyStockInfo from '@/components/PaperCopyInfo.vue'
+import { generateShortId } from '@/global'
 
 const router = useRouter()
 const route = useRoute()
@@ -1017,12 +1029,51 @@ const isEdit = ref(false)
 const fieldErrors = ref({})
 const isSubmitting = ref(false)
 const files = ref([])
+const requiredFields = ref(['clientName', 'siteAddress', 'city', 'state', 'zip'])
 const projectNameError = ref('')
+
+const form = reactive({ ...BLANK_FORM_DATA })
+
+watch(
+  () => form.projectType,
+  () => {
+    if (form.projectType === 'paperCopy') {
+      requiredFields.value = ['clientName', 'siteAddress', 'city', 'state', 'zip']
+    } else {
+      requiredFields.value = [
+        'clientName',
+        'projectName',
+        'siteAddress',
+        'city',
+        'state',
+        'zip',
+        'riskCategory',
+        'exposureCategory',
+        'plywoodOnSiding',
+        'plywoodOnRoof',
+        'windSpeed',
+        'orderedBy',
+        'signature',
+        'orderDate',
+      ]
+
+      if (isAdmin.value) {
+        requiredFields.value.push('price')
+      }
+
+      if (form.projectType !== 'typicalOpbOnly') {
+        requiredFields.value.push('studSpacing')
+      }
+    }
+  },
+)
 
 const isAdmin = computed(() => {
   return projectStore.user?.type === 'Admin' || projectStore.user?.isAdmin === true
 })
-
+const isRequired = (fieldName) => {
+  return requiredFields.value.includes(fieldName)
+}
 // Employee field restrictions
 const itemsToNotDisable = ['uploadSketch', 'submitbutton', 'status', 'additionalInformation']
 const itemsToHide = ['price']
@@ -1139,8 +1190,6 @@ const activeColumns = reactive({
   truss: false,
 })
 
-const form = reactive({ ...BLANK_FORM_DATA })
-
 const columnHasData = (columnKey) => {
   return scopeOfWorkRows.some((row) => {
     const fieldName = `${columnKey}${row.key}`
@@ -1208,32 +1257,9 @@ function goToDashboard() {
 function validateRequiredFields() {
   fieldErrors.value = {}
 
-  const requiredFields = [
-    'clientName',
-    'projectName',
-    'siteAddress',
-    'city',
-    'state',
-    'zip',
-    'riskCategory',
-    'exposureCategory',
-    'plywoodOnSiding',
-    'plywoodOnRoof',
-    'windSpeed',
-    'studSpacing',
-    'orderedBy',
-    'signature',
-    'orderDate',
-  ]
-
-  // Add price field validation for admins
-  if (isAdmin.value) {
-    requiredFields.push('price')
-  }
-
   let hasErrors = false
 
-  for (const field of requiredFields) {
+  for (const field of requiredFields.value) {
     if (!form[field] || form[field].toString().trim() === '') {
       fieldErrors.value[field] = 'This field is required'
       hasErrors = true
@@ -1443,19 +1469,20 @@ async function handleSubmitProject() {
     router.push('/dashboard')
   } catch (error) {
     console.error('Error submitting form:', error)
-    errorMessage.value = 'An error occurred while submitting the form'
+    fieldErrors.value = {}
+    fieldErrors.value.submitbutton = 'Error'
+    scrollToFirstError()
+    errorMessage.value = 'An error occurred while submitting the form: ' + error.message
   } finally {
     isSubmitting.value = false
   }
 }
 
 async function handleSubmitPaperCopy() {
-  let requiredFields = ['clientName', 'siteAddress', 'city', 'state', 'zip']
-
   let hasErrors = false
   fieldErrors.value = {}
   isSubmitting.value = true
-  for (const field of requiredFields) {
+  for (const field of requiredFields.value) {
     if (!form[field] || form[field].toString().trim() === '') {
       fieldErrors.value[field] = 'This field is required'
       hasErrors = true
@@ -1477,7 +1504,12 @@ async function handleSubmitPaperCopy() {
   paperFormData.orderDate = form.orderDate
   paperFormData.projectType = form.projectType
   paperFormData.status = ''
-  for (let requiredField of requiredFields) {
+  paperFormData.projectId = generateShortId('pc_')
+  paperFormData.projectSubType = 'paperCopyRequest'
+  paperFormData.projectType = 'paperCopy'
+  paperFormData.orderDate = new Date().toISOString()
+
+  for (let requiredField of requiredFields.value) {
     paperFormData[requiredField] = form[requiredField]
   }
   if (form.opbPaperSold) {
@@ -1492,12 +1524,13 @@ async function handleSubmitPaperCopy() {
 
   try {
     projectStore.showPaperCopyStockWarning = true
-    let newProject = await API.newPaperCopyProject(paperFormData)
-    projectStore.newPaperCopyProject(newProject)
+    await API.newPaperCopyProject(paperFormData)
+    projectStore.newPaperCopyProject({ data: paperFormData })
     showSnackbar(`Inventory Updated!`, 'success')
     router.push('/dashboard')
   } catch (error) {
     console.error('Error submitting paper copy form:', error)
+    errorMessage.value = 'Error submitting paper copy form: ' + error.message
   } finally {
     isSubmitting.value = false
   }
@@ -2315,5 +2348,12 @@ watch(
   background-color: #f2e9e9;
   color: #666;
   cursor: not-allowed;
+}
+
+/* Red asterisk for required fields - use :deep to penetrate Vuetify component */
+.required :deep(.v-field-label::after) {
+  content: ' *';
+  color: red;
+  font-weight: bold;
 }
 </style>

@@ -40,7 +40,7 @@ export class API {
     if (result.token) {
       localStorage.setItem('authToken', result.token)
     }
-    return result
+    return JSON.parse(result)
   }
 
   static async autoLogin() {
@@ -49,7 +49,7 @@ export class API {
     if (result.token) {
       localStorage.setItem('authToken', result.token)
     }
-    return result
+    return JSON.parse(result)
   }
 
   static async logout() {
@@ -106,6 +106,7 @@ export class API {
   }
 
   static getMetaData() {
+    console.log('getMetaData')
     let dataElem = document.getElementById('meta-data')
     let data
     if (isGoogleEnvironment) {

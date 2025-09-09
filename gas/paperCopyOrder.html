@@ -37,7 +37,7 @@
         opacity: 0.9;
       }
       .content {
-        padding: 40px;
+        padding: 24px;
       }
       .order-badge {
         display: inline-block;
@@ -102,7 +102,6 @@
       .item-header {
         display: flex;
         align-items: center;
-        margin-bottom: 10px;
       }
       .item-icon {
         width: 40px;
@@ -135,17 +134,17 @@
       .total-section {
         background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
         color: white;
-        padding: 25px;
+        padding: 5px;
         border-radius: 8px;
         text-align: center;
-        margin: 30px 0;
+        margin: 10px 0;
       }
       .total-section h3 {
-        margin: 0 0 10px 0;
-        font-size: 20px;
+        margin: 0 0 0 0;
+        font-size: 16px;
       }
       .total-quantity {
-        font-size: 32px;
+        font-size: 24px;
         font-weight: bold;
         margin: 0;
       }
@@ -154,7 +153,7 @@
         border: 1px solid #ffeaa7;
         border-radius: 8px;
         padding: 20px;
-        margin: 25px 0;
+        margin: 5px 0;
       }
       .action-required h4 {
         margin: 0 0 10px 0;
@@ -168,7 +167,7 @@
       }
       .action-buttons {
         text-align: center;
-        margin: 30px 0;
+        margin: 16px 0;
       }
       .btn {
         display: inline-block;
@@ -246,11 +245,6 @@
   </head>
   <body>
     <div class="email-container">
-      <div class="header">
-        <h1>Paper Copy Order Request</h1>
-        <p class="subtitle">Ceed Civil Engineering</p>
-      </div>
-
       <div class="content">
         <p class="greeting">Hello,</p>
 
@@ -263,45 +257,24 @@
           <div class="item-card">
             <div class="item-header">
               <h4 class="item-title">Open Pole Barn</h4>
-              <div class="item-quantity">
-                <?= openPoleBarn ?>
-                copies
-              </div>
+              <div class="item-quantity"><?= openPoleBarn ?> copies</div>
             </div>
           </div>
           <? } ?> <? if (leanTo > 0) { ?>
           <div class="item-card">
             <div class="item-header">
               <h4 class="item-title">Lean To</h4>
-              <div class="item-quantity">
-                <?= leanTo ?>
-                copies
-              </div>
+              <div class="item-quantity"><?= leanTo ?> copies</div>
             </div>
           </div>
           <? } ?> <? if (singleSlope > 0) { ?>
           <div class="item-card">
             <div class="item-header">
               <h4 class="item-title">Single Slope</h4>
-              <div class="item-quantity">
-                <?= singleSlope ?>
-                copies
-              </div>
+              <div class="item-quantity"><?= singleSlope ?> copies</div>
             </div>
           </div>
           <? } ?>
-        </div>
-
-        <div class="total-section">
-          <h3>Order Summary</h3>
-          <p class="total-quantity">
-            <?= totalQuantity ?>
-            Total Copies
-          </p>
-          <p style="margin: 10px 0 0 0; opacity: 0.9">
-            <?= orderItemCount ?> different paper copy type<?= orderItemCount > 1 ? 's' : '' ?>
-            ordered
-          </p>
         </div>
 
         <div class="action-required">

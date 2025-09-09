@@ -46,26 +46,24 @@ export class Mock {
     console.log('handleMockLogin', email, password, token)
     if (token) {
       if (token === FAKE_USER.token) {
-        return {
+        return JSON.stringify({
           user: FAKE_USER,
           token: `dev_fake_token_123456`,
           data: LOCAL_DATA,
           paperCopyStock: PAPER_COPY_STATS,
-          paperCopyData: PAPER_COPY_DATA,
-        }
+        })
       }
       localStorage.removeItem('authToken')
       throw new Error('Invalid token')
     }
 
     if (email === FAKE_USER.email && password === FAKE_USER.password) {
-      return {
+      return JSON.stringify({
         user: FAKE_USER,
         token: `dev_fake_token_123456`,
         data: LOCAL_DATA,
         paperCopyStock: PAPER_COPY_STATS,
-        paperCopyData: PAPER_COPY_DATA,
-      }
+      })
     }
 
     throw new Error('Invalid credentials')
@@ -73,13 +71,12 @@ export class Mock {
 
   static handleMockAutoLogin() {
     if (LOCAL_DATA) {
-      return {
+      return JSON.stringify({
         user: FAKE_USER,
         token: `dev_fake_token_123456`,
         data: LOCAL_DATA,
         paperCopyStock: PAPER_COPY_STATS,
-        paperCopyData: PAPER_COPY_DATA,
-      }
+      })
     }
   }
 
@@ -129,8 +126,8 @@ export class Mock {
   }
 
   static getMetaData() {
-    return { startingProjectId: 'pc_f96d301a', lowStockThreshold: 1 }
+    // return { startingProjectId: 'pc_f96d301a', lowStockThreshold: 3 }
     // http://localhost:5173/form?projectId=pc_f96d301a
-    // return { lowStockThreshold: 3 }
+    return { lowStockThreshold: 1 }
   }
 }

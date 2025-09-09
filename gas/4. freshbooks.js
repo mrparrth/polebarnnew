@@ -187,12 +187,12 @@ function getServiceIdByName(serviceData, scopeDesc) {
 }
 
 function createFreshbooksInvoice(data) {
-  let settings = _getSettings_()
+  this.settings = _getSettings_()
   let finalDict = {}
   let rootDict = {}
   let allItems = []
 
-  rootDict['customerid'] = settings.testNewProject ? `242330` : `234494`
+  rootDict['customerid'] = this.settings.testNewProject ? `242330` : `234494`
 
   rootDict['create_date'] = Utilities.formatDate(new Date(), 'UTC', 'yyyy-MM-dd')
   rootDict['terms'] =
@@ -244,8 +244,10 @@ function createFreshbooksInvoice(data) {
 }
 
 function shareInvoiceWithClient(invoiceId) {
-  let settings = _getSettings_()
-  let emailTo = settings.testNewProject ? 'iamparrth@gmail.com' : 'sales@backwoodsbuildings.net'
+  this.settings = _getSettings_()
+  let emailTo = this.settings.testNewProject
+    ? 'iamparrth@gmail.com'
+    : 'sales@backwoodsbuildings.net'
 
   console.log(`Sharing invoice id with ${invoiceId}`)
 

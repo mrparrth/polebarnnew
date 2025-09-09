@@ -118,9 +118,6 @@ function authCallback_(request) {
   }
 }
 
-/**
- * Logs the redict URI to register in the Dropbox application settings.
- */
 function logRedirectUri() {
   Logger.log(OAuth2.getRedirectUri())
 }

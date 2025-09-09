@@ -99,7 +99,13 @@
         <v-btn variant="outlined" color="grey-darken-1" @click="dismissWarning" class="action-btn">
           Dismiss
         </v-btn>
-        <v-btn color="warning" variant="flat" @click="orderPaperCopy" class="action-btn">
+        <v-btn
+          color="warning"
+          variant="flat"
+          @click="orderPaperCopy"
+          class="action-btn"
+          :loading="isSubmitting"
+        >
           <v-icon icon="mdi-cart-plus" class="me-2"></v-icon>
           Order Paper Copy
         </v-btn>
@@ -109,18 +115,20 @@
 </template>
 
 <script setup>
-import { computed, watch, reactive } from 'vue'
+import { computed, watch, reactive, ref } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
 import { API } from '@/services/apiService'
+import { useSnackbar } from '@/composables/useSnackbar'
 import {
   PAPER_COPY_TYPES,
   PAPER_COPY_ICONS,
-  PAPER_COPY_THRESHOLDS,
   PAPER_COPY_STOCK_COLORS,
   PAPER_COPY_CARD_CSS_CLASSES,
   GET_STOCK_LEVEL_KEY,
+  generateShortId,
 } from '@/global'
 
+const { showSnackbar } = useSnackbar()
 const projectStore = useProjectStore()
 const props = defineProps({
   modelValue: {
@@ -130,6 +138,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 const orderQuantities = reactive({})
+const isSubmitting = ref(false)
 
 const totalOrderQuantity = computed(() => {
   return Object.values(orderQuantities).reduce((sum, qty) => sum + (qty || 0), 0)
@@ -139,14 +148,28 @@ const dismissWarning = () => {
   emit('update:modelValue', false)
 }
 
-const orderPaperCopy = () => {
-  emit('update:modelValue', false)
+const orderPaperCopy = async () => {
+  isSubmitting.value = true
 
-  const query = Object.fromEntries(
-    Object.entries(orderQuantities).filter(([key, value]) => value > 0),
-  )
+  try {
+    const query = Object.fromEntries(
+      Object.entries(orderQuantities).filter(([key, value]) => value > 0),
+    )
 
-  API.orderPaperCopy(query)
+    query.projectId = generateShortId('pc_')
+    query.projectSubType = 'paperCopyRequest'
+    query.projectType = 'paperCopy'
+    query.orderDate = new Date().toISOString()
+
+    await API.orderPaperCopy(query)
+    showSnackbar('Paper copy order placed!', 'success')
+    dismissWarning()
+    isSubmitting.value = false
+  } catch (error) {
+    console.error('Error ordering paper copy:', error)
+    showSnackbar('Error ordering paper copy:', error)
+    isSubmitting.value = false
+  }
 }
 
 watch(

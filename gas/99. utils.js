@@ -13,8 +13,8 @@ String.prototype.toCamelCase = function () {
     .trim()
     .split(/\s+/)
     .map((v, i) => (i === 0 ? v : v.charAt(0).toUpperCase() + v.substring(1)))
-    .join("");
-};
+    .join('')
+}
 
 String.prototype.toPascalCase = function () {
   return this.toString()
@@ -22,8 +22,8 @@ String.prototype.toPascalCase = function () {
     .trim()
     .split(/\s+/)
     .map((v) => v.charAt(0).toUpperCase() + v.substring(1))
-    .join("");
-};
+    .join('')
+}
 
 /**
  * Converts a string to proper case (Title Case)
@@ -33,50 +33,73 @@ String.prototype.toPascalCase = function () {
 String.prototype.toProperCase = function () {
   // Articles, conjunctions, and prepositions that should be lowercase (unless first/last word)
   const minorWords = new Set([
-    'a', 'an', 'the', 'and', 'but', 'or', 'nor', 'for', 'yet', 'so',
-    'at', 'by', 'for', 'from', 'in', 'into', 'of', 'off', 'on', 'onto', 'to', 'up', 'with'
-  ]);
+    'a',
+    'an',
+    'the',
+    'and',
+    'but',
+    'or',
+    'nor',
+    'for',
+    'yet',
+    'so',
+    'at',
+    'by',
+    'for',
+    'from',
+    'in',
+    'into',
+    'of',
+    'off',
+    'on',
+    'onto',
+    'to',
+    'up',
+    'with',
+  ])
 
-  const words = this.toString().toLowerCase().trim().split(/\s+/);
-  
-  if (words.length === 0) return "";
-  
-  return words.map((word, index, array) => {
-    // Always capitalize first and last word, or if not a minor word
-    if (index === 0 || index === array.length - 1 || !minorWords.has(word)) {
-      return word.charAt(0).toUpperCase() + word.substring(1);
-    } else {
-      return word;
-    }
-  }).join(" ");
-};
+  const words = this.toString().toLowerCase().trim().split(/\s+/)
+
+  if (words.length === 0) return ''
+
+  return words
+    .map((word, index, array) => {
+      // Always capitalize first and last word, or if not a minor word
+      if (index === 0 || index === array.length - 1 || !minorWords.has(word)) {
+        return word.charAt(0).toUpperCase() + word.substring(1)
+      } else {
+        return word
+      }
+    })
+    .join(' ')
+}
 /**
  * Get the value from an array by index (negative indexing)
  * @param {number} index The index of the item (-1 means the last one)
  * @return {any}
  */
 Array.prototype.getValueByIndex = function (index) {
-  index = index * 1;
-  if (index >= 0) return this[index];
-  if (index * -1 > this.length) return undefined;
-  return this.slice(index)[0];
-};
+  index = index * 1
+  if (index >= 0) return this[index]
+  if (index * -1 > this.length) return undefined
+  return this.slice(index)[0]
+}
 
 function _createMenu_(name, items, submenu = false) {
-  const ui = SpreadsheetApp.getUi();
-  const menu = ui.createMenu(name);
+  const ui = SpreadsheetApp.getUi()
+  const menu = ui.createMenu(name)
   items.forEach((item) => {
-    if (!item) return menu.addSeparator();
+    if (!item) return menu.addSeparator()
     if (item.name) {
-      return menu.addSubMenu(_createMenu_(item.name, item.items, true));
+      return menu.addSubMenu(_createMenu_(item.name, item.items, true))
     }
     if (item.caption && item.action) {
-      return menu.addItem(item.caption, item.action);
+      return menu.addItem(item.caption, item.action)
     }
-    return menu.addSeparator();
-  });
-  if (submenu) return menu;
-  menu.addToUi();
+    return menu.addSeparator()
+  })
+  if (submenu) return menu
+  menu.addToUi()
 }
 
 /**
@@ -88,11 +111,11 @@ function _createMenu_(name, items, submenu = false) {
 function _createKeys_(headers, useCamelCase = true) {
   return headers.map((v) => {
     if (useCamelCase) {
-      return v.toCamelCase();
+      return v.toCamelCase()
     } else {
-      return v.toString().toPascalCase();
+      return v.toString().toPascalCase()
     }
-  });
+  })
 }
 
 /**
@@ -102,9 +125,9 @@ function _createKeys_(headers, useCamelCase = true) {
  * @returns {object} An item object
  */
 function _createItem_(keys, values) {
-  const item = {};
-  keys.forEach((k, i) => (item[k] = values[i]));
-  return item;
+  const item = {}
+  keys.forEach((k, i) => (item[k] = values[i]))
+  return item
 }
 
 /**
@@ -116,10 +139,10 @@ function _createItem_(keys, values) {
  */
 function _createRowValues_(keys, item, currentValues = null) {
   return keys.map((k, i) => {
-    if (k in item) return item[k];
-    if (currentValues) return currentValues[i];
-    return null;
-  });
+    if (k in item) return item[k]
+    if (currentValues) return currentValues[i]
+    return null
+  })
 }
 
 /**
@@ -129,16 +152,16 @@ function _createRowValues_(keys, item, currentValues = null) {
  * @returns {object[]}
  */
 function _getItemsFromSheet_(sheet, filterFunction = null) {
-  const [headers, ...values] = sheet.getDataRange().getValues();
-  const keys = _createKeys_(headers);
-  const items = [];
+  const [headers, ...values] = sheet.getDataRange().getValues()
+  const keys = _createKeys_(headers)
+  const items = []
   values.forEach((v, i) => {
-    const item = _createItem_(keys, v);
-    item._rowIndex = i + 2;
-    if (!filterFunction) return items.push(item);
-    if (filterFunction(item)) return items.push(item);
-  });
-  return items;
+    const item = _createItem_(keys, v)
+    item._rowIndex = i + 2
+    if (!filterFunction) return items.push(item)
+    if (filterFunction(item)) return items.push(item)
+  })
+  return items
 }
 
 /**
@@ -146,7 +169,7 @@ function _getItemsFromSheet_(sheet, filterFunction = null) {
  * @returns {GoogleAppsScript.Base.Ui}
  */
 function _getUi_() {
-  return SpreadsheetApp.getUi();
+  return SpreadsheetApp.getUi()
 }
 
 /**
@@ -155,8 +178,8 @@ function _getUi_() {
  * @param {string} title The title of the toast
  * @param {number} [10] timeout The timeout in seconds
  */
-function _toast_(message, title = "Toast", timeout = 10) {
-  SpreadsheetApp.getActive().toast(message, title, timeout);
+function _toast_(message, title = 'Toast', timeout = 10) {
+  SpreadsheetApp.getActive().toast(message, title, timeout)
 }
 
 /**
@@ -165,9 +188,9 @@ function _toast_(message, title = "Toast", timeout = 10) {
  * @param {string} title The title of the alert
  * @return {GoogleAppsScript.Base.PromptResponse}
  */
-function _alert_(message, title = "Alert") {
-  const ui = SpreadsheetApp.getUi();
-  return ui.alert(title, message, ui.ButtonSet.OK);
+function _alert_(message, title = 'Alert') {
+  const ui = SpreadsheetApp.getUi()
+  return ui.alert(title, message, ui.ButtonSet.OK)
 }
 
 /**
@@ -176,9 +199,9 @@ function _alert_(message, title = "Alert") {
  * @param {string} title The title of the alert
  * @return {GoogleAppsScript.Base.PromptResponse}
  */
-function _confirm_(message, title = "Confirm") {
-  const ui = SpreadsheetApp.getUi();
-  return ui.alert(title, message, ui.ButtonSet.YES_NO);
+function _confirm_(message, title = 'Confirm') {
+  const ui = SpreadsheetApp.getUi()
+  return ui.alert(title, message, ui.ButtonSet.YES_NO)
 }
 
 /**
@@ -187,23 +210,19 @@ function _confirm_(message, title = "Confirm") {
  * @param {string} title The title of the alert
  * @return {GoogleAppsScript.Base.PromptResponse}
  */
-function _prompt_(message, title = "Prompt") {
-  const ui = SpreadsheetApp.getUi();
-  return ui.prompt(title, message, ui.ButtonSet.OK_CANCEL);
+function _prompt_(message, title = 'Prompt') {
+  const ui = SpreadsheetApp.getUi()
+  return ui.prompt(title, message, ui.ButtonSet.OK_CANCEL)
 }
 
 function _getCurrentFolder_(id = SpreadsheetApp.getActive().getId()) {
-  return (
-    DriveApp.getFileById(id)
-      .getParents()
-      .next() || DriveApp.getRootFolder()
-  );
+  return DriveApp.getFileById(id).getParents().next() || DriveApp.getRootFolder()
 }
 
 function _getFolderByName_(name, parentFolder, createIfNotFound = true) {
-  const folders = parentFolder.getFoldersByName(name);
-  if (folders.hasNext()) return folders.next();
-  if (createIfNotFound) return parentFolder.createFolder(name);
+  const folders = parentFolder.getFoldersByName(name)
+  if (folders.hasNext()) return folders.next()
+  if (createIfNotFound) return parentFolder.createFolder(name)
 }
 
 /**
@@ -223,36 +242,30 @@ function _valuesToSheet_(
   clearContents = true,
   clearFormats = true,
 ) {
-  if (typeof sheet === "string") {
-    sheet = SpreadsheetApp.getActive().getSheetByName(sheet) ||
-      SpreadsheetApp.getActive().insertSheet(sheet);
+  if (typeof sheet === 'string') {
+    sheet =
+      SpreadsheetApp.getActive().getSheetByName(sheet) ||
+      SpreadsheetApp.getActive().insertSheet(sheet)
   }
-  const [headers, ...items] = values;
+  const [headers, ...items] = values
   const rangeToBeCleared = sheet.getRange(
     headerRowAt,
     headerColumnStart,
     sheet.getMaxRows() - headerRowAt + 1,
     sheet.getMaxColumns() - headerColumnStart + 1,
-  );
+  )
   if (clearContents) {
-    rangeToBeCleared.clearContent();
+    rangeToBeCleared.clearContent()
   }
   if (clearFormats) {
-    rangeToBeCleared.clearFormat();
+    rangeToBeCleared.clearFormat()
   }
-  if (!headers || headers.length === 0) return;
+  if (!headers || headers.length === 0) return
+  sheet.getRange(headerRowAt, headerColumnStart, 1, headers.length).setValues([headers])
+  if (!items || items.length === 0) return
   sheet
-    .getRange(headerRowAt, headerColumnStart, 1, headers.length)
-    .setValues([headers]);
-  if (!items || items.length === 0) return;
-  sheet
-    .getRange(
-      sheet.getLastRow() + 1,
-      headerColumnStart,
-      items.length,
-      items[0].length,
-    )
-    .setValues(items);
+    .getRange(sheet.getLastRow() + 1, headerColumnStart, items.length, items[0].length)
+    .setValues(items)
 }
 
 /**
@@ -264,28 +277,18 @@ function _valuesToSheet_(
  * @returns {void}
  */
 function _formatSheet_(sheet, formats, headerRowAt = 1, headerColumnStart = 1) {
-  const lastRow = sheet.getLastRow();
-  const maxRows = sheet.getMaxRows();
+  const lastRow = sheet.getLastRow()
+  const maxRows = sheet.getMaxRows()
   formats.forEach((format, i) => {
-    const column = sheet.getRange(
-      headerRowAt + 1,
-      i + headerColumnStart,
-      maxRows - headerRowAt,
-      1,
-    );
-    column.removeCheckboxes();
-    if (format === "checkbox") {
+    const column = sheet.getRange(headerRowAt + 1, i + headerColumnStart, maxRows - headerRowAt, 1)
+    column.removeCheckboxes()
+    if (format === 'checkbox') {
       return sheet
-        .getRange(
-          headerRowAt + 1,
-          i + headerColumnStart,
-          lastRow - headerRowAt,
-          1,
-        )
-        .insertCheckboxes();
+        .getRange(headerRowAt + 1, i + headerColumnStart, lastRow - headerRowAt, 1)
+        .insertCheckboxes()
     }
-    column.setNumberFormat(format);
-  });
+    column.setNumberFormat(format)
+  })
 }
 
 /**
@@ -295,8 +298,8 @@ function _formatSheet_(sheet, formats, headerRowAt = 1, headerColumnStart = 1) {
  * @return {any}
  */
 function _getNestedValueFromObject_(item, path) {
-  path.split(".").forEach((k) => (item = item?.[k]));
-  return item;
+  path.split('.').forEach((k) => (item = item?.[k]))
+  return item
 }
 
 /**
@@ -307,7 +310,7 @@ function _getNestedValueFromObject_(item, path) {
 function _createQueryString_(params) {
   return Object.entries(params)
     .map(([k, v]) => `${k}=${v}`)
-    .join("&");
+    .join('&')
 }
 
 /**
@@ -317,12 +320,12 @@ function _createQueryString_(params) {
  */
 function _getIdFromUrl_(url) {
   if (/\/d\//.test(url)) {
-    return url.split(/\/d\//)[1].split(/[\/|\?]/)[0];
+    return url.split(/\/d\//)[1].split(/[\/|\?]/)[0]
   }
   if (/\/folders\//.test(url)) {
-    return url.split(/\/folders\//)[1].split(/[\/|\?]/)[0];
+    return url.split(/\/folders\//)[1].split(/[\/|\?]/)[0]
   }
-  return url;
+  return url
 }
 
 /**
@@ -339,7 +342,7 @@ function _createHeaderObject_(header, key = null, format = null, path = null) {
     key: key || header.toLowerCase(),
     format,
     path: path || key || header.toLowerCase(),
-  });
+  })
 }
 
 /**
@@ -348,17 +351,17 @@ function _createHeaderObject_(header, key = null, format = null, path = null) {
  * @param {object}
  */
 function _getHeaderData_(headerData) {
-  const headers = [];
-  const keys = [];
-  const formats = [];
-  const paths = [];
+  const headers = []
+  const keys = []
+  const formats = []
+  const paths = []
   headerData.forEach(({ header, key, format, path }) => {
-    headers.push(header);
-    keys.push(key);
-    formats.push(format);
-    paths.push(path);
-  });
-  return { headers, keys, formats, paths };
+    headers.push(header)
+    keys.push(key)
+    formats.push(format)
+    paths.push(path)
+  })
+  return { headers, keys, formats, paths }
 }
 
 /**
@@ -366,23 +369,21 @@ function _getHeaderData_(headerData) {
  * @param {string}[Settings] sheetName The name of the sheet settings
  * @param {boolean}[true] convertKeyToCamelCase Format the key to camcel case
  */
-function _getSettings_(sheetName = "Settings", convertKeyToCamelCase = true) {
-  const settings = {};
-  const ws = SpreadsheetApp.getActive().getSheetByName(sheetName);
-  if (!ws) return settings;
+function _getSettings_(sheetName = 'Settings', convertKeyToCamelCase = true) {
+  const settings = {}
+  const ws = SpreadsheetApp.getActive().getSheetByName(sheetName)
+  if (!ws) return settings
   ws.getDataRange()
     .getValues()
     .slice(1)
     .forEach(([k, v]) => {
-      k = convertKeyToCamelCase
-        ? k.toString().toCamelCase()
-        : k.toString().trim();
-      if (!k) return;
-      if (!(k in settings)) return (settings[k] = v);
-      if (Array.isArray(settings[k])) return settings[k].push(v);
-      return (settings[k] = [settings[k], v]);
-    });
-  return settings;
+      k = convertKeyToCamelCase ? k.toString().toCamelCase() : k.toString().trim()
+      if (!k) return
+      if (!(k in settings)) return (settings[k] = v)
+      if (Array.isArray(settings[k])) return settings[k].push(v)
+      return (settings[k] = [settings[k], v])
+    })
+  return settings
 }
 
 /**
@@ -394,8 +395,8 @@ function _createStyle_(styleObject) {
   return (
     Object.entries(styleObject)
       .map(([k, v]) => `${k}:${v}`)
-      .join(";") + ";"
-  );
+      .join(';') + ';'
+  )
 }
 
 /**
@@ -408,34 +409,34 @@ function _createStyle_(styleObject) {
  */
 function _openDialog_(html, title, width = 540, height = 460) {
   const divStyle = {
-    "font-family": "Roboto,RobotoDraft,Helvetica,Arial,sans-serif",
-  };
-  html = `<div style='${_createStyle_(divStyle)}'>${html}</div>`;
+    'font-family': 'Roboto,RobotoDraft,Helvetica,Arial,sans-serif',
+  }
+  html = `<div style='${_createStyle_(divStyle)}'>${html}</div>`
   const dialog = HtmlService.createHtmlOutput(html)
     .setTitle(title)
     .setWidth(width)
-    .setHeight(height);
-  SpreadsheetApp.getActive().show(dialog);
+    .setHeight(height)
+  SpreadsheetApp.getActive().show(dialog)
 }
 
 /** */
-function _openLink_(link, title = "Open Link") {
+function _openLink_(link, title = 'Open Link') {
   const divStyle = {
-    "font-family": "Roboto,RobotoDraft,Helvetica,Arial,sans-serif",
-  };
+    'font-family': 'Roboto,RobotoDraft,Helvetica,Arial,sans-serif',
+  }
   const buttonStyle = {
-    cursor: "pointer",
-    "border-radius": "4px",
-    "font-weight": 500,
-    "font-size": "14px",
-    height: "36px",
-    "letter-spacing": "0.25px",
-    "line-height": "16px",
-    padding: "9px 24px 11px 24px",
-    border: "1px solid #dadce0",
-    color: "#137333",
-    background: "#ffffff",
-  };
+    cursor: 'pointer',
+    'border-radius': '4px',
+    'font-weight': 500,
+    'font-size': '14px',
+    height: '36px',
+    'letter-spacing': '0.25px',
+    'line-height': '16px',
+    padding: '9px 24px 11px 24px',
+    border: '1px solid #dadce0',
+    color: '#137333',
+    background: '#ffffff',
+  }
   const html = `<div style='${_createStyle_(divStyle)}'>
 			<p>Click below button to open it if the popup window was not opened.</p>
 			<div>
@@ -450,11 +451,9 @@ function _openLink_(link, title = "Open Link") {
 			</div>
 			</div>
 			<script>window.open("${link}", "_blank");</script>
-		`;
-  const dialog = HtmlService.createHtmlOutput(html)
-    .setTitle(title)
-    .setHeight(120);
-  SpreadsheetApp.getActive().show(dialog);
+		`
+  const dialog = HtmlService.createHtmlOutput(html).setTitle(title).setHeight(120)
+  SpreadsheetApp.getActive().show(dialog)
 }
 
 /**
@@ -464,9 +463,9 @@ function _openLink_(link, title = "Open Link") {
  * @returns {string}
  */
 function _include_(filename, data = null) {
-  const template = HtmlService.createTemplateFromFile(filename);
-  if (data) template.data = data;
-  return template.evaluate().getContent();
+  const template = HtmlService.createTemplateFromFile(filename)
+  if (data) template.data = data
+  return template.evaluate().getContent()
 }
 
 /**
@@ -475,11 +474,11 @@ function _include_(filename, data = null) {
  * @param {number} blankRows Blank rows to be kept
  */
 function _removeExtraRows_(sheet, blankRows = 0) {
-  if (sheet.getLastRow() + blankRows >= sheet.getMaxRows()) return;
+  if (sheet.getLastRow() + blankRows >= sheet.getMaxRows()) return
   sheet.deleteRows(
     sheet.getLastRow() + 1 + blankRows,
     sheet.getMaxRows() - sheet.getLastRow() - blankRows,
-  );
+  )
 }
 
 /**
@@ -488,11 +487,11 @@ function _removeExtraRows_(sheet, blankRows = 0) {
  * @param {number} blankRows Blank columns to be kept
  */
 function _removeExtraColumns_(sheet, blankColumns = 0) {
-  if (sheet.getLastColumn() + blankColumns >= sheet.getMaxColumns()) return;
+  if (sheet.getLastColumn() + blankColumns >= sheet.getMaxColumns()) return
   sheet.deleteColumns(
     sheet.getLastColumn() + 1 + blankColumns,
     sheet.getMaxColumns() - sheet.getLastColumn() - blankColumns,
-  );
+  )
 }
 
 /**
@@ -501,11 +500,11 @@ function _removeExtraColumns_(sheet, blankColumns = 0) {
  * @returns {string} The name of the column
  */
 function _getColumnNameByIndex_(index) {
-  const quotient = Math.floor(index / 26);
-  const remainder = index % 26;
-  const letter = String.fromCharCode(remainder + 65);
-  if (quotient === 0) return letter;
-  return _getColumnNameByIndex_(quotient - 1) + letter;
+  const quotient = Math.floor(index / 26)
+  const remainder = index % 26
+  const letter = String.fromCharCode(remainder + 65)
+  if (quotient === 0) return letter
+  return _getColumnNameByIndex_(quotient - 1) + letter
 }
 
 /**
@@ -514,12 +513,12 @@ function _getColumnNameByIndex_(index) {
  * @returns {number} The index of column starts from 0
  */
 function _getColumnIndexByName_(name) {
-  name = name.toUpperCase();
-  let value = -1;
-  name.split("").forEach((c, i) => {
-    value += (c.codePointAt(0) - 64) * 26 ** (name.length - i - 1);
-  });
-  return value;
+  name = name.toUpperCase()
+  let value = -1
+  name.split('').forEach((c, i) => {
+    value += (c.codePointAt(0) - 64) * 26 ** (name.length - i - 1)
+  })
+  return value
 }
 
 /**
@@ -528,22 +527,21 @@ function _getColumnIndexByName_(name) {
  * @returns {string} A random password
  */
 function _generatePassword_(digits = 6) {
-  const letters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST0123456789!@#$%^&*._-";
+  const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST0123456789!@#$%^&*._-'
   return Array(digits)
-    .fill("")
+    .fill('')
     .map(() => letters[Math.floor(Math.random() * letters.length)])
-    .join("");
+    .join('')
 }
 
 function _generateUuid_() {
-  const uuid = Utilities.getUuid().replace(/\-/g, "");
-  const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST0123456789";
+  const uuid = Utilities.getUuid().replace(/\-/g, '')
+  const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST0123456789'
   const prefix = Array(12)
-    .fill("")
+    .fill('')
     .map(() => letters[Math.floor(Math.random() * letters.length)])
-    .join("");
-  return prefix + "." + uuid;
+    .join('')
+  return prefix + '.' + uuid
 }
 
 /**
@@ -553,9 +551,7 @@ function _generateUuid_() {
  * @returns {string} A hashed password
  */
 function _hashPassword_(password, secret = 'asdfAZFDm1Fdfms') {
-  return Utilities.base64Encode(
-    Utilities.computeHmacSha256Signature(password, secret),
-  );
+  return Utilities.base64Encode(Utilities.computeHmacSha256Signature(password, secret))
 }
 
 /**
@@ -567,94 +563,77 @@ function _hashPassword_(password, secret = 'asdfAZFDm1Fdfms') {
  * @returns {boolean} The password validation result
  */
 function _verifyHashedPassword_(password, hashedPassword, secret) {
-  return _hashPassword_(password, secret) === hashedPassword;
+  return _hashPassword_(password, secret) === hashedPassword
 }
 
 function _createJwtToken_(payload, secret, expiredInSeconds = null) {
   const header = Utilities.base64Encode(
     JSON.stringify({
-      alg: "HS256",
-      typ: "JWT",
+      alg: 'HS256',
+      typ: 'JWT',
     }),
-  );
+  )
   if (expiredInSeconds) {
-    payload.exp = new Date().getTime() / 1000 + expiredInSeconds;
+    payload.exp = new Date().getTime() / 1000 + expiredInSeconds
   }
-  payload = Utilities.base64Encode(JSON.stringify(payload));
-  secret = Utilities.base64Encode(secret);
-  const hashedSecret = _hashPassword_(`${header}.${payload}`, secret);
-  return `${header}.${payload}.${hashedSecret}`;
+  payload = Utilities.base64Encode(JSON.stringify(payload))
+  secret = Utilities.base64Encode(secret)
+  const hashedSecret = _hashPassword_(`${header}.${payload}`, secret)
+  return `${header}.${payload}.${hashedSecret}`
 }
 
 function _verifyJwtToken_(token, secret) {
-  secret = Utilities.base64Encode(secret);
-  const [header, payload, key] = token.split(".");
+  secret = Utilities.base64Encode(secret)
+  const [header, payload, key] = token.split('.')
   if (key !== _hashPassword_(`${header}.${payload}`, secret)) {
-    return false;
+    return false
   }
-  token = JSON.parse(
-    Utilities.newBlob(Utilities.base64Decode(payload)).getDataAsString(),
-  );
-  if (!token.exp) return token;
-  if (token.exp > new Date().getTime() / 1000) return token;
-  return false;
+  token = JSON.parse(Utilities.newBlob(Utilities.base64Decode(payload)).getDataAsString())
+  if (!token.exp) return token
+  if (token.exp > new Date().getTime() / 1000) return token
+  return false
 }
 
 function _daysBetweenTwo_(startDate, endDate) {
-  return Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000));
+  return Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000))
 }
 
 function _getErrorMessage_(error) {
-  return error.stack
-    ? error.stack
-      .split("\n")
-      .slice(0, 2)
-      .join("\n")
-    : error.message;
+  return error.stack ? error.stack.split('\n').slice(0, 2).join('\n') : error.message
 }
 
-function _tryFunction_(functionName, title = "Script") {
+function _tryFunction_(functionName, title = 'Script') {
   try {
-    functionName();
+    functionName()
   } catch (error) {
-    const msg = _getErrorMessage_(error);
-    _alert_(msg, title);
+    const msg = _getErrorMessage_(error)
+    _alert_(msg, title)
   }
 }
 
-function _showVersions_(
-  versions = VERSIONS,
-  count = 3,
-  message = null,
-  title = "Versions",
-) {
-  const changes = count > 0 ? versions.slice(0, count) : versions;
+function _showVersions_(versions = VERSIONS, count = 3, message = null, title = 'Versions') {
+  const changes = count > 0 ? versions.slice(0, count) : versions
   const messageLines = changes.map(({ date, items }) => {
-    return [
-      date.toLocaleDateString(),
-      ...items.map((item, index) => `${index + 1}. ${item}`),
-    ].join("\n");
-  });
+    return [date.toLocaleDateString(), ...items.map((item, index) => `${index + 1}. ${item}`)].join(
+      '\n',
+    )
+  })
   if (message) {
-    messageLines.unshift(`${message}\n`);
+    messageLines.unshift(`${message}\n`)
   }
-  return _alert_(messageLines.join("\n"), title);
+  return _alert_(messageLines.join('\n'), title)
 }
 
-function _showUpdates_(
-  versions,
-  title = "Updates",
-  msg = "We have some updates:",
-) {
-  const currentVersion = versions[0].date.getTime();
-  const key = "version";
-  const props = PropertiesService.getUserProperties();
-  const lastVersion = props.getProperty(key);
+function _showUpdates_(versions, title = 'Updates', msg = 'We have some updates:') {
+  const currentVersion = versions[0].date.getTime()
+  const key = 'version'
+  const props = PropertiesService.getUserProperties()
+  const lastVersion = props.getProperty(key)
   if (lastVersion == currentVersion) {
-    return;
+    return
   }
-  props.setProperty(key, currentVersion);
-  _showVersions_(versions, 1, msg, title);
+  props.setProperty(key, currentVersion)
+  _showVersions_(versions, 1, msg, title)
 }
 
 function _exportSpreadsheetAsPdf_(
@@ -663,8 +642,8 @@ function _exportSpreadsheetAsPdf_(
   options = {},
 ) {
   const queryParams = {
-    size: "Letter",
-    format: "pdf",
+    size: 'Letter',
+    format: 'pdf',
     portrait: true,
     download: true,
     fitw: true,
@@ -674,28 +653,27 @@ function _exportSpreadsheetAsPdf_(
     bottom_margin: 0.25,
     left_margin: 0.25,
     ...options,
-  };
-  const queryString = _createQueryString_(queryParams);
-  const url =
-    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?${queryString}`;
+  }
+  const queryString = _createQueryString_(queryParams)
+  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?${queryString}`
   return UrlFetchApp.fetch(url, {
-    method: "GET",
+    method: 'GET',
     headers: { Authorization: `Bearer ${accessToken}` },
-  }).getBlob();
+  }).getBlob()
 }
 
 function _getFolderById_(id, times = 5) {
-  let folder = null;
+  let folder = null
   while (!folder && times > 0) {
-    times--;
+    times--
     try {
-      folder = DriveApp.getFolderById(id);
+      folder = DriveApp.getFolderById(id)
     } catch (error) {
-      console.info(error.message);
-      Utilities.sleep(500);
+      console.info(error.message)
+      Utilities.sleep(500)
     }
   }
-  return folder;
+  return folder
 }
 
 function _getColLastRow_(sheet, col = 1) {
@@ -721,7 +699,10 @@ function _getColLastRow_(sheet, col = 1) {
 function isJsonString(str) {
   if (str == '') return false
 
-  return (str.toString().trim().slice(0, 1) == `[` && str.toString().trim().slice(-1) == `]`) || (str.toString().trim().slice(0, 1) == `{` && str.toString().trim().slice(-1) == `}`)
+  return (
+    (str.toString().trim().slice(0, 1) == `[` && str.toString().trim().slice(-1) == `]`) ||
+    (str.toString().trim().slice(0, 1) == `{` && str.toString().trim().slice(-1) == `}`)
+  )
 }
 
 function _getSheetValuesAsJson_(sheet, hdrRow = 1) {
@@ -742,8 +723,14 @@ function _getSheetValuesAsJson_(sheet, hdrRow = 1) {
     const rowData = {}
 
     headers.forEach((header, hdrIndex) => {
-      const camelCaseHeader = header.toString().toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase()).replace(/[^\w\s]/g, '');
-      rowData[camelCaseHeader] = isJsonString(row[hdrIndex]) ? JSON.parse(row[hdrIndex]) : row[hdrIndex]
+      const camelCaseHeader = header
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())
+        .replace(/[^\w\s]/g, '')
+      rowData[camelCaseHeader] = isJsonString(row[hdrIndex])
+        ? JSON.parse(row[hdrIndex])
+        : row[hdrIndex]
     })
 
     rowData['_row_'] = index + 1 + hdrRow
@@ -754,45 +741,49 @@ function _getSheetValuesAsJson_(sheet, hdrRow = 1) {
 }
 
 function _driveFileExportUrl_(link) {
-  const regex = /https:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view\?usp=drivesdk/;
-  const match = link.match(regex);
+  const regex = /https:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view\?usp=drivesdk/
+  const match = link.match(regex)
 
   if (match) {
-    const fileId = match[1];
-    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    const fileId = match[1]
+    return `https://drive.google.com/uc?export=view&id=${fileId}`
   } else {
-    return link;
+    return link
   }
 }
 
-const _getOrCreateFolder_ = (folderNames, rootFolderId = settings.exportDrive) => {
+const _getOrCreateFolder_ = (folderNames, rootFolderId) => {
+  if (!rootFolderId) {
+    rootFolderId = _getSettings_().exportDrive
+  }
   // let testFolder = DriveApp.getFolderById('1XPwl5KDtLeoW-4TcGHr_1c6defz4BFn4')
   let currentFolder = DriveApp.getFolderById(rootFolderId)
   for (const folderName of folderNames) {
-    let subfolder = _getSubfolderByName_(currentFolder, folderName);
+    let subfolder = _getSubfolderByName_(currentFolder, folderName)
 
     if (!subfolder) {
-      subfolder = currentFolder.createFolder(folderName);
+      subfolder = currentFolder.createFolder(folderName)
     }
-    currentFolder = subfolder;
+    currentFolder = subfolder
   }
 
-  return currentFolder;
+  return currentFolder
 }
 
 const _getSubfolderByName_ = (parentFolder, subfolderName) => {
   let subfolders = parentFolder.getFolders()
   while (subfolders.hasNext()) {
-    let folder = subfolders.next();
+    let folder = subfolders.next()
     if (folder.getName() === subfolderName) {
-      return folder;
+      return folder
     }
   }
-  return null;
+  return null
 }
-function _getIdFromUrl_(url) { return url.match(/[-\w]{25,}/); }
+function _getIdFromUrl_(url) {
+  return url.match(/[-\w]{25,}/)
+}
 
 function include(filename) {
   return HtmlService.createTemplateFromFile(filename).evaluate().getContent()
 }
-

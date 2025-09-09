@@ -183,3 +183,12 @@ export const GET_STOCK_LEVEL_KEY = (stock) => {
       ? 'warningStock'
       : 'goodStock'
 }
+
+export const generateShortId = (prefix = '') => {
+  const array = new Uint8Array(3)
+  crypto.getRandomValues(array)
+
+  const hex = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
+
+  return prefix + hex
+}
