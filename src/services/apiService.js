@@ -45,7 +45,6 @@ export class API {
 
   static async autoLogin() {
     const result = await this.execute('login')
-    console.log('autoLogin result', result)
     if (result.token) {
       localStorage.setItem('authToken', result.token)
     }
@@ -106,7 +105,6 @@ export class API {
   }
 
   static getMetaData() {
-    console.log('getMetaData')
     let dataElem = document.getElementById('meta-data')
     let data
     if (isGoogleEnvironment) {

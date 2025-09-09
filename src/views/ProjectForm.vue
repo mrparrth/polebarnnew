@@ -1671,7 +1671,6 @@ function loadProjectData() {
         })
         Object.assign(form, editProject)
 
-        console.log(form.projectSubType, form.projectType)
         existingImages.value = editProject.existingImages
         uploadedFiles.value = []
         if (Array.isArray(editProject.existingImages)) {

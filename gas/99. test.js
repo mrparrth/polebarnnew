@@ -1,7 +1,6 @@
 function testLogin() {
   let authApp = new Auth()
   let test = authApp.login({ token: 'mdkbv1by.al' })
-  console.log(JSON.stringify(test.paperCopyData))
   debugger
 }
 
