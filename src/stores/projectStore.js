@@ -12,6 +12,7 @@ export const useProjectStore = defineStore('project', () => {
   const metaData = ref(API.getMetaData())
   const showPaperCopyRequest = ref(false)
   const showPaperCopyInfo = ref(false)
+  const dashboardFilter = ref('allPoleBarnTypes')
 
   const isLowStock = computed(() => {
     return Object.values(paperCopyStock.value).some(
@@ -89,6 +90,10 @@ export const useProjectStore = defineStore('project', () => {
     showPaperCopyInfo.value = value
   }
 
+  function setDashboardFilter(value) {
+    dashboardFilter.value = value
+  }
+
   return {
     // State
     projects,
@@ -100,7 +105,7 @@ export const useProjectStore = defineStore('project', () => {
     isLowStock,
     showPaperCopyRequest,
     showPaperCopyInfo,
-
+    dashboardFilter,
     // Actions
     updateProject,
     newProject,
@@ -113,5 +118,6 @@ export const useProjectStore = defineStore('project', () => {
     setPaperCopyData,
     setShowPaperCopyRequest,
     setShowPaperCopyInfo,
+    setDashboardFilter,
   }
 })

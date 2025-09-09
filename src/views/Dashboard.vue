@@ -60,7 +60,7 @@
                   </v-col>
                   <v-col cols="3" class="d-flex justify-end align-center">
                     <v-select
-                      v-model="projectTypeFilter"
+                      v-model="projectStore.dashboardFilter"
                       label="Project Type"
                       hide-details
                       density="compact"
@@ -165,7 +165,7 @@ const router = useRouter()
 const projectStore = useProjectStore()
 const loading = ref(false)
 const searchQuery = ref('')
-const projectTypeFilter = ref('allPoleBarnTypes')
+// const projectTypeFilter = ref('allPoleBarnTypes')
 const showArchived = ref(false)
 const { showSnackbar } = useSnackbar()
 
@@ -232,32 +232,32 @@ const filteredProjects = computed(() => {
   if (!showArchived.value) {
     filtered = filtered.filter((project) => project.data.status !== 'Archived')
   }
-  if (projectTypeFilter.value) {
+  if (projectStore.dashboardFilter) {
     filtered = filtered.filter((project) => {
-      if (projectTypeFilter.value === 'all') {
+      if (projectStore.dashboardFilter === 'all') {
         return true
-      } else if (project.data.projectType === projectTypeFilter.value) {
+      } else if (project.data.projectType === projectStore.dashboardFilter) {
         return true
-      } else if (projectTypeFilter.value === 'allPoleBarnTypes') {
+      } else if (projectStore.dashboardFilter === 'allPoleBarnTypes') {
         return (
           project.data.projectType === 'customPoleBarn' ||
           project.data.projectType === 'typicalOpbOnly' ||
           !project.data.projectType
         )
-      } else if (projectTypeFilter.value === 'customPoleBarn' && !project.data.projectType) {
+      } else if (projectStore.dashboardFilter === 'customPoleBarn' && !project.data.projectType) {
         return true
       } else if (
-        projectTypeFilter.value === 'paperCopy' &&
+        projectStore.dashboardFilter === 'paperCopy' &&
         project.data.projectType === 'paperCopy'
       ) {
         return true
       } else if (
-        projectTypeFilter.value === 'paperCopyRequest' &&
+        projectStore.dashboardFilter === 'paperCopyRequest' &&
         project.data.projectSubType === 'paperCopyRequest'
       ) {
         return true
       } else if (
-        projectTypeFilter.value === 'paperCopySold' &&
+        projectStore.dashboardFilter === 'paperCopySold' &&
         project.data.projectSubType === 'paperCopySold'
       ) {
         return true
