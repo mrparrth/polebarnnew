@@ -674,7 +674,7 @@
             <v-sheet
               class="page-section"
               elevation="1"
-              v-if="form.projectType === 'custom' || isEdit"
+              v-if="form.projectType === 'customPoleBarn' || isEdit"
             >
               <div class="section-header">ADD-ONS</div>
               <div class="addons-table-wrapper">
@@ -1853,7 +1853,12 @@ watch(
 
       if (columnHasData(columnKey)) {
         if (!form[gaugeField] || form[gaugeField].toString().trim() === '') {
-          form[gaugeField] = '26g'
+          // Check if this specific gauge field is currently focused/being edited
+          const isGaugeFieldFocused =
+            document.activeElement?.name === gaugeField || document.activeElement?.id === gaugeField
+          if (!isGaugeFieldFocused) {
+            form[gaugeField] = '26g'
+          }
         }
       }
     })
