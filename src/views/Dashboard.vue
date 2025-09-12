@@ -90,6 +90,8 @@
                   class="projects-table flex-grow-1"
                   hover
                   item-value="id"
+                  @update:sort-by="(value) => (sortBy = value)"
+                  @update:sort-desc="(value) => (sortDesc = value)"
                 >
                   <template v-slot:item="{ item }">
                     <tr :class="getRowClass(item)">
@@ -226,6 +228,9 @@ const statusOptions = [
   'Archived',
 ]
 
+const sortBy = ref('')
+const sortDesc = ref(false)
+
 const filteredProjects = computed(() => {
   let filtered = projects.value
 
@@ -273,6 +278,50 @@ const filteredProjects = computed(() => {
         project.data.projectName.toLowerCase().includes(query) ||
         project.data.clientName.toLowerCase().includes(query),
     )
+  }
+
+  // Apply sorting
+  if (sortBy.value && sortBy.value.length > 0) {
+    const sortConfig = sortBy.value[0] // Get the first (and only) sort configuration
+    const sortKey = sortConfig.key
+    const sortOrder = sortConfig.order
+
+    filtered = [...filtered].sort((a, b) => {
+      let aValue, bValue
+
+      switch (sortKey) {
+        case 'id':
+          aValue = a.data.projectId
+          bValue = b.data.projectId
+          break
+        case 'invoiceId':
+          aValue = a.data.fBInvoiceId || ''
+          bValue = b.data.fBInvoiceId || ''
+          break
+        case 'clientName':
+          aValue = a.data.clientName
+          bValue = b.data.clientName
+          break
+        case 'projectName':
+          aValue = a.data.projectName
+          bValue = b.data.projectName
+          break
+        case 'orderDate':
+          aValue = new Date(a.data.orderDate)
+          bValue = new Date(b.data.orderDate)
+          break
+        case 'status':
+          aValue = a.data.status
+          bValue = b.data.status
+          break
+        default:
+          return 0
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+      return 0
+    })
   }
 
   return filtered
