@@ -14,6 +14,8 @@ function getAccountId() {
   console.log(
     'Your business id is ' + response['response']['business_memberships'][1]['business']['id'],
   )
+
+  SpreadsheetApp.getActive().toast('Freshbooks service is working fine!', 'Success', 10)
 }
 
 function getFBClient(client) {
