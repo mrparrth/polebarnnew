@@ -482,7 +482,7 @@
                 </table>
               </div>
 
-              <div class="fake-table-row mb-4" v-if="form.projectType === 'custom'">
+              <div class="fake-table-row mb-4" v-if="form.projectType === 'customPoleBarn'">
                 <div class="scope-label overhang-label">Overhang</div>
                 <div class="overhang-controls">
                   <v-radio-group
@@ -495,7 +495,7 @@
                     :error="!!fieldErrors.overhangType"
                   >
                     <v-radio label="Standard" value="standard" />
-                    <div style="display: inline-flex; align-items: center">
+                    <div class="d-flex align-items-center">
                       <v-radio label="Custom" value="custom" />
                       <v-text-field
                         v-if="form.overhangType === 'custom'"
@@ -1013,7 +1013,6 @@ import { useProjectStore } from '@/stores/projectStore'
 import { STATUSES, BLANK_FORM_DATA, STATES } from '@/global'
 import { API } from '@/services/apiService'
 import { useSnackbar } from '@/composables/useSnackbar'
-import PaperCopyStockInfo from '@/components/PaperCopyInfo.vue'
 import { generateShortId } from '@/global'
 
 const router = useRouter()
