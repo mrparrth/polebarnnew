@@ -76,6 +76,7 @@ export const BLANK_FORM_DATA = {
   country: '',
   zip: '',
   projectType: '',
+  projectSubtype: '',
   opbSize: '',
   opbPostSpacing: '',
   opbPostSize: '',

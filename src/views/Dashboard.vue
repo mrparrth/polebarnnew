@@ -4,25 +4,17 @@
       <v-col cols="12" class="fill-height">
         <v-card elevation="8" class="pa-0 rounded-xl main-form-card fill-height">
           <v-sheet class="header-bar d-flex align-center py-4 position-relative" elevation="0">
-            <v-img
-              src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg"
-              height="100"
-              width="100"
-              class="rounded-lg position-absolute"
-              style="left: 30px; top: 50%; transform: translateY(-50%)"
-            />
+            <v-img src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg" height="100"
+              width="100" class="rounded-lg position-absolute"
+              style="left: 30px; top: 50%; transform: translateY(-50%)" />
             <div class="position-absolute w-100 d-flex justify-center">
               <h2 class="form-title mb-0 text-center">
                 Site Specific Pole Barn <br />Order Form & Agreement
               </h2>
             </div>
-            <div
-              class="position-absolute d-flex flex-column"
-              style="right: 20px; top: 33px; gap: 10px"
-            >
-              <v-btn v-if="isAdmin" color="secondary" variant="flat" @click="updatePaperStock"
-                >Update Paper Stock</v-btn
-              >
+            <div class="position-absolute d-flex flex-column" style="right: 20px; top: 33px; gap: 10px">
+              <v-btn v-if="isAdmin" color="secondary" variant="flat" @click="updatePaperStock">Update Paper
+                Stock</v-btn>
               <v-btn color="primary" variant="flat" @click="newProject">New Project</v-btn>
             </div>
           </v-sheet>
@@ -47,52 +39,25 @@
               <v-card-text class="py-3 px-5">
                 <v-row class="pr-2">
                   <v-col cols="7">
-                    <v-text-field
-                      v-model="searchQuery"
-                      placeholder="Search projects..."
-                      prepend-inner-icon="mdi-magnify"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      clearable
-                      @input="filterProjects"
-                    />
+                    <v-text-field v-model="searchQuery" placeholder="Search projects..."
+                      prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details clearable
+                      @input="filterProjects" />
                   </v-col>
                   <v-col cols="3" class="d-flex justify-end align-center">
-                    <v-select
-                      v-model="projectStore.dashboardFilter"
-                      label="Project Type"
-                      hide-details
-                      density="compact"
-                      :items="Object.entries(projectTypeOptions)"
-                      item-title="1"
-                      item-value="0"
-                    />
+                    <v-select v-model="projectStore.dashboardFilter" label="Project Type" hide-details density="compact"
+                      :items="Object.entries(projectTypeOptions)" item-title="1" item-value="0" />
                   </v-col>
                   <v-col cols="2" class="d-flex justify-end align-center">
-                    <v-checkbox
-                      v-model="showArchived"
-                      label="Show Archived"
-                      hide-details
-                      density="compact"
-                    />
+                    <v-checkbox v-model="showArchived" label="Show Archived" hide-details density="compact" />
                   </v-col>
                 </v-row>
               </v-card-text>
 
               <!-- Projects Table -->
               <v-card-text class="pt-0 flex-grow-1 d-flex flex-column">
-                <v-data-table
-                  :headers="headers"
-                  :items="filteredProjects"
-                  :loading="loading"
-                  :items-per-page="-1"
-                  class="projects-table flex-grow-1"
-                  hover
-                  item-value="id"
-                  @update:sort-by="(value) => (sortBy = value)"
-                  @update:sort-desc="(value) => (sortDesc = value)"
-                >
+                <v-data-table :headers="headers" :items="filteredProjects" :loading="loading" :items-per-page="-1"
+                  class="projects-table flex-grow-1" hover item-value="id" @update:sort-by="(value) => (sortBy = value)"
+                  @update:sort-desc="(value) => (sortDesc = value)">
                   <template v-slot:item="{ item }">
                     <tr :class="getRowClass(item)">
                       <td>{{ item.data.projectId }}</td>
@@ -101,37 +66,19 @@
                       <td>{{ item.data.projectName }}</td>
                       <td>{{ formatDate(item.data.orderDate) }}</td>
                       <td>
-                        <v-btn
-                          v-if="item.data.driveFolder"
-                          variant="text"
-                          color="primary"
-                          size="small"
-                          icon
-                          @click.stop="openFolder(item.data.driveFolder)"
-                        >
+                        <v-btn v-if="item.data.driveFolder" variant="text" color="primary" size="small" icon
+                          @click.stop="openFolder(item.data.driveFolder)">
                           <v-icon>mdi-open-in-new</v-icon>
                         </v-btn>
                         <span v-else class="text-grey">N/A</span>
                       </td>
                       <td>
-                        <v-select
-                          :model-value="item.data.status"
-                          :items="statusOptions"
-                          variant="outlined"
-                          density="compact"
-                          hide-details
-                          class="status-select"
-                          @update:model-value="(value) => updateStatus(item.data.projectId, value)"
-                        />
+                        <v-select :model-value="item.data.status" :items="statusOptions" variant="outlined"
+                          density="compact" hide-details class="status-select"
+                          @update:model-value="(value) => updateStatus(item.data.projectId, value)" />
                       </td>
                       <td>
-                        <v-btn
-                          color="primary"
-                          variant="text"
-                          size="small"
-                          icon
-                          @click.stop="viewDetails(item)"
-                        >
+                        <v-btn color="primary" variant="text" size="small" icon @click.stop="viewDetails(item)">
                           <v-icon>{{
                             isAdmin && item.data.projectType !== 'paperCopy'
                               ? 'mdi-pencil'
@@ -258,12 +205,12 @@ const filteredProjects = computed(() => {
         return true
       } else if (
         projectStore.dashboardFilter === 'paperCopyRequest' &&
-        project.data.projectSubType === 'paperCopyRequest'
+        project.data.projectSubtype === 'paperCopyRequest'
       ) {
         return true
       } else if (
         projectStore.dashboardFilter === 'paperCopySold' &&
-        project.data.projectSubType === 'paperCopySold'
+        project.data.projectSubtype === 'paperCopySold'
       ) {
         return true
       }
@@ -349,7 +296,7 @@ function getRowClass(item) {
   return ''
 }
 
-function filterProjects() {}
+function filterProjects() { }
 
 function viewDetails(item) {
   router.push(`/form?projectId=${item.data.projectId}`)
@@ -380,11 +327,13 @@ async function updateStatus(projectId, newStatus) {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
+
 .main-form-card {
   background: #fff6f6;
   border-radius: 18px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
 }
+
 .header-bar {
   background: #fff;
   border-top-left-radius: 18px;
@@ -392,6 +341,7 @@ async function updateStatus(projectId, newStatus) {
   border-bottom: 1.5px solid #f2caca;
   min-height: 150px;
 }
+
 .form-title {
   font-size: 1.5rem;
   font-weight: 700;

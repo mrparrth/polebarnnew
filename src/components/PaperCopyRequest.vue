@@ -1,9 +1,5 @@
 <template>
-  <v-dialog
-    :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
-    max-width="600px"
-  >
+  <v-dialog :model-value="props.modelValue" @update:model-value="emit('update:modelValue', $event)" max-width="600px">
     <v-card class="rounded-lg overflow-hidden">
       <v-card-title class="warning-header pa-6 pb-4">
         <div class="d-flex align-center">
@@ -24,28 +20,17 @@
 
         <v-row no-gutters>
           <v-col cols="12" v-for="[type, label] in Object.entries(PAPER_COPY_TYPES)" :key="type">
-            <v-card
-              class="stock-item-card pa-4 mb-3"
-              elevation="2"
-              :class="
-                PAPER_COPY_CARD_CSS_CLASSES[
-                  GET_STOCK_LEVEL_KEY(projectStore.paperCopyStock[type].qty)
-                ]
-              "
-            >
+            <v-card class="stock-item-card pa-4 mb-3" elevation="2" :class="PAPER_COPY_CARD_CSS_CLASSES[
+              GET_STOCK_LEVEL_KEY(projectStore.paperCopyStock[type].qty)
+              ]
+              ">
               <div class="d-flex align-center justify-space-between">
                 <div class="stock-info">
                   <div class="d-flex align-center mb-2">
-                    <v-icon
-                      :icon="PAPER_COPY_ICONS[type]"
-                      :color="
-                        PAPER_COPY_STOCK_COLORS[
-                          GET_STOCK_LEVEL_KEY(projectStore.paperCopyStock[type].qty)
-                        ]
-                      "
-                      class="me-2"
-                      size="24"
-                    ></v-icon>
+                    <v-icon :icon="PAPER_COPY_ICONS[type]" :color="PAPER_COPY_STOCK_COLORS[
+                      GET_STOCK_LEVEL_KEY(projectStore.paperCopyStock[type].qty)
+                      ]
+                      " class="me-2" size="24"></v-icon>
                     <h3 class="text-h6 font-weight-bold mb-0">{{ label }}</h3>
                   </div>
                   <div class="d-flex align-center flex-wrap gap-2">
@@ -55,22 +40,11 @@
                   </div>
                 </div>
                 <div class="d-flex flex-column align-center gap-2">
-                  <v-text-field
-                    v-model.number="orderQuantities[type]"
-                    type="number"
-                    min="1"
-                    max="10"
-                    variant="outlined"
-                    density="compact"
-                    width="100px"
-                    hide-details
-                    :color="
-                      PAPER_COPY_STOCK_COLORS[
-                        GET_STOCK_LEVEL_KEY(projectStore.paperCopyStock[type].qty)
+                  <v-text-field v-model.number="orderQuantities[type]" type="number" min="1" max="10" variant="outlined"
+                    density="compact" width="100px" hide-details :color="PAPER_COPY_STOCK_COLORS[
+                      GET_STOCK_LEVEL_KEY(projectStore.paperCopyStock[type].qty)
                       ]
-                    "
-                    prepend-inner-icon="mdi-package-variant"
-                  />
+                      " prepend-inner-icon="mdi-package-variant" />
                   <div class="text-caption text-center mt-1 text-medium-emphasis">
                     Order Quantity
                   </div>
@@ -80,13 +54,7 @@
           </v-col>
         </v-row>
 
-        <v-alert
-          v-if="totalOrderQuantity > 0"
-          type="info"
-          variant="tonal"
-          density="comfortable"
-          class="mt-4"
-        >
+        <v-alert v-if="totalOrderQuantity > 0" type="info" variant="tonal" density="comfortable" class="mt-4">
           <div class="d-flex align-center">
             <v-icon icon="mdi-calculator" class="me-2"></v-icon>
             <span class="font-weight-bold">Total Order Quantity: {{ totalOrderQuantity }}</span>
@@ -99,13 +67,7 @@
         <v-btn variant="outlined" color="grey-darken-1" @click="dismissWarning" class="action-btn">
           Dismiss
         </v-btn>
-        <v-btn
-          color="warning"
-          variant="flat"
-          @click="orderPaperCopy"
-          class="action-btn"
-          :loading="isSubmitting"
-        >
+        <v-btn color="warning" variant="flat" @click="orderPaperCopy" class="action-btn" :loading="isSubmitting">
           <v-icon icon="mdi-cart-plus" class="me-2"></v-icon>
           Order Paper Copy
         </v-btn>
@@ -157,7 +119,7 @@ const orderPaperCopy = async () => {
     )
 
     query.projectId = generateShortId('pc_')
-    query.projectSubType = 'paperCopyRequest'
+    query.projectSubtype = 'paperCopyRequest'
     query.projectType = 'paperCopy'
     query.orderDate = new Date().toISOString()
 

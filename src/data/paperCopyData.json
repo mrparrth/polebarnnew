@@ -15,7 +15,7 @@
       "zip": "560077",
       "orderDate": "2025-09-06",
       "projectId": "pc_77d6681b-9a73-4ce8-bf3e-21d384985494",
-      "projectSubType": "paperCopySold"
+      "projectSubtype": "paperCopySold"
     },
     "_row_": 2
   },
@@ -28,7 +28,7 @@
       "openPoleBarn": 10,
       "leanTo": 10,
       "projectId": "pc_f96d301a-66e9-4dce-9ea7-1b7a9006edc6",
-      "projectSubType": "paperCopyRequest",
+      "projectSubtype": "paperCopyRequest",
       "projectType": "paperCopy"
     },
     "_row_": 3
