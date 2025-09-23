@@ -5,180 +5,84 @@
         <v-card elevation="8" class="pa-0 rounded-xl main-form-card">
           <!-- Header Bar -->
           <v-sheet class="header-bar d-flex align-center py-4 position-relative" elevation="0">
-            <v-img
-              src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg"
-              height="100"
-              width="100"
-              class="rounded-lg position-absolute"
-              style="left: 30px; top: 50%; transform: translateY(-50%)"
-            />
+            <v-img src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg" height="100"
+              width="100" class="rounded-lg position-absolute"
+              style="left: 30px; top: 50%; transform: translateY(-50%)" />
             <div class="position-absolute w-100 d-flex justify-center">
               <h2 class="form-title mb-0 text-center">
                 Site Specific Pole Barn <br />Order Form & Agreement
               </h2>
             </div>
-            <div
-              class="position-absolute d-flex flex-column"
-              style="right: 20px; top: 33px; gap: 10px"
-            >
-              <v-btn v-if="isAdmin" color="secondary" variant="flat" @click="updatePaperStock"
-                >Update Paper Stock</v-btn
-              >
+            <div class="position-absolute d-flex flex-column" style="right: 20px; top: 33px; gap: 10px">
+              <v-btn v-if="isAdmin" color="secondary" variant="flat" @click="updatePaperStock">Update Paper
+                Stock</v-btn>
               <v-btn color="primary" variant="flat" @click="goToDashboard">View Dashboard</v-btn>
             </div>
           </v-sheet>
 
           <!-- Status and Order Information Section -->
-          <v-sheet
-            class="page-section"
-            elevation="1"
-            v-if="form.projectSubType !== 'paperCopyRequest'"
-          >
+          <v-sheet class="page-section" elevation="1" v-if="form.projectSubtype !== 'paperCopyRequest'">
             <div class="section-header mb-4">Ceed Civil Engineering Project</div>
             <v-row>
               <v-col cols="12" md="6" v-if="isEdit">
-                <v-text-field
-                  v-model="form.projectId"
-                  label="Project ID"
-                  variant="outlined"
-                  dense
-                  required
-                  name="projectId"
-                  disabled
-                />
+                <v-text-field v-model="form.projectId" label="Project ID" variant="outlined" dense required
+                  name="projectId" disabled />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select
-                  v-model="form.status"
-                  :items="STATUSES"
-                  label="Status"
-                  class="mb-4"
-                  dense
-                  variant="outlined"
-                  hide-details
-                  full-width
-                  name="status"
-                  :disabled="shouldDisableField('status')"
-                  :error-messages="fieldErrors.status"
-                  :error="!!fieldErrors.status"
-                />
+                <v-select v-model="form.status" :items="STATUSES" label="Status" class="mb-4" dense variant="outlined"
+                  hide-details full-width name="status" :disabled="shouldDisableField('status')"
+                  :error-messages="fieldErrors.status" :error="!!fieldErrors.status" />
               </v-col>
             </v-row>
             <div class="section-header mb-2">Order Information</div>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.clientName"
-                  :class="{ required: isRequired('clientName') }"
-                  label="Client Name"
-                  dense
-                  variant="outlined"
-                  required
-                  name="clientName"
-                  :disabled="shouldDisableField('clientName')"
-                  :error-messages="fieldErrors.clientName"
-                  :error="!!fieldErrors.clientName"
-                />
+                <v-text-field v-model="form.clientName" :class="{ required: isRequired('clientName') }"
+                  label="Client Name" dense variant="outlined" required name="clientName"
+                  :disabled="shouldDisableField('clientName')" :error-messages="fieldErrors.clientName"
+                  :error="!!fieldErrors.clientName" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.projectName"
-                  :class="{ required: isRequired('projectName') }"
-                  label="Project Name"
-                  dense
-                  variant="outlined"
-                  required
-                  name="projectName"
-                  counter="25"
-                  :disabled="shouldDisableField('projectName')"
-                  :error-messages="fieldErrors.projectName"
-                  :error="!!fieldErrors.projectName"
-                  @input="validateProjectNameLength"
-                />
+                <v-text-field v-model="form.projectName" :class="{ required: isRequired('projectName') }"
+                  label="Project Name" dense variant="outlined" required name="projectName" counter="25"
+                  :disabled="shouldDisableField('projectName')" :error-messages="fieldErrors.projectName"
+                  :error="!!fieldErrors.projectName" @input="validateProjectNameLength" />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.siteAddress"
-                  :class="{ required: isRequired('siteAddress') }"
-                  label="Site Address"
-                  dense
-                  variant="outlined"
-                  required
-                  name="siteAddress"
-                  :disabled="shouldDisableField('siteAddress')"
-                  :error-messages="fieldErrors.siteAddress"
-                  :error="!!fieldErrors.siteAddress"
-                />
+                <v-text-field v-model="form.siteAddress" :class="{ required: isRequired('siteAddress') }"
+                  label="Site Address" dense variant="outlined" required name="siteAddress"
+                  :disabled="shouldDisableField('siteAddress')" :error-messages="fieldErrors.siteAddress"
+                  :error="!!fieldErrors.siteAddress" />
               </v-col>
               <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.city"
-                  :class="{ required: isRequired('city') }"
-                  label="City"
-                  dense
-                  variant="outlined"
-                  required
-                  name="city"
-                  :disabled="shouldDisableField('city')"
-                  :error-messages="fieldErrors.city"
-                  :error="!!fieldErrors.city"
-                />
+                <v-text-field v-model="form.city" :class="{ required: isRequired('city') }" label="City" dense
+                  variant="outlined" required name="city" :disabled="shouldDisableField('city')"
+                  :error-messages="fieldErrors.city" :error="!!fieldErrors.city" />
               </v-col>
               <v-col cols="12" md="3">
-                <v-combobox
-                  v-model="form.state"
-                  :items="STATES"
-                  :class="{ required: isRequired('state') }"
-                  label="State"
-                  dense
-                  variant="outlined"
-                  name="state"
-                  :disabled="shouldDisableField('state')"
-                  :error-messages="fieldErrors.state"
-                  :error="!!fieldErrors.state"
-                />
+                <v-combobox v-model="form.state" :items="STATES" :class="{ required: isRequired('state') }"
+                  label="State" dense variant="outlined" name="state" :disabled="shouldDisableField('state')"
+                  :error-messages="fieldErrors.state" :error="!!fieldErrors.state" />
               </v-col>
 
               <v-col cols="12" md="2">
-                <v-text-field
-                  v-model="form.zip"
-                  :class="{ required: isRequired('zip') }"
-                  label="Zip"
-                  dense
-                  variant="outlined"
-                  name="zip"
-                  :disabled="shouldDisableField('zip')"
-                  :error-messages="fieldErrors.zip"
-                  :error="!!fieldErrors.zip"
-                />
+                <v-text-field v-model="form.zip" :class="{ required: isRequired('zip') }" label="Zip" dense
+                  variant="outlined" name="zip" :disabled="shouldDisableField('zip')" :error-messages="fieldErrors.zip"
+                  :error="!!fieldErrors.zip" />
               </v-col>
             </v-row>
           </v-sheet>
 
-          <v-sheet
-            class="page-section"
-            elevation="1"
-            v-if="form.projectSubType !== 'paperCopyRequest'"
-          >
+          <v-sheet class="page-section" elevation="1" v-if="form.projectSubtype !== 'paperCopyRequest'">
             <div class="section-header">Project Type (Select One To Proceed)</div>
             <v-row>
-              <v-radio-group
-                v-model="form.projectType"
-                inline
-                name="projectType"
-                :disabled="shouldDisableField('projectType')"
-                :error-messages="fieldErrors.projectType"
-                :error="!!fieldErrors.projectType"
-                hide-details
-              >
+              <v-radio-group v-model="form.projectType" inline name="projectType"
+                :disabled="shouldDisableField('projectType')" :error-messages="fieldErrors.projectType"
+                :error="!!fieldErrors.projectType" hide-details>
                 <v-col cols="6" xs="12">
-                  <v-radio
-                    label="Typical OPB ONLY / Name & Address Change ONLY"
-                    value="typicalOpbOnly"
-                    hide-details
-                  />
+                  <v-radio label="Typical OPB ONLY / Name & Address Change ONLY" value="typicalOpbOnly" hide-details />
                 </v-col>
                 <v-col cols="6" xs="12">
                   <v-radio label="Custom Pole Barn" value="customPoleBarn" hide-details />
@@ -203,7 +107,7 @@
                   <tr>
                     <th class="text-left">Type</th>
                     <th class="text-left">
-                      {{ form.projectSubType === 'paperCopyRequest' ? 'Request Qty' : 'Sold Qty' }}
+                      {{ form.projectSubtype === 'paperCopyRequest' ? 'Request Qty' : 'Sold Qty' }}
                     </th>
                     <th class="text-left">Qty In Stock Right Now</th>
                   </tr>
@@ -212,19 +116,10 @@
                   <tr>
                     <td>Open pole barn</td>
                     <td>
-                      <v-select
-                        v-model="form.opbPaperSold"
-                        name="paperCopyOpenPoleBarnQty"
-                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        class="max-width-100"
-                        clearable
-                        :error="!!fieldErrors.opbPaperSold"
-                        :disabled="isEdit"
-                        v-if="!isEdit"
-                      />
+                      <v-select v-model="form.opbPaperSold" name="paperCopyOpenPoleBarnQty"
+                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" variant="outlined" density="compact" hide-details
+                        class="max-width-100" clearable :error="!!fieldErrors.opbPaperSold" :disabled="isEdit"
+                        v-if="!isEdit" />
                       <div v-if="isEdit" disabled>
                         {{ form.opbPaperSold || form.openPoleBarn }}
                       </div>
@@ -240,18 +135,9 @@
                   <tr>
                     <td>Lean to</td>
                     <td>
-                      <v-select
-                        v-model="form.leanToPaperSold"
-                        name="paperCopyLeanToQty"
-                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        class="max-width-100"
-                        clearable
-                        :disabled="isEdit"
-                        v-if="!isEdit"
-                      />
+                      <v-select v-model="form.leanToPaperSold" name="paperCopyLeanToQty"
+                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" variant="outlined" density="compact" hide-details
+                        class="max-width-100" clearable :disabled="isEdit" v-if="!isEdit" />
                       <div v-if="isEdit" disabled>
                         {{ form.leanToPaperSold || form.leanTo }}
                       </div>
@@ -267,18 +153,9 @@
                   <tr>
                     <td>Single slope</td>
                     <td>
-                      <v-select
-                        v-model="form.singleSlopePaperSold"
-                        name="paperCopySingleSlopeQty"
-                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        class="max-width-100"
-                        clearable
-                        :disabled="isEdit"
-                        v-if="!isEdit"
-                      />
+                      <v-select v-model="form.singleSlopePaperSold" name="paperCopySingleSlopeQty"
+                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" variant="outlined" density="compact" hide-details
+                        class="max-width-100" clearable :disabled="isEdit" v-if="!isEdit" />
                       <div v-if="isEdit" disabled>
                         {{ form.singleSlopePaperSold || form.singleSlope }}
                       </div>
@@ -295,12 +172,8 @@
                   </tr>
                 </tbody>
               </v-table>
-              <div
-                v-if="fieldErrors.qtyFields"
-                class="text-error text-body-2 mt-2"
-                name="qtyFields"
-                style="margin-left: 40%"
-              >
+              <div v-if="fieldErrors.qtyFields" class="text-error text-body-2 mt-2" name="qtyFields"
+                style="margin-left: 40%">
                 {{ fieldErrors.qtyFields }}
               </div>
             </v-sheet>
@@ -315,11 +188,7 @@
                   <thead>
                     <tr>
                       <th class="scope-header">#</th>
-                      <th
-                        v-for="column in visibleScopeColumns"
-                        :key="column.key"
-                        class="scope-header"
-                      >
+                      <th v-for="column in visibleScopeColumns" :key="column.key" class="scope-header">
                         {{ column.label }}
                       </th>
                     </tr>
@@ -328,154 +197,78 @@
                     <tr v-for="row in scopeOfWorkRows" :key="row.label">
                       <th class="scope-label">{{ row.label }}</th>
                       <td v-for="column in visibleScopeColumns" :key="column.key">
-                        <div
-                          v-if="row.key === 'Size'"
-                          class="sow-input-container"
-                          tabindex="0"
-                          :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        <div v-if="row.key === 'Size'" class="sow-input-container" tabindex="0"
+                          :name="`${column.key}${row.key}`" :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
                           @click="focusFirstInput('size', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
-                            v-model="sizeInputs[`${column.key}${row.key}`].l"
-                            :name="`size-${column.key}${row.key}-l`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'L' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                          @focusin="activeColumns[column.key] = true">
+                          <input v-model="sizeInputs[`${column.key}${row.key}`].w" type="number" min="1"
+                            class="sow-input" :placeholder="activeColumns[column.key] ? 'W' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
+
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                          }}</span>
-                          <input
-                            v-model="sizeInputs[`${column.key}${row.key}`].w"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'W' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                            }}</span>
+                          <input v-model="sizeInputs[`${column.key}${row.key}`].l"
+                            :name="`size-${column.key}${row.key}-l`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? 'L' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
+
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                          }}</span>
-                          <input
-                            v-model="sizeInputs[`${column.key}${row.key}`].h"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'H' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                            }}</span>
+                          <input v-model="sizeInputs[`${column.key}${row.key}`].h" type="number" min="1"
+                            class="sow-input" :placeholder="activeColumns[column.key] ? 'H' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                         </div>
 
-                        <div
-                          v-else-if="row.key === 'PostSpacing'"
-                          class="sow-input-container"
-                          tabindex="0"
-                          :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        <div v-else-if="row.key === 'PostSpacing'" class="sow-input-container" tabindex="0"
+                          :name="`${column.key}${row.key}`" :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
                           @click="focusFirstInput('postSpacing', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
-                            v-model="postSpacingInputs[`${column.key}${row.key}`].value"
-                            :name="`postSpacing-${column.key}${row.key}`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? '' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                          @focusin="activeColumns[column.key] = true">
+                          <input v-model="postSpacingInputs[`${column.key}${row.key}`].value"
+                            :name="`postSpacing-${column.key}${row.key}`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? '' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? "'" : ''
-                          }}</span>
+                            }}</span>
                         </div>
 
-                        <div
-                          v-else-if="row.key === 'PostSize'"
-                          class="sow-input-container"
-                          tabindex="0"
-                          :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        <div v-else-if="row.key === 'PostSize'" class="sow-input-container" tabindex="0"
+                          :name="`${column.key}${row.key}`" :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
                           @click="focusFirstInput('postSize', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
-                            v-model="postSizeInputs[`${column.key}${row.key}`].l"
-                            :name="`postSize-${column.key}${row.key}-l`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'L' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                          @focusin="activeColumns[column.key] = true">
+                          <input v-model="postSizeInputs[`${column.key}${row.key}`].l"
+                            :name="`postSize-${column.key}${row.key}-l`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? 'L' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                          }}</span>
-                          <input
-                            v-model="postSizeInputs[`${column.key}${row.key}`].w"
-                            :name="`postSize-${column.key}${row.key}-w`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'W' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                            }}</span>
+                          <input v-model="postSizeInputs[`${column.key}${row.key}`].w"
+                            :name="`postSize-${column.key}${row.key}-w`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? 'W' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                         </div>
 
-                        <div
-                          v-else-if="row.key === 'MainBldgPitch'"
-                          class="sow-input-container"
-                          tabindex="0"
-                          :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        <div v-else-if="row.key === 'MainBldgPitch'" class="sow-input-container" tabindex="0"
+                          :name="`${column.key}${row.key}`" :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
                           @click="focusFirstInput('mainBldgPitch', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
-                            v-model="mainBldgPitchInputs[`${column.key}${row.key}`].value"
-                            :name="`mainBldgPitch-${column.key}${row.key}`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? '' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                          @focusin="activeColumns[column.key] = true">
+                          <input v-model="mainBldgPitchInputs[`${column.key}${row.key}`].value"
+                            :name="`mainBldgPitch-${column.key}${row.key}`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? '' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? '/12' : ''
-                          }}</span>
+                            }}</span>
                         </div>
 
-                        <v-text-field
-                          v-else
-                          v-model="form[`${column.key}${row.key}`]"
-                          :id="`${column.key}${row.key}`"
-                          :name="`${column.key}${row.key}`"
-                          dense
-                          variant="outlined"
-                          hide-details
-                          class="scope-input"
+                        <v-text-field v-else v-model="form[`${column.key}${row.key}`]" :id="`${column.key}${row.key}`"
+                          :name="`${column.key}${row.key}`" dense variant="outlined" hide-details class="scope-input"
                           :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           :error-messages="fieldErrors[`${column.key}${row.key}`]"
-                          :error="!!fieldErrors[`${column.key}${row.key}`]"
-                          @focus="activeColumns[column.key] = true"
-                        />
+                          :error="!!fieldErrors[`${column.key}${row.key}`]" @focus="activeColumns[column.key] = true" />
                       </td>
                     </tr>
                   </tbody>
@@ -485,31 +278,17 @@
               <div class="fake-table-row mb-4" v-if="form.projectType === 'customPoleBarn'">
                 <div class="scope-label overhang-label">Overhang</div>
                 <div class="overhang-controls">
-                  <v-radio-group
-                    v-model="form.overhangType"
-                    inline
-                    hide-details
-                    name="overhangType"
-                    :disabled="shouldDisableField('overhangType')"
-                    :error-messages="fieldErrors.overhangType"
-                    :error="!!fieldErrors.overhangType"
-                  >
+                  <v-radio-group v-model="form.overhangType" inline hide-details name="overhangType"
+                    :disabled="shouldDisableField('overhangType')" :error-messages="fieldErrors.overhangType"
+                    :error="!!fieldErrors.overhangType">
                     <v-radio label="Standard" value="standard" />
                     <div class="d-flex align-items-center">
                       <v-radio label="Custom" value="custom" />
-                      <v-text-field
-                        v-if="form.overhangType === 'custom'"
-                        v-model="form.overhangValue"
-                        label="Custom Overhang"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        name="overhangValue"
-                        :disabled="shouldDisableField('overhangValue')"
-                        :error-messages="fieldErrors.overhangValue"
+                      <v-text-field v-if="form.overhangType === 'custom'" v-model="form.overhangValue"
+                        label="Custom Overhang" dense variant="outlined" hide-details name="overhangValue"
+                        :disabled="shouldDisableField('overhangValue')" :error-messages="fieldErrors.overhangValue"
                         :error="!!fieldErrors.overhangValue"
-                        style="width: 170px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
-                      />
+                        style="width: 170px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px" />
                     </div>
                   </v-radio-group>
                 </div>
@@ -519,69 +298,31 @@
 
               <v-row>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.riskCategory"
-                    row
-                    label="Risk Category"
-                    inline
-                    name="riskCategory"
-                    :disabled="shouldDisableField('riskCategory')"
-                    :error-messages="fieldErrors.riskCategory"
-                    :error="!!fieldErrors.riskCategory"
-                  >
-                    <v-radio
-                      v-for="n in [1, 2, 3, 4]"
-                      :key="n"
-                      :label="n.toString()"
-                      :value="n.toString()"
-                    />
+                  <v-radio-group v-model="form.riskCategory" row label="Risk Category" inline name="riskCategory"
+                    :disabled="shouldDisableField('riskCategory')" :error-messages="fieldErrors.riskCategory"
+                    :error="!!fieldErrors.riskCategory">
+                    <v-radio v-for="n in [1, 2, 3, 4]" :key="n" :label="n.toString()" :value="n.toString()" />
                   </v-radio-group>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.exposureCategory"
-                    row
-                    label="Exposure Category"
-                    inline
-                    name="exposureCategory"
-                    :disabled="shouldDisableField('exposureCategory')"
-                    :error-messages="fieldErrors.exposureCategory"
-                    :error="!!fieldErrors.exposureCategory"
-                  >
-                    <v-radio
-                      v-for="cat in ['A', 'B', 'C', 'D']"
-                      :key="cat"
-                      :label="cat"
-                      :value="cat"
-                    />
+                  <v-radio-group v-model="form.exposureCategory" row label="Exposure Category" inline
+                    name="exposureCategory" :disabled="shouldDisableField('exposureCategory')"
+                    :error-messages="fieldErrors.exposureCategory" :error="!!fieldErrors.exposureCategory">
+                    <v-radio v-for="cat in ['A', 'B', 'C', 'D']" :key="cat" :label="cat" :value="cat" />
                   </v-radio-group>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.plywoodOnSiding"
-                    row
-                    label="Plywood On Siding"
-                    :disabled="shouldDisableField('plywoodOnSiding')"
-                    inline
-                    name="plywoodOnSiding"
-                    :error-messages="fieldErrors.plywoodOnSiding"
-                    :error="!!fieldErrors.plywoodOnSiding"
-                  >
+                  <v-radio-group v-model="form.plywoodOnSiding" row label="Plywood On Siding"
+                    :disabled="shouldDisableField('plywoodOnSiding')" inline name="plywoodOnSiding"
+                    :error-messages="fieldErrors.plywoodOnSiding" :error="!!fieldErrors.plywoodOnSiding">
                     <v-radio label="Yes" value="Yes" />
                     <v-radio label="No" value="No" />
                   </v-radio-group>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.plywoodOnRoof"
-                    row
-                    label="Plywood On Roof"
-                    inline
-                    name="plywoodOnRoof"
-                    :disabled="shouldDisableField('plywoodOnRoof')"
-                    :error-messages="fieldErrors.plywoodOnRoof"
-                    :error="!!fieldErrors.plywoodOnRoof"
-                  >
+                  <v-radio-group v-model="form.plywoodOnRoof" row label="Plywood On Roof" inline name="plywoodOnRoof"
+                    :disabled="shouldDisableField('plywoodOnRoof')" :error-messages="fieldErrors.plywoodOnRoof"
+                    :error="!!fieldErrors.plywoodOnRoof">
                     <v-radio label="Yes" value="Yes" />
                     <v-radio label="No" value="No" />
                   </v-radio-group>
@@ -589,34 +330,19 @@
               </v-row>
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-radio-group
-                    v-model="form.studSpacing"
-                    row
-                    label="2 x 6 Stud Spacing"
-                    inline
-                    name="studSpacing"
-                    v-if="form.projectType !== 'typicalOpbOnly'"
-                    :disabled="shouldDisableField('studSpacing')"
-                    :error-messages="fieldErrors.studSpacing"
-                    :error="!!fieldErrors.studSpacing"
-                  >
+                  <v-radio-group v-model="form.studSpacing" row label="2 x 6 Stud Spacing" inline name="studSpacing"
+                    v-if="form.projectType !== 'typicalOpbOnly'" :disabled="shouldDisableField('studSpacing')"
+                    :error-messages="fieldErrors.studSpacing" :error="!!fieldErrors.studSpacing">
                     <v-radio label="16" value="16" class="mr-3 my-3" />
                     <v-radio label="24" value="24" class="mr-3 my-3" />
                     <div style="display: inline-flex; align-items: center">
                       <v-radio label="Custom" value="custom" />
-                      <v-text-field
-                        v-if="form.studSpacing === 'custom'"
-                        v-model="form.studSpacingCustomValue"
-                        label="Custom Stud Spacing"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        name="studSpacingCustomValue"
+                      <v-text-field v-if="form.studSpacing === 'custom'" v-model="form.studSpacingCustomValue"
+                        label="Custom Stud Spacing" dense variant="outlined" hide-details name="studSpacingCustomValue"
                         :disabled="shouldDisableField('studSpacingCustomValue')"
                         :error-messages="fieldErrors.studSpacingCustomValue"
                         :error="!!fieldErrors.studSpacingCustomValue"
-                        style="width: 200px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
-                      />
+                        style="width: 200px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px" />
                     </div>
                   </v-radio-group>
                 </v-col>
@@ -625,26 +351,13 @@
                   <div class="section-header mb-2" style="min-height: 24px"></div>
                   <v-row>
                     <v-col cols="6">
-                      <v-text-field
-                        v-model="windSpeedInput.value"
-                        label="Wind Speed"
-                        type="number"
-                        min="1"
-                        dense
-                        variant="outlined"
-                        name="windSpeed"
-                        suffix="MPH"
-                        :disabled="shouldDisableField('windSpeed')"
-                        :error-messages="fieldErrors.windSpeed"
-                        :error="!!fieldErrors.windSpeed"
-                      />
+                      <v-text-field v-model="windSpeedInput.value" label="Wind Speed" type="number" min="1" dense
+                        variant="outlined" name="windSpeed" suffix="MPH" :disabled="shouldDisableField('windSpeed')"
+                        :error-messages="fieldErrors.windSpeed" :error="!!fieldErrors.windSpeed" />
                     </v-col>
                     <v-col cols="6" class="d-flex align-center">
-                      <v-checkbox
-                        v-model="form.wetMapAndSeal"
-                        label="Wet Stamp And Seal"
-                        :disabled="shouldDisableField('wetMapAndSeal')"
-                      />
+                      <v-checkbox v-model="form.wetMapAndSeal" label="Wet Stamp And Seal"
+                        :disabled="shouldDisableField('wetMapAndSeal')" />
                     </v-col>
                   </v-row>
                 </v-col>
@@ -652,41 +365,21 @@
               <hr v-if="!shouldHideField('price')" class="section-divider" />
               <v-row v-if="!shouldHideField('price')" class="admin-pricing-field">
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.price"
-                    label="Project Pricing"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    dense
-                    variant="outlined"
-                    required
-                    name="price"
-                    hide-details
-                    prepend-inner-icon="mdi-currency-usd"
-                    :error-messages="fieldErrors.price"
-                    :error="!!fieldErrors.price"
-                  />
+                  <v-text-field v-model="form.price" label="Project Pricing" type="number" step="0.01" min="0" dense
+                    variant="outlined" required name="price" hide-details prepend-inner-icon="mdi-currency-usd"
+                    :error-messages="fieldErrors.price" :error="!!fieldErrors.price" />
                 </v-col>
               </v-row>
             </v-sheet>
 
-            <v-sheet
-              class="page-section"
-              elevation="1"
-              v-if="form.projectType === 'customPoleBarn' || isEdit"
-            >
+            <v-sheet class="page-section" elevation="1" v-if="form.projectType === 'customPoleBarn' || isEdit">
               <div class="section-header">ADD-ONS</div>
               <div class="addons-table-wrapper">
                 <table class="addons-table">
                   <thead>
                     <tr>
                       <th class="addons-header">Add-On</th>
-                      <th
-                        v-for="column in visibleAddonColumns"
-                        :key="column.key"
-                        class="addons-header"
-                      >
+                      <th v-for="column in visibleAddonColumns" :key="column.key" class="addons-header">
                         {{ column.label }}
                       </th>
                     </tr>
@@ -694,123 +387,58 @@
                   <tbody>
                     <tr v-for="addon in addonsConfig" :key="addon.key">
                       <th class="addons-label">
-                        <v-checkbox
-                          v-model="form[addon.checkboxKey]"
-                          :label="addon.label"
-                          hide-details
-                          :disabled="shouldDisableField(addon.checkboxKey)"
-                        />
+                        <v-checkbox v-model="form[addon.checkboxKey]" :label="addon.label" hide-details
+                          :disabled="shouldDisableField(addon.checkboxKey)" />
                       </th>
-                      <td
-                        v-for="column in visibleAddonColumns"
-                        :key="column.key"
-                        class="addons-cell"
-                      >
+                      <td v-for="column in visibleAddonColumns" :key="column.key" class="addons-cell">
                         <div v-if="addon.type === 'simple' && column.key === 'Opb'" class="na-text">
                           N/A
                         </div>
                         <div v-else-if="addon.type === 'simple'" class="addons-inputs">
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Qty`]"
-                            :name="`${addon.key}${column.key}Qty`"
-                            label="Quantity"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Qty`) ||
+                          <v-text-field v-model="form[`${addon.key}${column.key}Qty`]"
+                            :name="`${addon.key}${column.key}Qty`" label="Quantity" dense variant="outlined"
+                            hide-details :disabled="shouldDisableField(`${addon.key}${column.key}Qty`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Qty`]"
-                          />
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Size`]"
-                            :name="`${addon.key}${column.key}Size`"
-                            label="Size"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Size`) ||
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Qty`]" />
+                          <v-text-field v-model="form[`${addon.key}${column.key}Size`]"
+                            :name="`${addon.key}${column.key}Size`" label="Size" dense variant="outlined" hide-details
+                            :disabled="shouldDisableField(`${addon.key}${column.key}Size`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
-                          />
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Size`]" />
                         </div>
                         <div v-else-if="addon.type === 'complex'" class="addons-inputs">
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Size`]"
-                            :name="`${addon.key}${column.key}Size`"
-                            label="Size"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Size`) ||
+                          <v-text-field v-model="form[`${addon.key}${column.key}Size`]"
+                            :name="`${addon.key}${column.key}Size`" label="Size" dense variant="outlined" hide-details
+                            :disabled="shouldDisableField(`${addon.key}${column.key}Size`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
-                          />
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Pitch`]"
-                            :name="`${addon.key}${column.key}Pitch`"
-                            label="Pitch"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Pitch`) ||
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Size`]" />
+                          <v-text-field v-model="form[`${addon.key}${column.key}Pitch`]"
+                            :name="`${addon.key}${column.key}Pitch`" label="Pitch" dense variant="outlined" hide-details
+                            :disabled="shouldDisableField(`${addon.key}${column.key}Pitch`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Pitch`]"
-                          />
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Pitch`]" />
                           <div class="slab-section">
                             <div class="slab-label">Slab</div>
-                            <v-radio-group
-                              v-model="form[`${addon.key}${column.key}Slab`]"
-                              inline
-                              hide-details
-                              :disabled="
-                                shouldDisableField(`${addon.key}${column.key}Slab`) ||
+                            <v-radio-group v-model="form[`${addon.key}${column.key}Slab`]" inline hide-details
+                              :disabled="shouldDisableField(`${addon.key}${column.key}Slab`) ||
                                 !form[addon.checkboxKey]
-                              "
-                            >
-                              <v-radio
-                                label="Yes"
-                                value="Yes"
-                                :name="`${addon.key}${column.key}Slab`"
+                                ">
+                              <v-radio label="Yes" value="Yes" :name="`${addon.key}${column.key}Slab`"
                                 :disabled="!form[addon.checkboxKey]"
-                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
-                              />
-                              <v-radio
-                                label="No"
-                                value="No"
-                                :name="`${addon.key}${column.key}Slab`"
+                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]" />
+                              <v-radio label="No" value="No" :name="`${addon.key}${column.key}Slab`"
                                 :disabled="!form[addon.checkboxKey]"
-                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
-                              />
-                              <v-radio
-                                label="N/A"
-                                value="N/A"
-                                :name="`${addon.key}${column.key}Slab`"
+                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]" />
+                              <v-radio label="N/A" value="N/A" :name="`${addon.key}${column.key}Slab`"
                                 :disabled="!form[addon.checkboxKey]"
-                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
-                              />
+                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]" />
                             </v-radio-group>
                           </div>
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}PostSize`]"
-                            :name="`${addon.key}${column.key}PostSize`"
-                            label="Post Size"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}PostSize`) ||
+                          <v-text-field v-model="form[`${addon.key}${column.key}PostSize`]"
+                            :name="`${addon.key}${column.key}PostSize`" label="Post Size" dense variant="outlined"
+                            hide-details :disabled="shouldDisableField(`${addon.key}${column.key}PostSize`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}PostSize`]"
-                          />
+                              " :error="!!fieldErrors[`${addon.key}${column.key}PostSize`]" />
                         </div>
                       </td>
                     </tr>
@@ -824,61 +452,31 @@
               <div class="section-header">Order Information & Signature</div>
               <v-row>
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.orderedBy"
-                    :class="{ required: isRequired('orderedBy') }"
-                    label="Ordered by"
-                    dense
-                    variant="outlined"
-                    name="orderedBy"
-                    :disabled="shouldDisableField('orderedBy')"
-                    :error-messages="fieldErrors.orderedBy"
-                    :error="!!fieldErrors.orderedBy"
-                  />
+                  <v-text-field v-model="form.orderedBy" :class="{ required: isRequired('orderedBy') }"
+                    label="Ordered by" dense variant="outlined" name="orderedBy"
+                    :disabled="shouldDisableField('orderedBy')" :error-messages="fieldErrors.orderedBy"
+                    :error="!!fieldErrors.orderedBy" />
                 </v-col>
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.signature"
-                    :class="{ required: isRequired('signature') }"
-                    :disabled="shouldDisableField('signature')"
-                    label="Signature"
-                    dense
-                    variant="outlined"
-                    name="signature"
-                    :error-messages="fieldErrors.signature"
-                    :error="!!fieldErrors.signature"
-                  />
+                  <v-text-field v-model="form.signature" :class="{ required: isRequired('signature') }"
+                    :disabled="shouldDisableField('signature')" label="Signature" dense variant="outlined"
+                    name="signature" :error-messages="fieldErrors.signature" :error="!!fieldErrors.signature" />
                 </v-col>
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.orderDate"
-                    :class="{ required: isRequired('orderDate') }"
-                    label="Order Date"
-                    type="date"
-                    dense
-                    variant="outlined"
-                    name="orderDate"
-                    :disabled="shouldDisableField('orderDate')"
-                    :error-messages="fieldErrors.orderDate"
-                    :error="!!fieldErrors.orderDate"
-                  />
+                  <v-text-field v-model="form.orderDate" :class="{ required: isRequired('orderDate') }"
+                    label="Order Date" type="date" dense variant="outlined" name="orderDate"
+                    :disabled="shouldDisableField('orderDate')" :error-messages="fieldErrors.orderDate"
+                    :error="!!fieldErrors.orderDate" />
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12">
-                  <v-textarea
-                    v-model="form.additionalInformation"
-                    :class="{ required: isRequired('additionalInformation') }"
-                    label="Additional Information/Notes"
-                    rows="4"
-                    dense
-                    variant="outlined"
-                    name="additionalInformation"
+                  <v-textarea v-model="form.additionalInformation"
+                    :class="{ required: isRequired('additionalInformation') }" label="Additional Information/Notes"
+                    rows="4" dense variant="outlined" name="additionalInformation"
                     :disabled="shouldDisableField('additionalInformation')"
-                    :error-messages="fieldErrors.additionalInformation"
-                    :error="!!fieldErrors.additionalInformation"
-                    auto-grow
-                  />
+                    :error-messages="fieldErrors.additionalInformation" :error="!!fieldErrors.additionalInformation"
+                    auto-grow />
                 </v-col>
               </v-row>
             </v-sheet>
@@ -886,48 +484,23 @@
             <v-sheet class="page-section" elevation="1" v-if="form.projectType !== 'paperCopy'">
               <div class="upload-header-container mb-4">
                 <div class="upload-title">Page 2 - Upload Sketch</div>
-                <v-btn
-                  v-if="form.driveFolder"
-                  class="view-folder-btn"
-                  prepend-icon="mdi-folder-open"
-                  color="primary"
-                  variant="outlined"
-                  :href="form.driveFolder"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <v-btn v-if="form.driveFolder" class="view-folder-btn" prepend-icon="mdi-folder-open" color="primary"
+                  variant="outlined" :href="form.driveFolder" target="_blank" rel="noopener noreferrer">
                   View Folder
                 </v-btn>
               </div>
-              <v-file-input
-                v-model="files"
-                label="Upload Files"
-                multiple
-                show-size
-                prepend-icon="mdi-upload"
-                variant="outlined"
-                :disabled="shouldDisableField('uploadSketch')"
-                @change="handleFileUpload"
-                hide-details
-              />
+              <v-file-input v-model="files" label="Upload Files" multiple show-size prepend-icon="mdi-upload"
+                variant="outlined" :disabled="shouldDisableField('uploadSketch')" @change="handleFileUpload"
+                hide-details />
 
               <!-- File Preview Area -->
               <div v-if="uploadedFiles.length > 0" class="file-preview-area mt-4">
                 <div class="file-preview-grid">
                   <div v-for="file in uploadedFiles" :key="file.id" class="file-preview-card">
                     <div v-if="file.isImage" class="image-preview">
-                      <img
-                        :src="file.preview || file.url"
-                        :alt="file.name"
-                        class="thumbnail-image"
-                      />
-                      <v-btn
-                        icon="mdi-close"
-                        size="small"
-                        color="error"
-                        class="remove-btn"
-                        @click="removeFileById(file.id)"
-                      />
+                      <img :src="file.preview || file.url" :alt="file.name" class="thumbnail-image" />
+                      <v-btn icon="mdi-close" size="small" color="error" class="remove-btn"
+                        @click="removeFileById(file.id)" />
                     </div>
 
                     <div v-else class="file-icon-preview">
@@ -935,33 +508,18 @@
                       <a :href="file.url" target="_blank" class="file-name-link">
                         <div class="file-name">{{ file.name }}</div>
                       </a>
-                      <v-btn
-                        icon="mdi-close"
-                        size="small"
-                        color="error"
-                        class="remove-btn"
-                        @click="removeFileById(file.id)"
-                      />
+                      <v-btn icon="mdi-close" size="small" color="error" class="remove-btn"
+                        @click="removeFileById(file.id)" />
                     </div>
                   </div>
                 </div>
               </div>
             </v-sheet>
           </div>
-          <div
-            class="text-center mb-4 d-flex ga-2 justify-center"
-            v-if="form.projectType || isEdit"
-          >
-            <v-btn
-              color="red darken-2"
-              type="submit"
-              size="large"
-              class="px-10 py-4 text-white font-weight-bold"
-              :loading="isSubmitting"
-              :disabled="isSubmitting || shouldDisableField('submitbutton')"
-              @click="handleSubmit"
-              name="submitbutton"
-            >
+          <div class="text-center mb-4 d-flex ga-2 justify-center" v-if="form.projectType || isEdit">
+            <v-btn color="red darken-2" type="submit" size="large" class="px-10 py-4 text-white font-weight-bold"
+              :loading="isSubmitting" :disabled="isSubmitting || shouldDisableField('submitbutton')"
+              @click="handleSubmit" name="submitbutton">
               {{
                 isSubmitting
                   ? isEdit
@@ -972,34 +530,16 @@
                     : 'Submit Project'
               }}
             </v-btn>
-            <v-btn
-              v-if="errorMessage || successMessage"
-              color="primary"
-              type="submit"
-              size="large"
-              class="px-10 py-4 text-white font-weight-bold"
-              @click="goToDashboard"
-            >
+            <v-btn v-if="errorMessage || successMessage" color="primary" type="submit" size="large"
+              class="px-10 py-4 text-white font-weight-bold" @click="goToDashboard">
               Back to Dashboard
             </v-btn>
           </div>
 
-          <v-alert
-            v-if="errorMessage"
-            name="project-error"
-            type="error"
-            variant="tonal"
-            class="mt-4"
-            >{{ errorMessage }}</v-alert
-          >
-          <v-alert
-            v-if="successMessage"
-            name="project-success"
-            type="success"
-            variant="tonal"
-            class="mt-4"
-            >{{ successMessage }}</v-alert
-          >
+          <v-alert v-if="errorMessage" name="project-error" type="error" variant="tonal" class="mt-4">{{ errorMessage
+            }}</v-alert>
+          <v-alert v-if="successMessage" name="project-success" type="success" variant="tonal" class="mt-4">{{
+            successMessage }}</v-alert>
         </v-card>
       </v-col>
     </v-row>
@@ -1504,7 +1044,7 @@ async function handleSubmitPaperCopy() {
   paperFormData.projectType = form.projectType
   paperFormData.status = ''
   paperFormData.projectId = generateShortId('pc_')
-  paperFormData.projectSubType = 'paperCopyRequest'
+  paperFormData.projectSubtype = 'paperCopyRequest'
   paperFormData.projectType = 'paperCopy'
   paperFormData.orderDate = new Date().toISOString()
 
@@ -1903,11 +1443,13 @@ watch(
   min-height: 100vh;
   background: linear-gradient(135deg, #e8eafc 0%, #fbe9e7 100%);
 }
+
 .main-form-card {
   background: #f9f5f5;
   border-radius: 18px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
 }
+
 .header-bar {
   background: #fff;
   border-top-left-radius: 18px;
@@ -1915,17 +1457,20 @@ watch(
   border-bottom: 1.5px solid #f2caca;
   min-height: 150px;
 }
+
 .form-title {
   font-size: 1.5rem;
   font-weight: 700;
   color: #222;
   letter-spacing: 0.5px;
 }
+
 .main-form-section {
   background: #fff6f6;
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 18px;
 }
+
 .form-section-title {
   font-size: 1.15rem;
   font-weight: 700;
@@ -1933,16 +1478,19 @@ watch(
   margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
+
 .section-note {
   font-size: 0.95rem;
   color: #222;
   font-weight: 400;
   margin-left: 8px;
 }
+
 .status-select {
   min-width: 200px;
   max-width: 300px;
 }
+
 .scope-table-wrapper {
   background: #fff;
   border-radius: 10px;
@@ -1951,6 +1499,7 @@ watch(
   overflow-x: auto;
   margin-bottom: 2px;
 }
+
 .scope-table-v2 {
   width: 100%;
   border-collapse: separate;
@@ -1983,6 +1532,7 @@ watch(
 .scope-table-v2 td:nth-child(5) {
   width: 25%;
 }
+
 .scope-table-v2 th.scope-header {
   background: #ffeaea;
   color: #b62025;
@@ -1992,6 +1542,7 @@ watch(
   padding: 10px 8px;
   border-bottom: 2px solid #f2caca;
 }
+
 .scope-table-v2 th.scope-label {
   background: #fff6f6;
   color: #b62025;
@@ -2002,6 +1553,7 @@ watch(
   border-right: 1.5px solid #f2caca;
   min-width: 120px;
 }
+
 .scope-table-v2 td {
   background: #fff;
   padding: 6px 8px;
@@ -2009,12 +1561,15 @@ watch(
   border-bottom: 1px solid #f2caca;
   margin-bottom: 2px;
 }
+
 .scope-table-v2 tr:last-child td {
   border-bottom: 0;
 }
+
 .scope-input {
   margin-bottom: 0;
 }
+
 .upload-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -2034,6 +1589,7 @@ watch(
   top: 50%;
   transform: translateY(-50%);
 }
+
 .page-section {
   background: #fafafa;
   border-radius: 8px;
@@ -2041,6 +1597,7 @@ watch(
   padding: 16px;
   margin: 16px;
 }
+
 .section-header {
   font-size: 1.25rem;
   font-weight: 700;
@@ -2048,18 +1605,22 @@ watch(
   letter-spacing: 0.5px;
   margin-bottom: 16px;
 }
+
 .overhang-row {
   flex-wrap: nowrap !important;
   width: 100%;
 }
+
 .overhang-row-cell {
   min-width: 600px;
   padding-left: 16px;
   padding-right: 16px;
 }
+
 .overhang-radio-group .v-selection-control {
   margin-right: 32px !important;
 }
+
 .fake-table-row {
   display: flex;
   align-items: center;
@@ -2071,6 +1632,7 @@ watch(
   border-radius: 10px;
   min-height: 64px;
 }
+
 .scope-label.overhang-label {
   width: 19%;
   font-weight: 600;
@@ -2081,12 +1643,14 @@ watch(
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
 }
+
 .overhang-controls {
   width: 80%;
   padding-left: 16px;
   display: flex;
   align-items: center;
 }
+
 .addons-table-wrapper {
   background: #fff;
   border-radius: 10px;
@@ -2094,11 +1658,13 @@ watch(
   padding: 0;
   overflow-x: auto;
 }
+
 .addons-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
+
 .addons-table th.addons-header {
   background: #ffeaea;
   color: #b62025;
@@ -2108,6 +1674,7 @@ watch(
   padding: 10px 8px;
   border-bottom: 2px solid #f2caca;
 }
+
 .addons-table th.addons-label {
   background: #fff6f6;
   color: #b62025;
@@ -2119,6 +1686,7 @@ watch(
   min-width: 120px;
   vertical-align: top;
 }
+
 .addons-table td.addons-cell {
   background: #fff;
   padding: 8px;
@@ -2126,26 +1694,31 @@ watch(
   border-bottom: 1px solid #f2caca;
   vertical-align: top;
 }
+
 .addons-inputs {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 .na-text {
   color: #666;
   font-style: italic;
   text-align: center;
   padding: 8px;
 }
+
 .slab-section {
   margin: 8px 0;
 }
+
 .slab-label {
   font-size: 0.9rem;
   font-weight: 600;
   color: #b62025;
   margin-bottom: 4px;
 }
+
 .section-divider {
   border: none;
   border-top: 1px solid #f2caca;
@@ -2251,6 +1824,7 @@ watch(
   opacity: 0.7 !important;
   -webkit-text-fill-color: #212529 !important;
 }
+
 /* Size Input Container Styles */
 .sow-input-container {
   display: flex;
