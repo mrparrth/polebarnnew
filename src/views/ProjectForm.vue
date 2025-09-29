@@ -402,17 +402,20 @@
                             activeColumns[column.key] ? "'" : ''
                           }}</span>
                         </div>
-
-                        <div
+                        <v-select
                           v-else-if="row.key === 'PostSize'"
-                          class="sow-input-container"
-                          tabindex="0"
+                          v-model="form[`${column.key}${row.key}`]"
                           :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
-                          @click="focusFirstInput('postSize', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
+                          :items="['6x6', '8x8', 'Custom']"
+                          variant="outlined"
+                          density="compact"
+                          class="sow-select"
+                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
+                          hide-details
+                          clearable
+                        />
+
+                        <!-- <input
                             v-model="postSizeInputs[`${column.key}${row.key}`].l"
                             :name="`postSize-${column.key}${row.key}-l`"
                             type="number"
@@ -436,8 +439,7 @@
                             inputmode="numeric"
                             :disabled="shouldDisableField(`${column.key}${row.key}`)"
                             @click.stop
-                          />
-                        </div>
+                          /> -->
 
                         <div
                           v-else-if="row.key === 'MainBldgPitch'"
@@ -1006,6 +1008,27 @@
       </v-col>
     </v-row>
   </v-container>
+  <v-dialog v-model="showCustomPostSizeDialog" max-width="500">
+    <v-card>
+      <v-card-title>
+        <v-icon color="primary">mdi-information</v-icon>
+        Custom Post Size
+      </v-card-title>
+
+      <v-card-text>
+        <div class="d-flex align-center mb-2">
+          {{ wasTypicalOpbOnly ? '1. ' : '' }}Do mention the size in the additional information
+          field
+        </div>
+        <div class="d-flex align-center" v-if="wasTypicalOpbOnly">
+          2. The project type is changed to Custom Pole Barn
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="showCustomPostSizeDialog = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -1031,7 +1054,8 @@ const fieldErrors = ref({})
 const isSubmitting = ref(false)
 const files = ref([])
 const requiredFields = ref(['clientName', 'siteAddress', 'city', 'state', 'zip'])
-const projectNameError = ref('')
+const showCustomPostSizeDialog = ref(false)
+const wasTypicalOpbOnly = ref(false)
 
 const form = reactive({ ...BLANK_FORM_DATA })
 
@@ -1586,15 +1610,6 @@ function parsePostSpacing(val) {
   return { value: '' }
 }
 
-function parsePostSize(val) {
-  if (!val) return { l: '', w: '' }
-  const match = val.match(/(\d+)\s*[xX*]\s*(\d+)/)
-  if (match) {
-    return { l: match[1], w: match[2] }
-  }
-  return { l: '', w: '' }
-}
-
 function parseMainBldgPitch(val) {
   if (!val) return { value: '' }
   const match = val.match(/(\d+)\s*\/\s*12/)
@@ -1704,13 +1719,13 @@ function loadProjectData() {
 }
 
 const sizeFields = ['opbSize', 'epbSize', 'pepbSize', 'trussSize']
+const postSizeFields = ['opbPostSize', 'epbPostSize', 'pepbPostSize', 'trussPostSize']
 const postSpacingFields = [
   'opbPostSpacing',
   'epbPostSpacing',
   'pepbPostSpacing',
   'trussPostSpacing',
 ]
-const postSizeFields = ['opbPostSize', 'epbPostSize', 'pepbPostSize', 'trussPostSize']
 const mainBldgPitchFields = [
   'opbMainBldgPitch',
   'epbMainBldgPitch',
@@ -1761,29 +1776,6 @@ postSpacingFields.forEach((field) => {
     (newVal) => {
       const { value } = parsePostSpacing(newVal)
       postSpacingInputs[field].value = value
-    },
-    { immediate: true },
-  )
-})
-
-postSizeFields.forEach((field) => {
-  watch(
-    () => postSizeInputs[field],
-    (newVal) => {
-      const { l, w } = newVal
-      if (l && w) {
-        form[field] = `${l}x${w}`
-      }
-    },
-    { deep: true },
-  )
-
-  watch(
-    () => form[field],
-    (newVal) => {
-      const { l, w } = parsePostSize(newVal)
-      postSizeInputs[field].l = l
-      postSizeInputs[field].w = w
     },
     { immediate: true },
   )
@@ -1898,6 +1890,23 @@ watch(
     }
   },
 )
+
+postSizeFields.forEach((field) => {
+  watch(
+    () => form[field],
+    () => {
+      if (form[field].toLowerCase() === 'custom') {
+        showCustomPostSizeDialog.value = true
+        if (form.projectType !== 'customPoleBarn') {
+          form.projectType = 'customPoleBarn'
+          wasTypicalOpbOnly.value = true
+        } else {
+          wasTypicalOpbOnly.value = false
+        }
+      }
+    },
+  )
+})
 </script>
 
 <style scoped>
@@ -2326,6 +2335,15 @@ watch(
   color: rgba(0, 0, 0, 0.87);
   font-family: inherit;
   line-height: 1.5;
+}
+
+.sow-select {
+  height: 55px;
+  width: 100%;
+}
+
+.sow-select :deep(.v-field__input) {
+  height: 100%;
 }
 
 .sow-input::placeholder {

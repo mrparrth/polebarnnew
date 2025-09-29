@@ -75,11 +75,11 @@ export const BLANK_FORM_DATA = {
   state: '',
   country: '',
   zip: '',
-  projectType: '',
+  projectType: '', //typicalOpbOnly
   projectSubtype: '',
   opbSize: '',
   opbPostSpacing: '',
-  opbPostSize: '',
+  opbPostSize: '', //8x8
   opbMainBldgPitch: '',
   opbMetalRoofPanelGauge: '',
   opbConnectSlab: '',
