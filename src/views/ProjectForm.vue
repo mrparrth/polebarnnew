@@ -1848,7 +1848,7 @@ postSizeFields.forEach((field) => {
   watch(
     () => form[field],
     () => {
-      if (form[field].toLowerCase() === 'custom') {
+      if (form[field]?.toLowerCase() === 'custom') {
         showCustomPostSizeDialog.value = true
         if (form.projectType !== 'customPoleBarn') {
           nextTick(() => {
