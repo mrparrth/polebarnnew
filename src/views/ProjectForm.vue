@@ -411,35 +411,10 @@
                           density="compact"
                           class="sow-select"
                           :disabled="shouldDisableField(`${column.key}${row.key}`)"
+                          :error="!!fieldErrors[`${column.key}${row.key}`]"
                           hide-details
                           clearable
                         />
-
-                        <!-- <input
-                            v-model="postSizeInputs[`${column.key}${row.key}`].l"
-                            :name="`postSize-${column.key}${row.key}-l`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'L' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
-                          <span class="sow-separator">{{
-                            activeColumns[column.key] ? 'x' : ''
-                          }}</span>
-                          <input
-                            v-model="postSizeInputs[`${column.key}${row.key}`].w"
-                            :name="`postSize-${column.key}${row.key}-w`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'W' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          /> -->
 
                         <div
                           v-else-if="row.key === 'MainBldgPitch'"
@@ -1177,10 +1152,10 @@ const scopeOfWorkRows = [
 ]
 
 const sizeInputs = reactive({
-  opbSize: { l: '', w: '', h: '' },
-  epbSize: { l: '', w: '', h: '' },
-  pepbSize: { l: '', w: '', h: '' },
-  trussSize: { l: '', w: '', h: '' },
+  opbSize: { w: '', l: '', h: '' },
+  epbSize: { w: '', l: '', h: '' },
+  pepbSize: { w: '', l: '', h: '' },
+  trussSize: { w: '', l: '', h: '' },
 })
 
 const postSpacingInputs = reactive({
@@ -1188,13 +1163,6 @@ const postSpacingInputs = reactive({
   epbPostSpacing: { value: '' },
   pepbPostSpacing: { value: '' },
   trussPostSpacing: { value: '' },
-})
-
-const postSizeInputs = reactive({
-  opbPostSize: { l: '', w: '' },
-  epbPostSize: { l: '', w: '' },
-  pepbPostSize: { l: '', w: '' },
-  trussPostSize: { l: '', w: '' },
 })
 
 const mainBldgPitchInputs = reactive({
@@ -1345,13 +1313,6 @@ function validateScopeOfWork() {
             break
           }
         }
-        if (field === 'PostSize') {
-          let colPostSize = postSizeInputs[column + 'PostSize']
-          if (colPostSize.l || colPostSize.w) {
-            columnHasValue = true
-            break
-          }
-        }
       }
 
       if (columnHasValue) {
@@ -1365,14 +1326,6 @@ function validateScopeOfWork() {
           if (field === 'Size') {
             let colSize = sizeInputs[column + 'Size']
             if (!colSize.l || !colSize.w || !colSize.h) {
-              fieldErrors.value[fieldName] = 'This field is required'
-              hasErrors = true
-            }
-          }
-
-          if (field === 'PostSize') {
-            let colPostSize = postSizeInputs[column + 'PostSize']
-            if (!colPostSize.l || !colPostSize.w) {
               fieldErrors.value[fieldName] = 'This field is required'
               hasErrors = true
             }
@@ -1592,13 +1545,13 @@ function scrollToFirstError() {
   }
 }
 
-function parseLWH(val) {
-  if (!val) return { l: '', w: '', h: '' }
+function parseWLH(val) {
+  if (!val) return { w: '', l: '', h: '' }
   const match = val.match(/(\d+)\s*[xX*]\s*(\d+)\s*[xX*]\s*(\d+)/)
   if (match) {
-    return { l: match[1], w: match[2], h: match[3] }
+    return { w: match[1], l: match[2], h: match[3] }
   }
-  return { l: '', w: '', h: '' }
+  return { w: '', l: '', h: '' }
 }
 
 function parsePostSpacing(val) {
@@ -1667,7 +1620,6 @@ function loadProjectData() {
     let editingProject = editingProjectId
       ? projectStore.projects.find((project) => project.data.projectId === editingProjectId)
       : null
-
     const projectInfo = startingProject || editingProject
     if (!projectInfo) {
       errorMessage.value = `Project ${startingProjectId || editingProjectId} not found`
@@ -1686,7 +1638,6 @@ function loadProjectData() {
           }
         })
         Object.assign(form, editProject)
-
         existingImages.value = editProject.existingImages
         uploadedFiles.value = []
         if (Array.isArray(editProject.existingImages)) {
@@ -1702,6 +1653,8 @@ function loadProjectData() {
             })
           })
         }
+        console.info('editProject', editProject)
+        console.info('form', form)
       } catch (error) {
         console.error('Error populating form data:', error)
         errorMessage.value = 'Error loading project data'
@@ -1737,9 +1690,9 @@ sizeFields.forEach((field) => {
   watch(
     () => sizeInputs[field],
     (newVal) => {
-      const { l, w, h } = newVal
-      if (l && w && h) {
-        form[field] = `${l}x${w}x${h}`
+      const { w, l, h } = newVal
+      if (w && l && h) {
+        form[field] = `${w}x${l}x${h}`
       }
     },
     { deep: true },
@@ -1748,9 +1701,9 @@ sizeFields.forEach((field) => {
   watch(
     () => form[field],
     (newVal) => {
-      const { l, w, h } = parseLWH(newVal)
-      sizeInputs[field].l = l
+      const { w, l, h } = parseWLH(newVal)
       sizeInputs[field].w = w
+      sizeInputs[field].l = l
       sizeInputs[field].h = h
     },
     { immediate: true },
@@ -1898,8 +1851,10 @@ postSizeFields.forEach((field) => {
       if (form[field].toLowerCase() === 'custom') {
         showCustomPostSizeDialog.value = true
         if (form.projectType !== 'customPoleBarn') {
-          form.projectType = 'customPoleBarn'
-          wasTypicalOpbOnly.value = true
+          nextTick(() => {
+            form.projectType = 'customPoleBarn'
+            wasTypicalOpbOnly.value = true
+          })
         } else {
           wasTypicalOpbOnly.value = false
         }
