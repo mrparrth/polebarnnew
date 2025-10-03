@@ -162,13 +162,16 @@ function generatePresentation(projectData) {
   }
 
   let [measure1, measure2, measure3] = opbSize.toLowerCase().split('x')
-  let numMeasure1 = Number(measure1)
-  let numMeasure2 = Number(measure2)
-  let numMeasure3 = Number(measure3)
+  // let numMeasure1 = Number(measure1)
+  // let numMeasure2 = Number(measure2)
+  // let numMeasure3 = Number(measure3)
 
-  let length = Math.max(numMeasure1, numMeasure2, numMeasure3)
-  let height = Math.min(numMeasure1, numMeasure2, numMeasure3)
-  let width = numMeasure1 + numMeasure2 + numMeasure3 - length - height
+  // let length = Math.max(numMeasure1, numMeasure2, numMeasure3)
+  // let height = Math.min(numMeasure1, numMeasure2, numMeasure3)
+  // let width = numMeasure1 + numMeasure2 + numMeasure3 - length - height
+  let width = measure1
+  let length = measure2
+  let height = measure3
 
   let lock = LockService.getScriptLock()
   let rawData
@@ -233,11 +236,13 @@ function generatePresentation(projectData) {
     errors.push(`There is no truss data for width : ${width}`)
   }
 
-  //TODO: This is a temporary fix to ensure the post size is not too small for the width
   let chartData = _getChartData_(windSpeed, exposureCategory, width, height)
-  let chartPostSize = chartData.postSize.split('x')
-  let maxPostSize = Math.max(parseInt(chartPostSize[0]), parseInt(opbPostSize.split('x')[0]))
-  chartData.postSize = `${maxPostSize}x${maxPostSize}`
+  //This part is not needed anymore.
+  //This was a temporary fix to ensure the post size is not too small for the width
+
+  // let chartPostSize = chartData.postSize.split('x')
+  // let maxPostSize = Math.max(parseInt(chartPostSize[0]), parseInt(opbPostSize.split('x')[0]))
+  // chartData.postSize = `${maxPostSize}x${maxPostSize}`
   if (Object.keys(chartData).length == 0) {
     errors.push(
       `There is no chart data for Wind Speed - ${windSpeed}, Exposure ${exposureCategory}, Width - ${width}, Height - ${height}`,
