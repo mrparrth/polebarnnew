@@ -1,7 +1,10 @@
-function testLogin() {
-  let authApp = new Auth()
-  let test = authApp.login({ token: 'mdkbv1by.al' })
-  debugger
+function testPdfGen() {
+  let rootFolder = DriveApp.getFolderById('1JsvErbd5LAb4qakBbzFUDNCzl4dBDQE3')
+  let folder = _getOrCreateFolder_(['InReview'], rootFolder.getId())
+  console.log(folder.getUrl())
+  let data = JSON.parse(new testApp().opbProjectData)
+  let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
+  console.log({ pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated })
 }
 
 function testPaperCopyProject() {

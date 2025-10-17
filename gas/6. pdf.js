@@ -252,7 +252,7 @@ function generatePresentation(projectData) {
   let allData = { ...projectData, ...flatData, ...trussData, ...chartData }
   allData.date = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy')
 
-  let presOPB = _createNewSlideFromTemplate_(allData.clientName, allData.projectName)
+  let presOPB = _createNewSlideFromTemplate_(allData)
   let slides = presOPB.getSlides()
 
   for (let slideNo = 0; slideNo < slides.length; slideNo++) {
@@ -270,7 +270,7 @@ function generatePresentation(projectData) {
   let outputFolder
   if (projectData.driveFolder) {
     let rootFolder = DriveApp.getFolderById(_getIdFromUrl_(projectData.driveFolder))
-    outputFolder = rootFolder.createFolder('InReview')
+    outputFolder = _getOrCreateFolder_(['For Review'], rootFolder.getId())
   } else {
     outputFolder = DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder))
   }
@@ -381,12 +381,14 @@ function _extractMergeFieldsFromRange_(textRange) {
   return mergeFields.map((mergeField) => mergeField.substring(2, mergeField.length - 2))
 }
 
-function _createNewSlideFromTemplate_(clientName, projectName) {
+function _createNewSlideFromTemplate_({ clientName, projectId }) {
   this.settings = _getSettings_()
+
   // return SlidesApp.openByUrl(`https://docs.google.com/presentation/d/1SkOoKng6CVNzzTCyMILGNIBfojG7qvP-Vzf09YgXOjA/edit`)
   let outputFolder = DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder))
 
-  let documentName = `${clientName} - ${projectName}}`
+  let dateString = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy MM dd')
+  let documentName = `11 x 17_${dateString}_${projectId}_${clientName}`
   let documentTemplate = DriveApp.getFileById(_getIdFromUrl_(this.settings.windCalcSlide))
 
   let document = documentTemplate.makeCopy()
