@@ -329,6 +329,12 @@ class App {
       newData[property] = projectUpdates[property]
     }
 
+    let diff = _findDifferences_(newData, oldData)
+    if (diff.length > 0)
+      this.ss
+        .getSheetById(722146995)
+        .appendRow([time, userInfo.user.email, newData.projectId, diff.join('\n')])
+
     //Send email
     if (projectUpdates.status && currentProject.status !== projectUpdates.status) {
       projectUpdates.oldStatus = currentProject.status
@@ -646,73 +652,91 @@ class App {
 
     let dataRow = data.find((dr) => dr._row_ == activeRow)?.data
     if (!dataRow) return
-    let { pdfUrl, slideUrl, errors } = generatePresentation(dataRow)
+    let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(dataRow)
 
-    if (pdfUrl) {
-      const subject = `PDF Generated - ${dataRow.projectId} - ${dataRow.projectName}`
-
-      const htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
-            PDF Generated Successfully
-          </h2>
-
-          <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            Hello,
-          </p>
-
-          <p style="font-size: 16px; line-height: 1.6; color: #555;">
-            PDF has been generated for <strong>${dataRow.projectId}</strong> - <strong>${dataRow.projectName}</strong>
-          </p>
-
-          <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
-            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Presentation URL:</p>
-            <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
-              ${pdfUrl}
-            </a>
-            <p></p>
-            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Slide URL (In case you want to make changes):</p>
-            <a href="${slideUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
-              ${slideUrl}
-            </a>
-          </div>
-
-          ${
-            errors && errors.length > 0
-              ? `
-          <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
-            <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
-              ⚠️ Errors Encountered:
-            </p>
-            <ul style="margin: 0; padding-left: 20px; color: #721c24;">
-              ${errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
-            </ul>
-          </div>
-          `
-              : ''
-          }
-
-          <p style="font-size: 14px; color: #666; margin-top: 30px;">
-            Pole Barn Report Generator Bot
-          </p>
-        </div>
-      `
-
-      // Send email
-      GmailApp.sendEmail(
-        this.settings.testMode ? 'iamparrth@gmail.com' : this.settings.presentationEmail,
-        subject,
-        htmlBody,
-        {
-          htmlBody: htmlBody,
-          name: this.settings.emailAliasName,
-        },
-      )
-
-      _openLink_(pdfUrl)
+    if (isFileCreated) {
+      data.pdfUrl = pdfUrl
+    } else {
+      data.pdfUrl = ''
     }
 
-    if (errors) this.ss.toast(`${errors.join('|')}`)
+    if (isOpenPoleBarn && (!isFileCreated || errors.length > 0)) {
+      this.emailApp.sendNoPresentationEmail({ data, pdfUrl, slideUrl, errors })
+      throw `Some error occured while creating the pdf. Do check you email for more details.`
+    } else if (isFileCreated) {
+      if (dataRow.status !== 'For Review by BW') {
+        dataRow.status = 'For Review by BW'
+        this.shSubmission.getRange(activeRow, 4).setValue(JSON.stringify(dataRow))
+        this.shSubmission.getRange(activeRow, 6).setValue('For Review by BW')
+      }
+
+      this.emailApp.sendStatusChangeEmail('', 'For Review by BW', dataRow)
+    }
+
+    // if (pdfUrl) {
+    //   const subject = `PDF Generated - ${dataRow.projectId} - ${dataRow.projectName}`
+
+    //   const htmlBody = `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    //       <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+    //         PDF Generated Successfully
+    //       </h2>
+
+    //       <p style="font-size: 16px; line-height: 1.6; color: #555;">
+    //         Hello,
+    //       </p>
+
+    //       <p style="font-size: 16px; line-height: 1.6; color: #555;">
+    //         PDF has been generated for <strong>${dataRow.projectId}</strong> - <strong>${dataRow.projectName}</strong>
+    //       </p>
+
+    //       <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
+    //         <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Presentation URL:</p>
+    //         <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
+    //           ${pdfUrl}
+    //         </a>
+    //         <p></p>
+    //         <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Slide URL (In case you want to make changes):</p>
+    //         <a href="${slideUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
+    //           ${slideUrl}
+    //         </a>
+    //       </div>
+
+    //       ${errors && errors.length > 0
+    //       ? `
+    //       <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
+    //         <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
+    //           ⚠️ Errors Encountered:
+    //         </p>
+    //         <ul style="margin: 0; padding-left: 20px; color: #721c24;">
+    //           ${errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
+    //         </ul>
+    //       </div>
+    //       `
+    //       : ''
+    //     }
+
+    //       <p style="font-size: 14px; color: #666; margin-top: 30px;">
+    //         Pole Barn Report Generator Bot
+    //       </p>
+    //     </div>
+    //   `
+
+    //   // Send email
+    //   GmailApp.sendEmail(
+    //     this.settings.testMode ? 'iamparrth@gmail.com' : this.settings.presentationEmail,
+    //     subject,
+    //     htmlBody,
+    //     {
+    //       htmlBody: htmlBody,
+    //       name: this.settings.emailAliasName,
+    //     },
+    //   )
+
+    //   _openLink_(pdfUrl)
+    // }
+
+    // if (errors) this.ss.toast(`${errors.join('|')}`)
   }
 }
 

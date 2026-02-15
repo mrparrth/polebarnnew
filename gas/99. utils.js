@@ -787,3 +787,101 @@ function _getIdFromUrl_(url) {
 function include(filename) {
   return HtmlService.createTemplateFromFile(filename).evaluate().getContent()
 }
+
+function _findDifferences_(newObj, oldObj, indent = '') {
+  const changes = []
+  const ignoredKeys = ['id', 'dateCreated', 'dateModified', 'modifiedBy', 'createdBy', 'projectId']
+
+  const getLabel = (item) => item.name || item.title || item.code || item.id || 'Item'
+  const getId = (item) => item.id || JSON.stringify(item)
+
+  Object.keys(newObj).forEach((key) => {
+    if (ignoredKeys.includes(key)) return
+
+    const newValue = newObj[key]
+    const oldValue = oldObj ? oldObj[key] : undefined
+
+    // Skip if both are undefined/null
+    if (newValue === undefined && oldValue === undefined) return
+
+    // 1. Array Comparison
+    if (Array.isArray(newValue) && Array.isArray(oldValue)) {
+      const oldMap = new Map()
+      oldValue.forEach((i) => oldMap.set(getId(i), i))
+      const newMap = new Map()
+      newValue.forEach((i) => newMap.set(getId(i), i))
+
+      const added = []
+      const modified = []
+
+      newValue.forEach((newItem) => {
+        const id = getId(newItem)
+        if (!oldMap.has(id)) {
+          added.push(newItem)
+        } else {
+          // Check modification
+          const oldItem = oldMap.get(id)
+          if (JSON.stringify(oldItem) !== JSON.stringify(newItem)) {
+            if (typeof newItem === 'object' && newItem !== null) {
+              const itemDiffs = _findDifferences_(newItem, oldItem, '  ')
+              if (itemDiffs.length > 0) {
+                modified.push({ item: newItem, diffs: itemDiffs })
+              }
+            } else if (newItem !== oldItem) {
+              // Primitive array item changed (unlikely with ID mapping but possible if ID collision/fallback)
+              modified.push({
+                item: newItem,
+                diffs: [`${oldItem} → ${newItem}`],
+              })
+            }
+          }
+        }
+      })
+
+      const removed = oldValue.filter((i) => !newMap.has(getId(i)))
+
+      if (added.length > 0) {
+        changes.push(
+          `${indent}${key}: ${added.length} new item(s) added (${added.map(getLabel).join(', ')})`,
+        )
+      }
+      if (removed.length > 0) {
+        changes.push(
+          `${indent}${key}: ${removed.length} item(s) removed (${removed
+            .map(getLabel)
+            .join(', ')})`,
+        )
+      }
+      if (modified.length > 0) {
+        changes.push(`${indent}${key}: ${modified.length} item(s) modified`)
+        modified.forEach((mod) => {
+          mod.diffs.forEach((d) => changes.push(`${indent}  - [${getLabel(mod.item)}] ${d.trim()}`))
+        })
+      }
+    }
+    // 2. Object Comparison (Recursive)
+    else if (
+      typeof newValue === 'object' &&
+      newValue !== null &&
+      typeof oldValue === 'object' &&
+      oldValue !== null
+    ) {
+      const nestedDiffs = _findDifferences_(newValue, oldValue, '')
+      if (nestedDiffs.length > 0) {
+        changes.push(`${indent}${key}: updated details:`)
+        nestedDiffs.forEach((d) => changes.push(`${indent}  ${d}`))
+      }
+    }
+    // 3. Primitive Comparison
+    else {
+      // Treat null/undefined loosely equality checks if needed, but strict is usually better for diffs.
+      // However, formatting might differ.
+      if (newValue !== oldValue) {
+        // Check if it looks like a formatted modification string already (from recursion)? No.
+        changes.push(`${indent}${key}: ${oldValue} → ${newValue}`)
+      }
+    }
+  })
+
+  return changes
+}
