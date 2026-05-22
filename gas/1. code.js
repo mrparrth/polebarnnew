@@ -276,6 +276,9 @@ class App {
       readyToBePaid: false,
       isManual: false,
       billingItems: [],
+      projectType: 'Pole Barn',
+      createdBy: 'Polebarn System',
+      createdDate: new Date().toISOString(),
     }
 
     let ssTracker
@@ -673,6 +676,7 @@ class App {
       this.emailApp.sendStatusChangeEmail('', 'For Review by BW', dataRow)
     }
 
+
     // if (pdfUrl) {
     //   const subject = `PDF Generated - ${dataRow.projectId} - ${dataRow.projectName}`
 
@@ -771,36 +775,33 @@ class EmailApp {
               ❌ Errors Encountered:
             </p>
             <ul style="margin: 0; padding-left: 20px; color: #721c24;">
-              ${
-                errors && errors.length > 0
-                  ? errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')
-                  : '<li style="margin-bottom: 5px;">Unknown error occurred during PDF generation</li>'
-              }
+              ${errors && errors.length > 0
+        ? errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')
+        : '<li style="margin-bottom: 5px;">Unknown error occurred during PDF generation</li>'
+      }
             </ul>
           </div>
 
-          ${
-            pdfUrl
-              ? `
+          ${pdfUrl
+        ? `
           <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">PDF URL:</p>
             <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
               ${pdfUrl}
             </a>
           </p>`
-              : ''
-          }
+        : ''
+      }
 
-          ${
-            slideUrl
-              ? `
+          ${slideUrl
+        ? `
           <p>
             <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Slide URL (In case you want to make changes):</p>
             <a href="${slideUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
               ${slideUrl}
             </a>
           </p>`
-              : ''
-          }
+        : ''
+      }
 
           <p style="font-size: 14px; color: #666; margin-top: 30px;">
             Pole Barn Report Generator Bot
@@ -849,9 +850,8 @@ class EmailApp {
             </a>
           </div>
 
-          ${
-            errors && errors.length > 0
-              ? `
+          ${errors && errors.length > 0
+        ? `
           <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
               ⚠️ Errors Encountered:
@@ -861,8 +861,8 @@ class EmailApp {
             </ul>
           </div>
           `
-              : ''
-          }
+        : ''
+      }
 
           <p style="font-size: 14px; color: #666; margin-top: 30px;">
             Pole Barn Report Generator Bot
@@ -943,13 +943,12 @@ class EmailApp {
         `Hello,
 
         Project ${projectData.projectId} has been completed and is READY FOR BW REVIEW.
-        ${
-          projectData.pdfUrl
-            ? `
+        ${projectData.pdfUrl
+          ? `
         Please review the document:
             ${projectData.pdfUrl}
           `
-            : ''
+          : ''
         }
         Project Tracker Dashboard:
             ${this.settings.appUrl}?startingProjectId=${projectData.projectId}`,

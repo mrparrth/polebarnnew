@@ -20,11 +20,11 @@ function testPaperCopyProject() {
 }
 
 function testUpdateProject() {
-  let data = JSON.parse(new testApp().opbProjectData)
+  let data = { "projectId": "450.981", "riskCategory": "2", city:'test2jan14' }
 
-  let token = 'mdkbv1by.al'
-  newProject({ data, token })
-  // updateProject({ data, token: 'mdkbv1by.al' })
+  let token = 'mjcwc1gn.pr'
+  // newProject({ data, token })
+  updateProject({ data, token })
 }
 
 function testFieldChangeEmail() {
