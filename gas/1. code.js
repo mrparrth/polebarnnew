@@ -7,6 +7,8 @@ const newPaperCopyProject = (payload) => new App().newPaperCopyProject(payload)
 const updatePaperCopyStock = (payload) => new App().updatePaperCopyStock(payload)
 const orderPaperCopy = (payload) => new App().orderPaperCopy(payload)
 const generatePdfForRow = (payload) => new App().generatePdfForRow(payload)
+const getProjectHistory = (payload) => new App().getProjectHistory(payload)
+const generatePdfForProject = (payload) => new App().generatePdfForProject(payload)
 
 const autoArchiveProjects = (payload) => new App().autoArchiveProjects(payload)
 const getSubmissionData = (payload) => new App().getSubmissionData(payload)
@@ -398,6 +400,73 @@ class App {
     }
   }
 
+  getProjectHistory({ data: { projectId }, token }) {
+    let userInfo = this.authApp.login({ token })
+    if (!userInfo.user) throw 'Invalid login. Please login again and try'
+
+    let sheet = this.ss.getSheetById(722146995)
+    if (!sheet) return []
+    let lastRow = _getColLastRow_(sheet)
+    if (lastRow < 1) return []
+    let values = sheet.getRange(1, 1, lastRow, 4).getValues()
+
+    let history = []
+    let startIdx = 0
+    if (
+      values.length > 0 &&
+      (values[0][0] === 'Timestamp' || values[0][0] === 'Time' || values[0][0] === 'time')
+    ) {
+      startIdx = 1
+    }
+
+    for (let i = startIdx; i < values.length; i++) {
+      let [time, email, pId, diff] = values[i]
+      if (pId == projectId) {
+        history.push({
+          time: time instanceof Date ? time.toISOString() : time,
+          email: email,
+          projectId: pId,
+          diff: diff,
+        })
+      }
+    }
+    history.sort((a, b) => new Date(b.time) - new Date(a.time))
+    return history
+  }
+
+  generatePdfForProject({ data: { projectId }, token }) {
+    let userInfo = this.authApp.login({ token })
+    if (!userInfo.user) throw 'Invalid login. Please login again and try'
+
+    if (!['Admin', 'Employee'].includes(userInfo.user.type)) {
+      throw 'Unauthorized: Only Admins and Employees can generate PDF'
+    }
+
+    let allData = _getSheetValuesAsJson_(this.shSubmission)
+    let projectRow = allData.find((row) => row.projectId == projectId)
+    if (!projectRow) throw 'Project not found'
+
+    let dataRow = projectRow.data
+    let activeRow = projectRow._row_
+
+    let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(dataRow)
+
+    if (isFileCreated) {
+      dataRow.pdfUrl = pdfUrl
+    } else {
+      dataRow.pdfUrl = ''
+    }
+
+    this.shSubmission.getRange(activeRow, 4).setValue(JSON.stringify(dataRow))
+
+    if (isOpenPoleBarn && (!isFileCreated || errors.length > 0)) {
+      this.emailApp.sendNoPresentationEmail({ data: dataRow, pdfUrl, slideUrl, errors })
+      throw 'Some error occurred while creating the PDF. Check email or try again.'
+    }
+
+    return { pdfUrl }
+  }
+
   newPaperCopyProject({ data: paperStock, token }) {
     console.log(JSON.stringify(paperStock), token)
     let userInfo = this.authApp.login({ token })
@@ -676,7 +745,6 @@ class App {
       this.emailApp.sendStatusChangeEmail('', 'For Review by BW', dataRow)
     }
 
-
     // if (pdfUrl) {
     //   const subject = `PDF Generated - ${dataRow.projectId} - ${dataRow.projectName}`
 
@@ -775,33 +843,36 @@ class EmailApp {
               ❌ Errors Encountered:
             </p>
             <ul style="margin: 0; padding-left: 20px; color: #721c24;">
-              ${errors && errors.length > 0
-        ? errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')
-        : '<li style="margin-bottom: 5px;">Unknown error occurred during PDF generation</li>'
-      }
+              ${
+                errors && errors.length > 0
+                  ? errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')
+                  : '<li style="margin-bottom: 5px;">Unknown error occurred during PDF generation</li>'
+              }
             </ul>
           </div>
 
-          ${pdfUrl
-        ? `
+          ${
+            pdfUrl
+              ? `
           <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">PDF URL:</p>
             <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
               ${pdfUrl}
             </a>
           </p>`
-        : ''
-      }
+              : ''
+          }
 
-          ${slideUrl
-        ? `
+          ${
+            slideUrl
+              ? `
           <p>
             <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Slide URL (In case you want to make changes):</p>
             <a href="${slideUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
               ${slideUrl}
             </a>
           </p>`
-        : ''
-      }
+              : ''
+          }
 
           <p style="font-size: 14px; color: #666; margin-top: 30px;">
             Pole Barn Report Generator Bot
@@ -850,8 +921,9 @@ class EmailApp {
             </a>
           </div>
 
-          ${errors && errors.length > 0
-        ? `
+          ${
+            errors && errors.length > 0
+              ? `
           <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
               ⚠️ Errors Encountered:
@@ -861,8 +933,8 @@ class EmailApp {
             </ul>
           </div>
           `
-        : ''
-      }
+              : ''
+          }
 
           <p style="font-size: 14px; color: #666; margin-top: 30px;">
             Pole Barn Report Generator Bot
@@ -943,12 +1015,13 @@ class EmailApp {
         `Hello,
 
         Project ${projectData.projectId} has been completed and is READY FOR BW REVIEW.
-        ${projectData.pdfUrl
-          ? `
+        ${
+          projectData.pdfUrl
+            ? `
         Please review the document:
             ${projectData.pdfUrl}
           `
-          : ''
+            : ''
         }
         Project Tracker Dashboard:
             ${this.settings.appUrl}?startingProjectId=${projectData.projectId}`,

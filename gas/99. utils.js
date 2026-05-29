@@ -314,21 +314,6 @@ function _createQueryString_(params) {
 }
 
 /**
- * Get the id from a Google Doc or Google Folder URL
- * @param {string} url A folder URL or file url
- * @return {string} An file id on Google Drive
- */
-function _getIdFromUrl_(url) {
-  if (/\/d\//.test(url)) {
-    return url.split(/\/d\//)[1].split(/[\/|\?]/)[0]
-  }
-  if (/\/folders\//.test(url)) {
-    return url.split(/\/folders\//)[1].split(/[\/|\?]/)[0]
-  }
-  return url
-}
-
-/**
  * Create a Google Sheet header object
  * @param {string} header The header for the header
  * @param {string}[null] key The key for the header, camel case of header will be used if not assigned
@@ -780,8 +765,10 @@ const _getSubfolderByName_ = (parentFolder, subfolderName) => {
   }
   return null
 }
+
 function _getIdFromUrl_(url) {
-  return url.match(/[-\w]{25,}/)
+  const id = url.match(/[-\w]{25,}/)
+  return id ? id[0] : null
 }
 
 function include(filename) {

@@ -6,7 +6,7 @@ import PAPER_COPY_DATA from '@/data/paperCopyData.json'
 const FAKE_USER = {
   email: 'test@test.com',
   password: '123456',
-  type: 'Admin',
+  type: 'Employee',
   token: 'dev_fake_token_123456',
 }
 
@@ -28,6 +28,8 @@ export class Mock {
       newPaperCopyProject: () => this.handleMockNewPaperCopyProject(data),
       orderPaperCopy: () => this.handleMockOrderPaperCopy(data),
       updatePaperCopyStock: () => this.handleMockUpdatePaperCopyStock(data),
+      getProjectHistory: () => this.handleMockGetProjectHistory(data),
+      generatePdfForProject: () => this.handleMockGeneratePdfForProject(data),
     }
 
     const handler = handlers[functionName]
@@ -119,6 +121,32 @@ export class Mock {
   static handleMockUpdatePaperCopyStock(data) {
     console.log('handleMockUpdatePaperCopyStock', data)
     return { success: true }
+  }
+
+  static handleMockGetProjectHistory(data) {
+    console.log('handleMockGetProjectHistory', data)
+    const { projectId } = data
+    return [
+      {
+        time: new Date(Date.now() - 3600000 * 24).toISOString(),
+        email: 'admin@polebarn.com',
+        projectId: projectId,
+        diff: 'Modified: opbSize (from 30x40x12 to 30x50x12)\nModified: price (from 4500 to 5200)',
+      },
+      {
+        time: new Date(Date.now() - 3600000 * 48).toISOString(),
+        email: 'employee@polebarn.com',
+        projectId: projectId,
+        diff: 'Created project: Site Specific Pole Barn order',
+      },
+    ]
+  }
+
+  static handleMockGeneratePdfForProject(data) {
+    console.log('handleMockGeneratePdfForProject', data)
+    return {
+      pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    }
   }
 
   static simulateNetworkDelay(ms = DEFAULT_MOCK_API_DELAY) {

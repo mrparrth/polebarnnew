@@ -1,205 +1,171 @@
-let RISK_CATEG_MAP = {
+const RISK_CATEG_MAP = {
   1: 'Category I : Buildings and other structures that represent a low hazard to human life in ',
   2: 'Category II : All bldgs and other structures except those listed in Categories I, III, & IV ',
   3: 'Category III : Buildings and other structures that represent a substantial hazard to ',
   4: 'Category IV : Buildings and other structures designated as essential facilities ',
 }
 
+const STRUCTURE_STRATEGIES = {
+  typicalOpbOnly: {
+    isMatch: (projectType) => projectType === 'typicalOpbOnly',
+    fieldMap: { pitch: 'opbMainBldgPitch', size: 'opbSize' },
+    buildingType: 'Open Pole Barn',
+    validationFields: [
+      'opbMainBldgPitch',
+      'opbSize',
+      'riskCategory',
+      'windSpeed',
+      'exposureCategory',
+    ],
+    configureInputs: (shCode, shWind, data, dims) => {
+      let numericalPitch = dims.pitch.split('/')[0]
+      shCode.getRange('E12').setValue('Florida Building Code 2023')
+      shCode.getRange('RoofHt').setValue('Utility & Miscellaneous')
+      shCode.getRange('G20').setValue(RISK_CATEG_MAP[data.riskCategory])
+      shCode.getRange('F34').setValue(numericalPitch)
+      shCode.getRange('building_l').setValue(dims.length)
+      shCode.getRange('building_w').setValue(dims.width)
+      shCode.getRange('Roof_h').setValue(dims.height)
+
+      shWind.getRange('wind_speed').setValue(data.windSpeed.toLowerCase().replace('mph', ''))
+      shWind.getRange('G15').setValue(`Exposure ${data.exposureCategory}`)
+      shWind.getRange('G16').setValue('Open Building')
+      shWind.getRange('G22').setValue('Gable')
+
+      let shOpenBarn = shCode.getParent().getSheetByName('Open Bldg')
+      shOpenBarn.getRange('roof_type').setValue('Pitched Free Roofs')
+      shOpenBarn.getRange('wind_flow').setValue('Clear')
+    },
+    extractCalculatedData: (ss) => {
+      let shOpenBldg = ss.getSheetByName('Open Bldg')
+      let rawData = shOpenBldg.getRange('D61:K63').getValues()
+      let windAreas = ['wa1', 'wa2', 'wa3']
+      let zones = ['z3', 'z2', 'z1']
+      let pressureTypes = ['pos', 'neg']
+
+      let flatData = {}
+      rawData.forEach((row, rIdx) => {
+        if (row && row[0]) {
+          flatData['WindArea' + (rIdx + 1)] = row[0].toString().replace(' sf', '').trim()
+        }
+
+        zones.forEach((zone, zIdx) => {
+          pressureTypes.forEach((type, tIdx) => {
+            let rawVal = row ? row[2 + zIdx * 2 + tIdx] : 0
+            let val = parseFloat(rawVal) || 0
+            flatData[`${windAreas[rIdx]}.${zone}.${type}.ult`] = Math.round(val * 100) / 100
+            flatData[`${windAreas[rIdx]}.${zone}.${type}.asd`] = Math.round((val / 1.6) * 100) / 100
+          })
+        })
+      })
+      return flatData
+    },
+  },
+  typicalLeanToOnly: {
+    isMatch: (projectType) => projectType === 'typicalLeanToOnly',
+    fieldMap: { pitch: 'pepbMainBldgPitch', size: 'pepbSize' },
+    buildingType: 'Lean-To',
+    validationFields: [
+      'pepbMainBldgPitch',
+      'pepbSize',
+      'riskCategory',
+      'windSpeed',
+      'exposureCategory',
+    ],
+    configureInputs: (shCode, shWind, data, dims) => {
+      let numericalPitch = dims.pitch.split('/')[0]
+      shCode.getRange('E12').setValue('Florida Building Code 2023')
+      shCode.getRange('G20').setValue(RISK_CATEG_MAP[data.riskCategory])
+      shCode.getRange('F34').setValue(numericalPitch)
+      shCode.getRange('building_l').setValue(dims.length)
+      shCode.getRange('building_w').setValue(dims.width)
+      shCode.getRange('Roof_h').setValue(dims.height)
+
+      shWind.getRange('wind_speed').setValue(data.windSpeed.toLowerCase().replace('mph', ''))
+      shWind.getRange('G15').setValue(`Exposure ${data.exposureCategory}`)
+      shWind.getRange('G16').setValue('Partially Enclosed')
+      shWind.getRange('G22').setValue('MonoSlope')
+    },
+    extractCalculatedData: (ss) => {
+      let shOpenBldg = ss.getSheetByName('C&C')
+      let rawRoofData = shOpenBldg.getRange('I19:L22').getValues()
+      let rawWallData = shOpenBldg.getRange('I46:L47').getValues()
+
+      let flatData = {}
+      rawRoofData.forEach((roofRow, index) => {
+        let pressureType = index == 3 ? `pos` : `neg${index + 1}`
+        flatData[`r.10sf.${pressureType}.ult`] = Math.round(roofRow[0] * 100) / 100
+        flatData[`r.10sf.${pressureType}.asd`] = Math.round((roofRow[0] / 1.6) * 100) / 100
+        flatData[`r.100sf.${pressureType}.ult`] = Math.round(roofRow[2] * 100) / 100
+        flatData[`r.100sf.${pressureType}.asd`] = Math.round((roofRow[2] / 1.6) * 100) / 100
+      })
+
+      rawWallData.forEach((roofRow, index) => {
+        let pressureType = index == 2 ? `pos` : `neg${index + 1}`
+        flatData[`w.10sf.${pressureType}.ult`] = Math.round(roofRow[0] * 100) / 100
+        flatData[`w.10sf.${pressureType}.asd`] = Math.round((roofRow[0] / 1.6) * 100) / 100
+        flatData[`w.100sf.${pressureType}.ult`] = Math.round(roofRow[2] * 100) / 100
+        flatData[`w.100sf.${pressureType}.asd`] = Math.round((roofRow[2] / 1.6) * 100) / 100
+      })
+
+      return flatData
+    },
+  },
+}
+
 function generatePresentation(projectData) {
-  let {
-    siteAddress,
-    city,
-    state,
-    country,
-    zip,
-    opbMainBldgPitch,
-    opbSize,
-    opbPostSize,
-    riskCategory,
-    windSpeed,
-    exposureCategory,
-  } = projectData
+  let settings = _getSettings_()
+  const strategy = Object.values(STRUCTURE_STRATEGIES).find((s) =>
+    s.isMatch(projectData.projectType),
+  )
 
-  this.settings = _getSettings_()
+  if (!strategy) {
+    return { isOpenPoleBarn: false, errors: ['Unsupported or missing project type'] }
+  }
 
+  // Modifying projectData with fullAddress exactly like earlier
   projectData.fullAddress = [
-    siteAddress.toProperCase(),
-    city.toProperCase(),
-    state.toProperCase(),
-    country.toProperCase(),
-    zip,
+    projectData.siteAddress?.toProperCase(),
+    projectData.city?.toProperCase(),
+    projectData.state?.toProperCase(),
+    projectData.country?.toProperCase(),
+    projectData.zip,
   ]
-    .filter((addr) => !!addr)
+    .filter(Boolean)
     .join(', ')
-  projectData.buildingType = 'Open Pole Barn'
+  projectData.buildingType = strategy.buildingType
 
-  if (!['FL', 'FLORIDA'].includes(state.toUpperCase())) {
+  if (!['FL', 'FLORIDA'].includes(projectData.state?.toUpperCase())) {
     console.log('Not a Florida project')
     return { isOpenPoleBarn: false, errors: ['Not a Florida project'] }
   }
 
-  if (projectData.projectType !== 'typicalOpbOnly') {
-    console.log('Not a typical open pole barn form')
-    return { isOpenPoleBarn: false, errors: ['Not a typical open pole barn form'] }
-  }
+  const sizeKey = strategy.fieldMap.size
+  const pitchKey = strategy.fieldMap.pitch
+  const [width, length, height] = (projectData[sizeKey] || '').toLowerCase().split('x')
+  const pitch = projectData[pitchKey]
 
-  if (!opbMainBldgPitch) {
-    console.log('Not an open pole barn form - no pitch')
-    return { isOpenPoleBarn: false, errors: ['Not an open pole barn form - no pitch'] }
-  }
-
-  if (!opbSize) {
-    console.log('Not an open pole barn form')
-    return { isOpenPoleBarn: false, errors: ['Not an open pole barn form'] }
-  }
-
-  const requiredFields = [
-    'opbMainBldgPitch',
-    'opbSize',
-    'riskCategory',
-    'windSpeed',
-    'exposureCategory',
-  ]
-
-  let validationErrors = []
-
-  // 1. Check for missing required fields
-  requiredFields.forEach((field) => {
-    if (!projectData[field] || projectData[field].toString().trim() === '') {
-      validationErrors.push(`${field} is required but missing or empty`)
-    }
-  })
-
-  // 2. Validate Risk Category
-  if (!RISK_CATEG_MAP[riskCategory]) {
-    validationErrors.push(
-      `Risk category '${riskCategory}' is not valid. Must be one of: ${Object.keys(RISK_CATEG_MAP).join(', ')}`,
-    )
-  }
-
-  // 3. Validate Pitch Format
-  if (opbMainBldgPitch) {
-    const pitchParts = opbMainBldgPitch.split('/')
-    if (pitchParts.length !== 2) {
-      validationErrors.push(
-        `Main building pitch should be in format 'x/12', got: '${opbMainBldgPitch}'`,
-      )
-    } else {
-      const pitchValue = parseInt(pitchParts[0])
-      const pitchBase = parseInt(pitchParts[1])
-      if (isNaN(pitchValue) || isNaN(pitchBase)) {
-        validationErrors.push(`Pitch values must be numeric, got: '${opbMainBldgPitch}'`)
-      } else if (pitchBase !== 12) {
-        validationErrors.push(`Pitch base should be 12, got: '${pitchBase}'`)
-      } else if (pitchValue <= 0) {
-        validationErrors.push(`Pitch value must be positive, got: '${pitchValue}'`)
-      }
-    }
-  }
-
-  // 4. Validate Building Size Format (LxWxH)
-  if (opbSize) {
-    const sizeParts = opbSize.toLowerCase().split('x')
-    if (sizeParts.length !== 3) {
-      validationErrors.push(`Open pole barn size should be in format 'LxWxH', got: '${opbSize}'`)
-    } else {
-      const [length, width, height] = sizeParts
-      const lengthNum = parseInt(length)
-      const widthNum = parseInt(width)
-      const heightNum = parseInt(height)
-
-      if (isNaN(lengthNum) || isNaN(widthNum) || isNaN(heightNum)) {
-        validationErrors.push(`Building dimensions must be numeric, got: '${opbSize}'`)
-      } else if (lengthNum <= 0 || widthNum <= 0 || heightNum <= 0) {
-        validationErrors.push(`Building dimensions must be positive values, got: '${opbSize}'`)
-      }
-    }
-  }
-
-  // 5. Validate Wind Speed Format
-  if (windSpeed) {
-    const windSpeedMatch = windSpeed.match(/^(\d+(?:\.\d+)?)(?:\s*(?:MPH|mph))?$/)
-    if (!windSpeedMatch) {
-      validationErrors.push(
-        `Wind speed should be numeric (optionally followed by 'MPH'), got: '${windSpeed}'`,
-      )
-    } else {
-      const windValue = parseFloat(windSpeedMatch[1])
-      if (windValue <= 0) {
-        validationErrors.push(`Wind speed must be positive, got: '${windValue}'`)
-      }
-    }
-  }
-
-  // 6. Validate Exposure Category
-  if (exposureCategory) {
-    const validExposureCategories = ['B', 'C', 'D']
-    if (!validExposureCategories.includes(exposureCategory.toUpperCase())) {
-      validationErrors.push(
-        `Exposure category must be one of: ${validExposureCategories.join(', ')}, got: '${exposureCategory}'`,
-      )
-    }
-  }
-
-  if (!RISK_CATEG_MAP[riskCategory]) {
-    validationErrors.push(`Risk category is not in ${Object.keys(RISK_CATEG_MAP)}`)
-  }
-
-  if (!opbMainBldgPitch) {
-    validationErrors.push(`Open pole barn pitch is not defined`)
-  } else if (opbMainBldgPitch.split('/').length < 2) {
-    validationErrors.push(`The pitch should be in format of x/12`)
-  }
-
-  if (opbSize.toLowerCase().split('x').length < 3) {
-    validationErrors.push(`The openpolebarnsize should be in format of wxlxh`)
-  }
-
+  let validationErrors = _validateInputs_(projectData, strategy, sizeKey, pitchKey)
   if (validationErrors.length > 0) {
-    const errorMessage = `Validation failed:\n${validationErrors.map((error) => `- ${error}`).join('\n')}`
-    console.error(errorMessage)
+    console.error(`Validation failed:\n${validationErrors.map((e) => `- ${e}`).join('\n')}`)
     return { isOpenPoleBarn: true, errors: validationErrors, isFileCreated: false }
   }
 
-  let [measure1, measure2, measure3] = opbSize.toLowerCase().split('x')
-  // let numMeasure1 = Number(measure1)
-  // let numMeasure2 = Number(measure2)
-  // let numMeasure3 = Number(measure3)
-
-  // let length = Math.max(numMeasure1, numMeasure2, numMeasure3)
-  // let height = Math.min(numMeasure1, numMeasure2, numMeasure3)
-  // let width = numMeasure1 + numMeasure2 + numMeasure3 - length - height
-  let width = measure1
-  let length = measure2
-  let height = measure3
-
   let lock = LockService.getScriptLock()
-  let rawData
+  let flatData
   try {
     lock.tryLock(30000)
+    let windCalcSs = SpreadsheetApp.openByUrl(settings.windCalcSheet)
 
-    let windCalcSs = SpreadsheetApp.openByUrl(this.settings.windCalcSheet)
-    let shCode = windCalcSs.getSheetByName('Code')
-    let pitch = opbMainBldgPitch.split('/')[0]
-    shCode.getRange('E12').setValue(`Florida Building Code 2023`)
-    shCode.getRange('RoofHt').setValue(`Utility & Miscellaneous`)
-    shCode.getRange('G20').setValue(RISK_CATEG_MAP[riskCategory])
-    shCode.getRange('F34').setValue(pitch)
-    shCode.getRange('building_l').setValue(length)
-    shCode.getRange('building_w').setValue(width)
-    shCode.getRange('Roof_h').setValue(height)
-
-    let shWind = windCalcSs.getSheetByName('Wind')
-    shWind.getRange('wind_speed').setValue(windSpeed.toLowerCase().replace('mph', ''))
-    shWind.getRange('G15').setValue(`Exposure ${exposureCategory}`)
-    shWind.getRange('G16').setValue(`Open Building`)
-    shWind.getRange('G22').setValue(`Gable`)
-    let shOpenBarn = windCalcSs.getSheetByName('Open Bldg')
-    shOpenBarn.getRange('roof_type').setValue('Pitched Free Roofs')
-    shOpenBarn.getRange('wind_flow').setValue('Clear')
+    strategy.configureInputs(
+      windCalcSs.getSheetByName('Code'),
+      windCalcSs.getSheetByName('Wind'),
+      projectData,
+      { width, length, height, pitch },
+    )
 
     SpreadsheetApp.flush()
-    rawData = shOpenBarn.getRange('D61:K63').getValues()
+    flatData = strategy.extractCalculatedData(windCalcSs)
   } catch (error) {
     console.error('Error processing wind calculation:', error)
     throw error
@@ -207,56 +173,39 @@ function generatePresentation(projectData) {
     lock.releaseLock()
   }
 
-  let windAreas = ['wa1', 'wa2', 'wa3']
-  let zones = ['z3', 'z2', 'z1']
-  let pressureTypes = ['pos', 'neg']
-
-  let flatData = {}
-
-  for (let row = 0; row < rawData.length; row++) {
-    flatData['WindArea' + (row + 1)] = rawData[row][0].replace(' sf', '').trim()
-  }
-
-  windAreas.forEach((wa, waIdx) => {
-    zones.forEach((zone, zIdx) => {
-      pressureTypes.forEach((type, tIdx) => {
-        flatData[`${wa}.${zone}.${type}.ult`] =
-          Math.round(rawData[waIdx][2 + zIdx * 2 + tIdx] * 100) / 100
-        flatData[`${wa}.${zone}.${type}.asd`] =
-          Math.round((rawData[waIdx][2 + zIdx * 2 + tIdx] / 1.6) * 100) / 100
-      })
-    })
-  })
-
-  flatData.riskCategoryRoman = new Array(riskCategory).fill(`I`).join('')
+  flatData.riskCategoryRoman = new Array(parseInt(projectData.riskCategory) || 1).fill('I').join('')
 
   let errors = []
   let trussData = _getTrussData_(width)
-  if (Object.keys(trussData).length == 0) {
+  if (Object.keys(trussData).length === 0) {
     errors.push(`There is no truss data for width : ${width}`)
   }
 
-  let chartData = _getChartData_(windSpeed, exposureCategory, width, height)
-  //This part is not needed anymore.
-  //This was a temporary fix to ensure the post size is not too small for the width
-
-  // let chartPostSize = chartData.postSize.split('x')
-  // let maxPostSize = Math.max(parseInt(chartPostSize[0]), parseInt(opbPostSize.split('x')[0]))
-  // chartData.postSize = `${maxPostSize}x${maxPostSize}`
-  if (Object.keys(chartData).length == 0) {
+  let chartData = _getChartData_(projectData.windSpeed, projectData.exposureCategory, width, height)
+  if (Object.keys(chartData).length === 0) {
     errors.push(
-      `There is no chart data for Wind Speed - ${windSpeed}, Exposure ${exposureCategory}, Width - ${width}, Height - ${height}`,
+      `There is no chart data for Wind Speed - ${projectData.windSpeed}, Exposure ${projectData.exposureCategory}, Width - ${width}, Height - ${height}`,
     )
   }
 
-  let allData = { ...projectData, ...flatData, ...trussData, ...chartData }
-  allData.date = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy')
+  // Build template payload; width, length, height, pitch are kept purely local to allData
+  let allData = {
+    ...projectData,
+    ...flatData,
+    ...trussData,
+    ...chartData,
+    width,
+    length,
+    height,
+    pitch,
+    date: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy'),
+  }
 
   let presOPB = _createNewSlideFromTemplate_(allData)
   let slides = presOPB.getSlides()
 
   for (let slideNo = 0; slideNo < slides.length; slideNo++) {
-    _replaceTemplateFieldsInShapes_(slides[slideNo], allData) //project data needs replacing in all the slides
+    _replaceTemplateFieldsInShapes_(slides[slideNo], allData)
     _replaceTemplateFieldsInTables_(slides[slideNo], allData)
     slides[slideNo].refreshSlide()
   }
@@ -272,7 +221,7 @@ function generatePresentation(projectData) {
     let rootFolder = DriveApp.getFolderById(_getIdFromUrl_(projectData.driveFolder))
     outputFolder = _getOrCreateFolder_(['For Review'], rootFolder.getId())
   } else {
-    outputFolder = DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder))
+    outputFolder = DriveApp.getFolderById(_getIdFromUrl_(settings.outputDocFolder))
   }
 
   pdfFile.moveTo(outputFolder)
@@ -286,13 +235,79 @@ function generatePresentation(projectData) {
   }
 }
 
+function _validateInputs_(data, strategy, sizeKey, pitchKey) {
+  let errors = []
+
+  strategy.validationFields.forEach((f) => {
+    if (!data[f]?.toString().trim()) errors.push(`${f} is required but missing or empty`)
+  })
+  if (data.riskCategory && !RISK_CATEG_MAP[data.riskCategory])
+    errors.push(`Risk category '${data.riskCategory}' is not valid.`)
+
+  if (data[pitchKey]) {
+    const pitchParts = data[pitchKey].split('/')
+    if (
+      pitchParts.length !== 2 ||
+      parseInt(pitchParts[1]) !== 12 ||
+      parseInt(pitchParts[0]) <= 0 ||
+      isNaN(parseInt(pitchParts[0]))
+    ) {
+      errors.push(`${pitchKey} should be a valid positive pitch matching format 'x/12'`)
+    }
+  }
+
+  if (data[sizeKey]) {
+    const sizeParts = data[sizeKey].toLowerCase().split('x')
+    if (
+      sizeParts.length !== 3 ||
+      sizeParts.some((dim) => isNaN(parseInt(dim)) || parseInt(dim) <= 0)
+    ) {
+      errors.push(`${sizeKey} should follow positive numeric format 'LxWxH'`)
+    }
+  }
+
+  if (data.windSpeed) {
+    const windSpeedMatch = data.windSpeed.match(/^(\d+(?:\.\d+)?)(?:\s*(?:MPH|mph))?$/)
+    if (!windSpeedMatch || parseFloat(windSpeedMatch[1]) <= 0) {
+      errors.push(`Wind speed must be a positive numeric value, got: '${data.windSpeed}'`)
+    }
+  }
+
+  if (data.exposureCategory && !['B', 'C', 'D'].includes(data.exposureCategory.toUpperCase())) {
+    errors.push(`Exposure category must be B, C, or D, got: '${data.exposureCategory}'`)
+  }
+
+  return errors
+}
+
+function _parseWindCalculations_(rawData) {
+  let windAreas = ['wa1', 'wa2', 'wa3']
+  let zones = ['z3', 'z2', 'z1']
+  let pressureTypes = ['pos', 'neg']
+
+  rawData.forEach((row, rIdx) => {
+    if (row && row[0]) {
+      flatData['WindArea' + (rIdx + 1)] = row[0].toString().replace(' sf', '').trim()
+    }
+
+    zones.forEach((zone, zIdx) => {
+      pressureTypes.forEach((type, tIdx) => {
+        let rawVal = row ? row[2 + zIdx * 2 + tIdx] : 0
+        let val = parseFloat(rawVal) || 0
+        flatData[`${windAreas[rIdx]}.${zone}.${type}.ult`] = Math.round(val * 100) / 100
+        flatData[`${windAreas[rIdx]}.${zone}.${type}.asd`] = Math.round((val / 1.6) * 100) / 100
+      })
+    })
+  })
+  return flatData
+}
+
 function _getChartData_(windSpeed, exposure, width, height) {
   windSpeed = parseInt(windSpeed.toLowerCase().replace('mph', ''))
   width = parseInt(width)
   height = parseInt(height)
   let shChartData = SpreadsheetApp.getActive().getSheetByName('ChartData')
-
-  let chartData = _getItemsFromSheet_(shChartData) //, row => row.windSpeed == windSpeed && row.exposure == exposure && row.minEaveHeight == height
+  let chartData = _getItemsFromSheet_(shChartData)
 
   let foundData = chartData.find(
     (row) =>
@@ -310,7 +325,6 @@ function _getChartData_(windSpeed, exposure, width, height) {
     )
     return {}
   }
-
   return foundData
 }
 
@@ -318,14 +332,12 @@ function _getTrussData_(width) {
   width = parseInt(width)
   let shTruss = SpreadsheetApp.getActive().getSheetByName('TrussSizeDetails')
   let trussData = _getItemsFromSheet_(shTruss)
-
   let foundData = trussData.find((row) => width >= row.minWidth && width <= row.maxWidth)
 
   if (!foundData) {
     console.error(`Truss data is not found for width - ${width}`)
     return {}
   }
-
   return foundData
 }
 
@@ -344,8 +356,6 @@ function _replaceTemplateFieldsInShapes_(slide, valueObject) {
 function _replaceTemplateFieldsInTables_(slide, valueObject, headerRows = 0) {
   slide.getTables().forEach((table, index) => {
     for (let r = 0; r < table.getNumRows(); r++) {
-      // if (r == 0) continue //for development - it starts at second row
-
       for (let c = 0; c < table.getNumColumns(); c++) {
         try {
           let mergeState = table.getCell(r, c).getMergeState()
@@ -358,9 +368,9 @@ function _replaceTemplateFieldsInTables_(slide, valueObject, headerRows = 0) {
             continue
 
           let textRange = table.getCell(r, c).getText()
-
           let mergeFields = textRange.asString().match(/\{\{([^{}]+)\}\}/g)
           if (!mergeFields) continue
+
           mergeFields
             .map((mergeField) => mergeField.substring(2, mergeField.length - 2))
             .forEach((mergeField) => {
@@ -377,144 +387,46 @@ function _replaceTemplateFieldsInTables_(slide, valueObject, headerRows = 0) {
 function _extractMergeFieldsFromRange_(textRange) {
   let mergeFields = textRange.asString().match(/\{\{([^{}]+)\}\}/g)
   if (!mergeFields) return
-
   return mergeFields.map((mergeField) => mergeField.substring(2, mergeField.length - 2))
 }
 
-function _createNewSlideFromTemplate_({ clientName, projectId }) {
-  this.settings = _getSettings_()
-
-  // return SlidesApp.openByUrl(`https://docs.google.com/presentation/d/1SkOoKng6CVNzzTCyMILGNIBfojG7qvP-Vzf09YgXOjA/edit`)
-  let outputFolder = DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder))
-
+function _createNewSlideFromTemplate_({ clientName, projectId, projectType }) {
+  let settings = _getSettings_()
+  let outputFolder = DriveApp.getFolderById(_getIdFromUrl_(settings.outputDocFolder))
   let dateString = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy MM dd')
   let documentName = `11 x 17_${dateString}_${projectId}_${clientName}`
-  let documentTemplate = DriveApp.getFileById(_getIdFromUrl_(this.settings.windCalcSlide))
+
+  let templateKey = 'windCalcSlideOpb'
+  if (projectType === 'typicalLeanToOnly') {
+    templateKey = 'windCalcSlideLeanTo'
+  } else if (projectType === 'typicalSingleSlopeOnly') {
+    templateKey = 'windCalcSlideSingleSlope'
+  }
+  let templateId = settings[templateKey] || settings.windCalcSlideOpb
+  let documentTemplate = DriveApp.getFileById(_getIdFromUrl_(templateId))
 
   let document = documentTemplate.makeCopy()
   document.moveTo(outputFolder)
 
   let outputDoc = SlidesApp.openById(document.getId())
   outputDoc.setName(documentName)
-
   return outputDoc
 }
 
-function _getIdFromUrl_(url) {
-  const id = url.match(/[-\w]{25,}/)
-  return id ? id[0] : null
-}
-
 function _convertPresToPDF_(presentation) {
-  this.settings = _getSettings_()
+  let settings = _getSettings_()
   let url = `https://docs.google.com/presentation/d/${presentation.getId()}/export?format=pdf`
-  console.log(url)
   let options = {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${ScriptApp.getOAuthToken()}`,
-    },
+    headers: { Authorization: `Bearer ${ScriptApp.getOAuthToken()}` },
   }
 
   let pdfBlob = UrlFetchApp.fetch(url, options).getBlob()
-
   pdfBlob.setName(presentation.getName() + '.pdf')
-
   const pdfFile = DriveApp.createFile(pdfBlob)
 
   DriveApp.getFileById(pdfFile.getId()).moveTo(
-    DriveApp.getFolderById(_getIdFromUrl_(this.settings.outputDocFolder)),
+    DriveApp.getFolderById(_getIdFromUrl_(settings.outputDocFolder)),
   )
-
-  // DriveApp.getFileById(presentation.getId()).setTrashed(true)
-
   return pdfFile
-}
-
-function testGenPresentations() {
-  // _getTrussData_(20)
-  let data = {
-    connectslabtrussonly: '',
-    addonsforwindowsquantitypartialyenclosedpolebarn: '',
-    addonsleantopostsizepartialyenclosepolebarn: '',
-    postspacingenclosedpole: '',
-    addonsleantoopenpolebarnsize: '',
-    projectname: 'KENNETH WOOTEN',
-    connectslabopenpolebarn: 'OPTIONAL',
-    maibbldgpitchopenpolebarn: '4/12',
-    plywoodonroof: 'No',
-    cname: 'Test Ken Wooten',
-    overhangtype: 'standard',
-    plywoodonsiding: 'No',
-    country: 'UNITED STATES',
-    addonsleantopartialyenclosedpolebarnsize: '',
-    state: 'FL',
-    overhangvalue: '',
-    signature: 'TASHA MCKAY',
-    addonsfordoorsquantitypartialyenclosedpolebarn: '',
-    addonsforwindowsquantityenclosedpole: '',
-    metalroofpanelgaugeenclosedpole: '',
-    connectslabenclosedpole: '',
-    connectslabpartialyenclosed: '',
-    wetmapandseal: false,
-    siteaddress: '601 EAST LAKESHORE BLVD',
-    postsizeopenpolebarn: '8X8',
-    addonsforwindowssizeenclosedpole: '',
-    exposurecategory: 'C',
-    maibbldgpitchtrussonly: '',
-    postsizepartialyenclosed: '',
-    postspacingopenpolebarn: "12'",
-    openpolebarnsize: '30X36X12',
-    projectid: '450.404',
-    postsizeenclosedpole: '',
-    windspeed: '160MPH',
-    postspacingtrussonly: '',
-    addonsfordoorssizeenclosedpole: '',
-    postspacingpartialyenclosed: '',
-    selectaddonsforwindows: false,
-    addonsleantopostpitchopenpolebarn: '',
-    enclosedpolesize: '',
-    maibbldgpitchenclosedpole: '',
-    additionalinformationnotes:
-      '**DIGITAL SET OF TYPICAL OPEN POLE BARN PLANS WITH CUSTOMER DETAILS IN TITLE BLOCK\n**DIGITAL SET',
-    addonsleantoenclosedpolepostsize: '',
-    metalroofpanelgaugetrussonly: '',
-    addonsleantopostsizeopenpolebarn: '',
-    status: 'S&S',
-    addonsleantoopenpolebarnpitch: '',
-    trussonlysize: '',
-    partialyenclosedsize: '',
-    addonsleantopitchpartialyenclosedpolebarn: '',
-    selectaddonsforleanto: false,
-    metalroofpanelgaugepartialyenclosed: '',
-    orderdate: '2025-05-16',
-    riskcategory: '1',
-    selectaddonsfordoors: false,
-    postsizetrussonly: '',
-    addonsfordoorsquantityenclosedpole: '',
-    orderedby: 'TASHA MCKAY',
-    zip: '34744',
-    existingImages: [],
-    studspacingcustomvalue: 'STANDARD SPACING',
-    maibbldgpitchpartialyenclosed: '',
-    addonsforwindowssizepartialyenclosedpolebarn: '',
-    studspacing: 'custom',
-    metalroofpanelgaugeopenpolebarn: '26',
-    addonsfordoorssizepartialyenclosedpolebarn: '',
-    city: 'KISSIMMEE',
-    projectpricing: '180',
-    driveFolder: 'https://drive.google.com/drive/folders/1Z6KgthfAoNgETBz1Q8XdWx4aUZvyjFPy',
-    fBInvoiceNo: '0001976',
-    fBInvoiceId: 970539,
-    fbInvoiceLink:
-      'https://my.freshbooks.com/#/link/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzeXN0ZW1pZCI6NTg3MTIzNSwiYWNjb3VudGlkIjoiUXA4ZGs2IiwidXNlcmlkIjoyMzQ0OTQsInR5cGUiOiJpbnZvaWNlIiwib2JqZWN0aWQiOiI5NzA1MzkiLCJleHAiOjE3Nzg5NDIzMzksImxldmVsIjowLCJidXNpbmVzc19pZCI6bnVsbCwiaWRlbnRpdHlfaWQiOm51bGx9.2UotjAR6fcvczBJTsbOxxz74ZrNHNFnLHRz7q4j_P5U?type=secondary&share_method=share_link',
-  }
-
-  console.log(generatePresentation(data))
-}
-
-function test2() {
-  let slide = SlidesApp.openById('1m3QCKKvAy31S31A_ez4Dp6XhuB_bG2YCDrwvKGII5R8')
-  console.log(DriveApp.getFileById('1m3QCKKvAy31S31A_ez4Dp6XhuB_bG2YCDrwvKGII5R8').getUrl())
-  console.log(slide.getUrl())
 }

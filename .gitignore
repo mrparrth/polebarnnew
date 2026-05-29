@@ -32,4 +32,5 @@ coverage
 gas/credentials.js
 gas/css.html
 gas/js.html
+gas/index.html
 .clasp.json

@@ -98,6 +98,16 @@ export class API {
     return result
   }
 
+  static async getProjectHistory(projectId) {
+    const result = await this.execute('getProjectHistory', { projectId })
+    return result
+  }
+
+  static async generatePdf(projectId) {
+    const result = await this.execute('generatePdfForProject', { projectId })
+    return result
+  }
+
   static async updateProjectStatus(projectId, newStatus) {
     const result = await this.execute('updateProjectStatus', { projectId, newStatus })
 

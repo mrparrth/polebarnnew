@@ -20,7 +20,7 @@ function testPaperCopyProject() {
 }
 
 function testUpdateProject() {
-  let data = { "projectId": "450.981", "riskCategory": "2", city:'test2jan14' }
+  let data = { projectId: '450.981', riskCategory: '2', city: 'test2jan14' }
 
   let token = 'mjcwc1gn.pr'
   // newProject({ data, token })
@@ -40,6 +40,20 @@ function testGgeneratePresentation() {
   let data = new testApp().opbProjectData
 
   let exportData = generatePresentation(JSON.parse(data))
+}
+
+function testLeanToPresentation() {
+  let data = JSON.parse(new testApp().opbProjectData)
+  data.projectType = 'typicalLeanToOnly'
+  data.pepbSize = data.opbSize
+  data.pepbMainBldgPitch = data.opbMainBldgPitch
+  data.pepbPostSpacing = data.opbPostSpacing
+  data.pepbPostSize = data.opbPostSize
+  data.pepbMetalRoofPanelGauge = data.opbMetalRoofPanelGauge
+  data.pepbConnectSlab = data.opbConnectSlab
+
+  let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
+  console.log({ pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated })
 }
 
 function testStatusChange() {
@@ -110,7 +124,94 @@ function updateAllProjects() {
 function testApp() {
   this.opbProjectData = `{"signature":"12","windSpeed":"145MPH","projectName":"Test","epbConnectSlab":"","pepbPostSpacing":"","addOnWindowPepbSize":"","wetMapAndSeal":true,"addOnDoorEpbQty":"","trussConnectSlab":"","driveFolder":"https://drive.google.com/drive/folders/1Y5Wti1TjX_WGAf2BzBx9CtaTQgAcWYd3","overhangType":"","pepbSize":"","overhangValue":"","pepbMainBldgPitch":"","pepbPostSize":"","trussMainBldgPitch":"","trussMetalRoofPanelGauge":"","addOnLeanToOpbPitch":"","addOnWindowSelected":false,"opbPostSpacing":"12'","riskCategory":"3","siteAddress":"28, First Floor, First Cross","opbMetalRoofPanelGauge":"26g","addOnWindowEpbQty":"","opbPaperSold":"","orderDate":"2025-09-08","trussPostSize":"","addOnLeanToSelected":false,"addOnWindowPepbQty":"","pepbConnectSlab":"","existingImages":[],"addOnWindowEpbSize":"","addOnDoorPepbQty":"","singleSlopePaperSold":"","addOnLeanToPepbSlab":"","addOnLeanToEpbSlab":"","opbConnectSlab":"OPTIONAL","addOnLeanToPepbPostSize":"","projectType":"typicalOpbOnly","addOnLeanToEpbPostSize":"","epbMainBldgPitch":"","trussSize":"","epbMetalRoofPanelGauge":"","addOnLeanToEpbPitch":"","studSpacing":"","country":"","trussPostSpacing":"","price":"1","leanToPaperSold":"","plywoodOnSiding":"No","epbSize":"","studSpacingCustomValue":"","addOnLeanToOpbSize":"","state":"Florida","addOnLeanToOpbPostSize":"","zip":"560077","projectId":"999.33","addOnDoorPepbSize":"","orderedBy":"JESSIE CHANEY","plywoodOnRoof":"Yes","addOnLeanToEpbSize":"","epbPostSize":"","addOnLeanToPepbSize":"","opbSize":"12x12x12","city":"Bengaluru","epbPostSpacing":"","opbMainBldgPitch":"3/12","addOnDoorEpbSize":"","exposureCategory":"D","status":"For Review by BW","addOnLeanToOpbSlab":"","addOnDoorSelected":false,"clientName":"test test","pepbMetalRoofPanelGauge":"","opbPostSize":"12x12","additionalInformation":"Test","addOnLeanToPepbPitch":"","fullAddress":"28, First Floor, First Cross, Bengaluru, Florida, 560077","buildingType":"Open Pole Barn","pdfUrl":"https://drive.google.com/file/d/1ejMW5RDUudTkC5NL6U6xT25Eljqaduwu/view?usp=drivesdk","oldstatus":"New Request"}`
 
-  this.pdfGenData = { "singleSlopePaperSold": "", "addOnLeanToPepbSize": "", "pepbMetalRoofPanelGauge": "", "exposureCategory": "B", "epbMainBldgPitch": "", "wetMapAndSeal": false, "additionalInformation": "DIGITAL TYPICAL OPEN POLE BARN PLANS WITH CUSTOMER'S NAME, ADDRESS AND BARN SIZE IN TITLE BLOCK\nNO CUSTOM DETAILS", "addOnLeanToPepbPitch": "", "sketchData": [], "trussPostSize": "", "orderDate": "2025-10-13", "opbPostSize": "8x8", "projectId": "", "addOnDoorPepbQty": "", "trussPostSpacing": "", "projectSubtype": "", "studSpacing": "", "opbPaperSold": "", "addOnWindowPepbSize": "", "addOnDoorEpbSize": "", "addOnDoorSelected": false, "addOnLeanToPepbPostSize": "", "addOnWindowEpbQty": "", "driveFolder": "", "addOnLeanToOpbPitch": "", "epbSize": "", "addOnLeanToSelected": false, "existingImages": [], "addOnWindowSelected": false, "addOnDoorEpbQty": "", "epbPostSize": "", "pepbMainBldgPitch": "", "addOnLeanToEpbPostSize": "", "addOnLeanToEpbPitch": "", "addOnWindowPepbQty": "", "trussMetalRoofPanelGauge": "", "clientName": "FLORIDA POLE BARN", "opbMainBldgPitch": "4/12", "riskCategory": "1", "windSpeed": "145MPH", "trussMainBldgPitch": "", "pepbPostSpacing": "", "zip": "34488", "opbPostSpacing": "10'", "opbSize": "30x40x12", "price": "180", "orderedBy": "JESSIE CHANEY", "epbConnectSlab": "", "projectName": "BARRET MCRAE", "epbMetalRoofPanelGauge": "", "state": "FL", "addOnLeanToEpbSize": "", "plywoodOnRoof": "No", "addOnLeanToOpbPostSize": "", "addOnWindowEpbSize": "", "leanToPaperSold": "", "opbConnectSlab": "OPTIONAL", "overhangType": "", "overhangValue": "", "siteAddress": "16965 SE 6TH LN", "pepbConnectSlab": "", "signature": "JESSIE CHANEY", "addOnLeanToEpbSlab": "", "trussSize": "", "opbMetalRoofPanelGauge": "26g", "addOnLeanToOpbSlab": "", "addOnLeanToPepbSlab": "", "addOnDoorPepbSize": "", "projectType": "typicalOpbOnly", "status": "New Request", "studSpacingCustomValue": "", "city": "SILVER SPRINGS", "epbPostSpacing": "", "plywoodOnSiding": "No", "pepbSize": "", "trussConnectSlab": "", "addOnLeanToOpbSize": "", "pepbPostSize": "", "country": "" }
+  this.pdfGenData = {
+    singleSlopePaperSold: '',
+    addOnLeanToPepbSize: '',
+    pepbMetalRoofPanelGauge: '',
+    exposureCategory: 'B',
+    epbMainBldgPitch: '',
+    wetMapAndSeal: false,
+    additionalInformation:
+      "DIGITAL TYPICAL OPEN POLE BARN PLANS WITH CUSTOMER'S NAME, ADDRESS AND BARN SIZE IN TITLE BLOCK\nNO CUSTOM DETAILS",
+    addOnLeanToPepbPitch: '',
+    sketchData: [],
+    trussPostSize: '',
+    orderDate: '2025-10-13',
+    opbPostSize: '8x8',
+    projectId: '999.99',
+    addOnDoorPepbQty: '',
+    trussPostSpacing: '',
+    projectSubtype: '',
+    studSpacing: '',
+    opbPaperSold: '',
+    addOnWindowPepbSize: '',
+    addOnDoorEpbSize: '',
+    addOnDoorSelected: false,
+    addOnLeanToPepbPostSize: '',
+    addOnWindowEpbQty: '',
+    driveFolder: '',
+    addOnLeanToOpbPitch: '',
+    epbSize: '',
+    addOnLeanToSelected: false,
+    existingImages: [],
+    addOnWindowSelected: false,
+    addOnDoorEpbQty: '',
+    epbPostSize: '',
+    pepbMainBldgPitch: '',
+    addOnLeanToEpbPostSize: '',
+    addOnLeanToEpbPitch: '',
+    addOnWindowPepbQty: '',
+    trussMetalRoofPanelGauge: '',
+    clientName: 'FLORIDA POLE BARN',
+    opbMainBldgPitch: '4/12',
+    riskCategory: '1',
+    windSpeed: '145MPH',
+    trussMainBldgPitch: '',
+    pepbPostSpacing: '',
+    zip: '34488',
+    opbPostSpacing: "10'",
+    opbSize: '30x40x12',
+    price: '180',
+    orderedBy: 'JESSIE CHANEY',
+    epbConnectSlab: '',
+    projectName: 'BARRET MCRAE',
+    epbMetalRoofPanelGauge: '',
+    state: 'FL',
+    addOnLeanToEpbSize: '',
+    plywoodOnRoof: 'No',
+    addOnLeanToOpbPostSize: '',
+    addOnWindowEpbSize: '',
+    leanToPaperSold: '',
+    opbConnectSlab: 'OPTIONAL',
+    overhangType: '',
+    overhangValue: '',
+    siteAddress: '16965 SE 6TH LN',
+    pepbConnectSlab: '',
+    signature: 'JESSIE CHANEY',
+    addOnLeanToEpbSlab: '',
+    trussSize: '',
+    opbMetalRoofPanelGauge: '26g',
+    addOnLeanToOpbSlab: '',
+    addOnLeanToPepbSlab: '',
+    addOnDoorPepbSize: '',
+    projectType: 'typicalOpbOnly',
+    status: 'New Request',
+    studSpacingCustomValue: '',
+    city: 'SILVER SPRINGS',
+    epbPostSpacing: '',
+    plywoodOnSiding: 'No',
+    pepbSize: '',
+    trussConnectSlab: '',
+    addOnLeanToOpbSize: '',
+    pepbPostSize: '',
+    country: '',
+  }
 
   this.customProjectData = {}
+}
+
+function test2() {
+  let slide = SlidesApp.openById('1m3QCKKvAy31S31A_ez4Dp6XhuB_bG2YCDrwvKGII5R8')
+  console.log(DriveApp.getFileById('1m3QCKKvAy31S31A_ez4Dp6XhuB_bG2YCDrwvKGII5R8').getUrl())
+  console.log(slide.getUrl())
 }

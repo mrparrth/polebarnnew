@@ -13,7 +13,8 @@
               </h2>
             </div>
             <div class="position-absolute d-flex flex-column" style="right: 20px; top: 33px; gap: 10px">
-              <v-btn v-if="isAdmin" color="secondary" variant="flat" @click="updatePaperStock">Update Paper
+              <v-btn v-if="isElevatedDashboardUser" color="secondary" variant="flat" @click="updatePaperStock">Update
+                Paper
                 Stock</v-btn>
               <v-btn color="primary" variant="flat" @click="newProject">New Project</v-btn>
             </div>
@@ -61,7 +62,7 @@
                   <template v-slot:item="{ item }">
                     <tr :class="getRowClass(item)">
                       <td>{{ item.data.projectId }}</td>
-                      <td v-if="isAdmin">{{ item.data.fBInvoiceId || 'N/A' }}</td>
+                      <td v-if="isElevatedDashboardUser">{{ item.data.fBInvoiceId || 'N/A' }}</td>
                       <td>{{ item.data.clientName }}</td>
                       <td>{{ item.data.projectName }}</td>
                       <td>{{ formatDate(item.data.orderDate) }}</td>
@@ -80,7 +81,8 @@
                       <td>
                         <v-btn color="primary" variant="text" size="small" icon @click.stop="viewDetails(item)">
                           <v-icon>{{
-                            isAdmin && item.data.projectType !== 'paperCopy'
+                            isElevatedDashboardUser && item.data.projectType !==
+                              'paperCopy'
                               ? 'mdi-pencil'
                               : 'mdi-eye'
                           }}</v-icon>
@@ -109,9 +111,11 @@ import { useProjectStore } from '@/stores/projectStore'
 import { useSnackbar } from '@/composables/useSnackbar'
 import PaperCopyStockRequest from '@/components/PaperCopyRequest.vue'
 import PaperCopyStockInfo from '@/components/PaperCopyInfo.vue'
+import { USER_TYPES } from '@/global'
 
 const router = useRouter()
 const projectStore = useProjectStore()
+const isElevatedDashboardUser = ref([USER_TYPES.Admin, USER_TYPES.Client].includes(projectStore.user.type))
 const loading = ref(false)
 const searchQuery = ref('')
 // const projectTypeFilter = ref('allPoleBarnTypes')
@@ -122,14 +126,8 @@ const paperStockDialog = ref(false)
 
 const projects = ref(projectStore.projects)
 
-// Admin detection
-const isAdmin = computed(() => {
-  return projectStore.user?.type === 'Admin' || projectStore.user?.isAdmin === true
-})
-
-// Dynamic headers based on admin status
 const headers = computed(() => {
-  if (isAdmin.value) {
+  if (isElevatedDashboardUser.value) {
     return [
       { title: 'Project ID', key: 'id', sortable: true, width: '6%' },
       { title: 'Invoice ID', key: 'invoiceId', sortable: true, width: '6%' },
@@ -157,6 +155,7 @@ const projectTypeOptions = {
   all: 'All',
   allPoleBarnTypes: 'All Pole Barn Types',
   typicalOpbOnly: 'Typical OPB ONLY / Name & Address Change ONLY',
+  typicalLeanToOnly: 'Typical Lean To ONLY',
   customPoleBarn: 'Custom Pole Barn',
   paperCopy: 'All Paper Copy',
   paperCopyRequest: 'Paper Copy Request',
@@ -194,6 +193,7 @@ const filteredProjects = computed(() => {
         return (
           project.data.projectType === 'customPoleBarn' ||
           project.data.projectType === 'typicalOpbOnly' ||
+          project.data.projectType === 'typicalLeanToOnly' ||
           !project.data.projectType
         )
       } else if (projectStore.dashboardFilter === 'customPoleBarn' && !project.data.projectType) {
@@ -221,7 +221,7 @@ const filteredProjects = computed(() => {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(
       (project) =>
-        project.data.projectId.toLowerCase().includes(query) ||
+        String(project.data.projectId).toLowerCase().includes(query) ||
         project.data.projectName.toLowerCase().includes(query) ||
         project.data.clientName.toLowerCase().includes(query),
     )

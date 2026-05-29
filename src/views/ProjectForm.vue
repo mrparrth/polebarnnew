@@ -5,308 +5,218 @@
         <v-card elevation="8" class="pa-0 rounded-xl main-form-card">
           <!-- Header Bar -->
           <v-sheet class="header-bar d-flex align-center py-4 position-relative" elevation="0">
-            <v-img
-              src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg"
-              height="100"
-              width="100"
-              class="rounded-lg position-absolute"
-              style="left: 30px; top: 50%; transform: translateY(-50%)"
-            />
+            <v-img src="https://ucarecdn.com/e767c054-980a-4511-aabe-8d7cbe48d732/CeedCivilEngineering.jpg" height="100"
+              width="100" class="rounded-lg position-absolute"
+              style="left: 30px; top: 50%; transform: translateY(-50%)" />
             <div class="position-absolute w-100 d-flex justify-center">
               <h2 class="form-title mb-0 text-center">
                 Site Specific Pole Barn <br />Order Form & Agreement
               </h2>
             </div>
-            <div
-              class="position-absolute d-flex flex-column"
-              style="right: 20px; top: 33px; gap: 10px"
-            >
-              <v-btn v-if="isAdmin" color="secondary" variant="flat" @click="updatePaperStock"
-                >Update Paper Stock</v-btn
-              >
-              <v-btn color="primary" variant="flat" @click="goToDashboard">View Dashboard</v-btn>
+            <div class="position-absolute d-flex align-center"
+              style="right: 20px; top: 50%; transform: translateY(-50%); gap: 12px">
+              <div class="d-flex flex-column" style="gap: 10px">
+                <v-btn v-if="[USER_TYPES.Admin, USER_TYPES.Client].includes(user?.type)" color="secondary"
+                  variant="flat" @click="updatePaperStock">Update Paper
+                  Stock</v-btn>
+                <v-btn color="primary" variant="flat" @click="goToDashboard">View Dashboard</v-btn>
+              </div>
             </div>
           </v-sheet>
 
           <!-- Status and Order Information Section -->
-          <v-sheet
-            class="page-section"
-            elevation="1"
-            v-if="form.projectSubtype !== 'paperCopyRequest'"
-          >
-            <div class="section-header mb-4">Ceed Civil Engineering Project</div>
+          <v-sheet class="page-section" elevation="1" v-if="form.projectSubtype !== 'paperCopyRequest'">
+            <v-row class="pa-4">
+              <div class="section-header mb-0">Ceed Civil Engineering Project</div>
+              <div v-if="!isNewProject" class="d-flex align-center ga-2">
+                <v-tooltip text="View Revision History" location="bottom">
+                  <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" icon="mdi-history" variant="tonal" density="comfortable" color="indigo"
+                      :loading="isLoadingHistory" @click="handleShowHistoryDialog" />
+                  </template>
+                </v-tooltip>
+
+                <v-tooltip v-if="[USER_TYPES.Admin, USER_TYPES.Employee].includes(user?.type)" text="Generate PDF"
+                  location="bottom">
+                  <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" icon="mdi-file-pdf-box" variant="tonal" density="comfortable"
+                      color="red-darken-2" :loading="isGeneratingPdf" @click="generatePdf" />
+                  </template>
+                </v-tooltip>
+              </div>
+            </v-row>
             <v-row>
-              <v-col cols="12" md="6" v-if="isEdit">
-                <v-text-field
-                  v-model="form.projectId"
-                  label="Project ID"
-                  variant="outlined"
-                  dense
-                  required
-                  name="projectId"
-                  disabled
-                />
+              <v-col cols="12" md="6" v-if="!isNewProject">
+                <v-text-field v-model="form.projectId" label="Project ID" variant="outlined" dense required
+                  name="projectId" disabled />
               </v-col>
-              <v-col cols="12" md="6">
-                <v-select
-                  v-model="form.status"
-                  :items="STATUSES"
-                  label="Status"
-                  class="mb-4"
-                  dense
-                  variant="outlined"
-                  hide-details
-                  full-width
-                  name="status"
-                  :disabled="shouldDisableField('status')"
-                  :error-messages="fieldErrors.status"
-                  :error="!!fieldErrors.status"
-                />
+              <v-col cols="12" :md="isNewProject ? 12 : 6">
+                <v-select v-model="form.status" :items="STATUSES" label="Status" class="mb-4" dense variant="outlined"
+                  hide-details full-width name="status" :disabled="shouldDisableField('status')"
+                  :error-messages="fieldErrors.status" :error="!!fieldErrors.status" />
               </v-col>
             </v-row>
             <div class="section-header mb-2">Order Information</div>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.clientName"
-                  :class="{ required: isRequired('clientName') }"
-                  label="Client Name"
-                  dense
-                  variant="outlined"
-                  required
-                  name="clientName"
-                  :disabled="shouldDisableField('clientName')"
-                  :error-messages="fieldErrors.clientName"
-                  :error="!!fieldErrors.clientName"
-                />
+                <v-text-field v-model="form.clientName" :class="{ required: isRequired('clientName') }"
+                  label="Client Name" dense variant="outlined" required name="clientName"
+                  :disabled="shouldDisableField('clientName')" :error-messages="fieldErrors.clientName"
+                  :error="!!fieldErrors.clientName" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.projectName"
-                  :class="{ required: isRequired('projectName') }"
-                  label="Project Name"
-                  dense
-                  variant="outlined"
-                  required
-                  name="projectName"
-                  counter="25"
-                  :disabled="shouldDisableField('projectName')"
-                  :error-messages="fieldErrors.projectName"
-                  :error="!!fieldErrors.projectName"
-                  @input="validateProjectNameLength"
-                />
+                <v-text-field v-model="form.projectName" :class="{ required: isRequired('projectName') }"
+                  label="Project Name" dense variant="outlined" required name="projectName" counter="25"
+                  :disabled="shouldDisableField('projectName')" :error-messages="fieldErrors.projectName"
+                  :error="!!fieldErrors.projectName" @input="validateProjectNameLength" />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.siteAddress"
-                  :class="{ required: isRequired('siteAddress') }"
-                  label="Site Address"
-                  dense
-                  variant="outlined"
-                  required
-                  name="siteAddress"
-                  :disabled="shouldDisableField('siteAddress')"
-                  :error-messages="fieldErrors.siteAddress"
-                  :error="!!fieldErrors.siteAddress"
-                />
+                <v-text-field v-model="form.siteAddress" :class="{ required: isRequired('siteAddress') }"
+                  label="Site Address" dense variant="outlined" required name="siteAddress"
+                  :disabled="shouldDisableField('siteAddress')" :error-messages="fieldErrors.siteAddress"
+                  :error="!!fieldErrors.siteAddress" />
               </v-col>
               <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.city"
-                  :class="{ required: isRequired('city') }"
-                  label="City"
-                  dense
-                  variant="outlined"
-                  required
-                  name="city"
-                  :disabled="shouldDisableField('city')"
-                  :error-messages="fieldErrors.city"
-                  :error="!!fieldErrors.city"
-                />
+                <v-text-field v-model="form.city" :class="{ required: isRequired('city') }" label="City" dense
+                  variant="outlined" required name="city" :disabled="shouldDisableField('city')"
+                  :error-messages="fieldErrors.city" :error="!!fieldErrors.city" />
               </v-col>
               <v-col cols="12" md="3">
-                <v-combobox
-                  v-model="form.state"
-                  :items="STATES"
-                  :class="{ required: isRequired('state') }"
-                  label="State"
-                  dense
-                  variant="outlined"
-                  name="state"
-                  :disabled="shouldDisableField('state')"
-                  :error-messages="fieldErrors.state"
-                  :error="!!fieldErrors.state"
-                />
+                <v-combobox v-model="form.state" :items="STATES" :class="{ required: isRequired('state') }"
+                  label="State" dense variant="outlined" name="state" :disabled="shouldDisableField('state')"
+                  :error-messages="fieldErrors.state" :error="!!fieldErrors.state" />
               </v-col>
 
               <v-col cols="12" md="2">
-                <v-text-field
-                  v-model="form.zip"
-                  :class="{ required: isRequired('zip') }"
-                  label="Zip"
-                  dense
-                  variant="outlined"
-                  name="zip"
-                  :disabled="shouldDisableField('zip')"
-                  :error-messages="fieldErrors.zip"
-                  :error="!!fieldErrors.zip"
-                />
+                <v-text-field v-model="form.zip" :class="{ required: isRequired('zip') }" label="Zip" dense
+                  variant="outlined" name="zip" :disabled="shouldDisableField('zip')" :error-messages="fieldErrors.zip"
+                  :error="!!fieldErrors.zip" />
               </v-col>
             </v-row>
           </v-sheet>
 
-          <v-sheet
-            class="page-section"
-            elevation="1"
-            v-if="form.projectSubtype !== 'paperCopyRequest'"
-          >
-            <div class="section-header">Project Type (Select One To Proceed)</div>
-            <v-row>
-              <v-radio-group
-                v-model="form.projectType"
-                inline
-                name="projectType"
-                :disabled="shouldDisableField('projectType')"
-                :error-messages="fieldErrors.projectType"
-                :error="!!fieldErrors.projectType"
-                hide-details
-              >
-                <v-col cols="6" xs="12">
-                  <v-radio
-                    label="Typical OPB ONLY / Name & Address Change ONLY"
-                    value="typicalOpbOnly"
-                    hide-details
-                  />
+          <v-sheet class="page-section" elevation="1" v-if="form.projectSubtype !== 'paperCopyRequest'">
+            <div class="section-header">
+              Project Type
+              <span class="text-subtitle-2 text-grey-darken-1 font-weight-regular ml-2" style="font-size: 0.9rem;">
+                - Select One To Proceed
+              </span>
+            </div>
+            <v-radio-group v-model="form.projectType" name="projectType" :disabled="shouldDisableField('projectType')"
+              :error-messages="fieldErrors.projectType" :error="!!fieldErrors.projectType" hide-details class="w-100">
+              <v-row>
+                <!-- Column 1: Name and Address Change Only -->
+                <v-col cols="12" md="6">
+                  <div class="text-subtitle-1 font-weight-bold mb-3" style="color: #b62025;">
+                    Typical Project (Name & Address Change Only)
+                  </div>
+                  <div class="d-flex flex-column" style="gap: 8px;">
+                    <v-radio label="Typical OPB ONLY" value="typicalOpbOnly" hide-details />
+                    <v-radio label="Typical Lean To ONLY" value="typicalLeanToOnly" hide-details />
+                  </div>
                 </v-col>
-                <v-col cols="6" xs="12">
-                  <v-radio label="Custom Pole Barn" value="customPoleBarn" hide-details />
+
+                <!-- Column 2: Custom and Paper Copy Options -->
+                <v-col cols="12" md="6">
+                  <div class="text-subtitle-1 font-weight-bold mb-3" style="color: #b62025;">
+                    Other Options
+                  </div>
+                  <div class="d-flex flex-column" style="gap: 8px;">
+                    <v-radio label="Custom Pole Barn" value="customPoleBarn" hide-details />
+                    <v-radio v-if="isNewProject || form.projectType === 'paperCopy'" label="Paper Copy"
+                      value="paperCopy" hide-details />
+                  </div>
                 </v-col>
-                <v-col cols="6" xs="12" v-if="!isEdit || form.projectType === 'paperCopy'">
-                  <v-radio label="Paper Copy" value="paperCopy" hide-details />
-                </v-col>
-              </v-radio-group>
-            </v-row>
+              </v-row>
+            </v-radio-group>
           </v-sheet>
 
-          <div v-if="form.projectType === 'paperCopy'">
-            <v-sheet class="page-section" elevation="1">
-              <div class="section-header mb-4">Paper Copy Options</div>
-              <v-table>
-                <colgroup>
-                  <col style="width: 33%" />
-                  <col style="width: 33%" />
-                  <col style="width: 33%" />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th class="text-left">Type</th>
-                    <th class="text-left">
-                      {{ form.projectSubtype === 'paperCopyRequest' ? 'Request Qty' : 'Sold Qty' }}
-                    </th>
-                    <th class="text-left">Qty In Stock Right Now</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Open pole barn</td>
-                    <td>
-                      <v-select
-                        v-model="form.opbPaperSold"
-                        name="paperCopyOpenPoleBarnQty"
-                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        class="max-width-100"
-                        clearable
-                        :error="!!fieldErrors.opbPaperSold"
-                        :disabled="isEdit"
-                        v-if="!isEdit"
-                      />
-                      <div v-if="isEdit" disabled>
-                        {{ form.opbPaperSold || form.openPoleBarn }}
-                      </div>
-                    </td>
-                    <td>
-                      {{ projectStore.paperCopyStock.openPoleBarn.qty }}
-                      <span v-if="form.opbPaperSold && !isEdit">
-                        (Left in Stock
-                        {{ projectStore.paperCopyStock.openPoleBarn.qty - form.opbPaperSold }})
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Lean to</td>
-                    <td>
-                      <v-select
-                        v-model="form.leanToPaperSold"
-                        name="paperCopyLeanToQty"
-                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        class="max-width-100"
-                        clearable
-                        :disabled="isEdit"
-                        v-if="!isEdit"
-                      />
-                      <div v-if="isEdit" disabled>
-                        {{ form.leanToPaperSold || form.leanTo }}
-                      </div>
-                    </td>
-                    <td>
-                      {{ projectStore.paperCopyStock.leanTo.qty }}
-                      <span v-if="form.leanToPaperSold && !isEdit">
-                        (Left in Stock
-                        {{ projectStore.paperCopyStock.leanTo.qty - form.leanToPaperSold }})
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Single slope</td>
-                    <td>
-                      <v-select
-                        v-model="form.singleSlopePaperSold"
-                        name="paperCopySingleSlopeQty"
-                        :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        class="max-width-100"
-                        clearable
-                        :disabled="isEdit"
-                        v-if="!isEdit"
-                      />
-                      <div v-if="isEdit" disabled>
-                        {{ form.singleSlopePaperSold || form.singleSlope }}
-                      </div>
-                    </td>
-                    <td>
-                      {{ projectStore.paperCopyStock.singleSlope.qty }}
-                      <span v-if="form.singleSlopePaperSold && !isEdit">
-                        (Left in Stock
-                        {{
-                          projectStore.paperCopyStock.singleSlope.qty - form.singleSlopePaperSold
-                        }})
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-              <div
-                v-if="fieldErrors.qtyFields"
-                class="text-error text-body-2 mt-2"
-                name="qtyFields"
-                style="margin-left: 40%"
-              >
-                {{ fieldErrors.qtyFields }}
-              </div>
-            </v-sheet>
-          </div>
+          <v-sheet class="page-section" elevation="1" v-if="form.projectType === 'paperCopy'">
+            <div class="section-header mb-4">Paper Copy Options</div>
+            <v-table>
+              <colgroup>
+                <col style="width: 33%" />
+                <col style="width: 33%" />
+                <col style="width: 33%" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="text-left">Type</th>
+                  <th class="text-left">
+                    {{ form.projectSubtype === 'paperCopyRequest' ? 'Request Qty' : 'Sold Qty' }}
+                  </th>
+                  <th class="text-left">Qty In Stock Right Now</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Open pole barn</td>
+                  <td>
+                    <v-select v-model="form.opbPaperSold" name="paperCopyOpenPoleBarnQty"
+                      :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" variant="outlined" density="compact" hide-details
+                      class="max-width-100" clearable :error="!!fieldErrors.opbPaperSold" :disabled="!isNewProject"
+                      v-if="isNewProject" />
+                    <div v-if="!isNewProject" disabled>
+                      {{ form.opbPaperSold || form.openPoleBarn }}
+                    </div>
+                  </td>
+                  <td>
+                    {{ projectStore.paperCopyStock.openPoleBarn.qty }}
+                    <span v-if="form.opbPaperSold && isNewProject">
+                      (Left in Stock
+                      {{ projectStore.paperCopyStock.openPoleBarn.qty - form.opbPaperSold }})
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Lean to</td>
+                  <td>
+                    <v-select v-model="form.leanToPaperSold" name="paperCopyLeanToQty"
+                      :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" variant="outlined" density="compact" hide-details
+                      class="max-width-100" clearable :disabled="!isNewProject" v-if="isNewProject" />
+                    <div v-if="!isNewProject" disabled>
+                      {{ form.leanToPaperSold || form.leanTo }}
+                    </div>
+                  </td>
+                  <td>
+                    {{ projectStore.paperCopyStock.leanTo.qty }}
+                    <span v-if="form.leanToPaperSold && isNewProject">
+                      (Left in Stock
+                      {{ projectStore.paperCopyStock.leanTo.qty - form.leanToPaperSold }})
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Single slope</td>
+                  <td>
+                    <v-select v-model="form.singleSlopePaperSold" name="paperCopySingleSlopeQty"
+                      :items="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" variant="outlined" density="compact" hide-details
+                      class="max-width-100" clearable :disabled="!isNewProject" v-if="isNewProject" />
+                    <div v-if="!isNewProject" disabled>
+                      {{ form.singleSlopePaperSold || form.singleSlope }}
+                    </div>
+                  </td>
+                  <td>
+                    {{ projectStore.paperCopyStock.singleSlope.qty }}
+                    <span v-if="form.singleSlopePaperSold && isNewProject">
+                      (Left in Stock
+                      {{
+                        projectStore.paperCopyStock.singleSlope.qty - form.singleSlopePaperSold
+                      }})
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+            <div v-if="fieldErrors.qtyFields" class="text-error text-body-2 mt-2" name="qtyFields"
+              style="margin-left: 40%">
+              {{ fieldErrors.qtyFields }}
+            </div>
+          </v-sheet>
 
-          <div v-if="form.projectType !== 'paperCopy' && (form.projectType || isEdit)">
+          <div v-if="form.projectType !== 'paperCopy' && (form.projectType || !isNewProject)">
             <v-sheet class="page-section" elevation="1">
               <div class="section-header">Scope of Work</div>
 
@@ -315,11 +225,7 @@
                   <thead>
                     <tr>
                       <th class="scope-header">#</th>
-                      <th
-                        v-for="column in visibleScopeColumns"
-                        :key="column.key"
-                        class="scope-header"
-                      >
+                      <th v-for="column in visibleScopeColumns" :key="column.key" class="scope-header">
                         {{ column.label }}
                       </th>
                     </tr>
@@ -328,133 +234,65 @@
                     <tr v-for="row in scopeOfWorkRows" :key="row.label">
                       <th class="scope-label">{{ row.label }}</th>
                       <td v-for="column in visibleScopeColumns" :key="column.key">
-                        <div
-                          v-if="row.key === 'Size'"
-                          class="sow-input-container"
-                          tabindex="0"
-                          :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        <div v-if="row.key === 'Size'" class="sow-input-container" tabindex="0"
+                          :name="`${column.key}${row.key}`" :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
                           @click="focusFirstInput('size', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
-                            v-model="sizeInputs[`${column.key}${row.key}`].w"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'W' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                          @focusin="activeColumns[column.key] = true">
+                          <input v-model="sizeInputs[`${column.key}${row.key}`].w" type="number" min="1"
+                            class="sow-input" :placeholder="activeColumns[column.key] ? 'W' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
 
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                          }}</span>
-                          <input
-                            v-model="sizeInputs[`${column.key}${row.key}`].l"
-                            :name="`size-${column.key}${row.key}-l`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'L' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                            }}</span>
+                          <input v-model="sizeInputs[`${column.key}${row.key}`].l"
+                            :name="`size-${column.key}${row.key}-l`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? 'L' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
 
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                          }}</span>
-                          <input
-                            v-model="sizeInputs[`${column.key}${row.key}`].h"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? 'H' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                            }}</span>
+                          <input v-model="sizeInputs[`${column.key}${row.key}`].h" type="number" min="1"
+                            class="sow-input" :placeholder="activeColumns[column.key] ? 'H' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                         </div>
 
-                        <div
-                          v-else-if="row.key === 'PostSpacing'"
-                          class="sow-input-container"
-                          tabindex="0"
-                          :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        <div v-else-if="row.key === 'PostSpacing'" class="sow-input-container" tabindex="0"
+                          :name="`${column.key}${row.key}`" :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
                           @click="focusFirstInput('postSpacing', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
-                            v-model="postSpacingInputs[`${column.key}${row.key}`].value"
-                            :name="`postSpacing-${column.key}${row.key}`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? '' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                          @focusin="activeColumns[column.key] = true">
+                          <input v-model="postSpacingInputs[`${column.key}${row.key}`].value"
+                            :name="`postSpacing-${column.key}${row.key}`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? '' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? "'" : ''
-                          }}</span>
+                            }}</span>
                         </div>
-                        <v-select
-                          v-else-if="row.key === 'PostSize'"
-                          v-model="form[`${column.key}${row.key}`]"
-                          :name="`${column.key}${row.key}`"
-                          :items="['6x6', '8x8', 'Custom']"
-                          variant="outlined"
-                          density="compact"
-                          class="sow-select"
-                          :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                          :error="!!fieldErrors[`${column.key}${row.key}`]"
-                          hide-details
-                          clearable
-                        />
+                        <v-select v-else-if="row.key === 'PostSize'" v-model="form[`${column.key}${row.key}`]"
+                          :name="`${column.key}${row.key}`" :items="['6x6', '8x8', 'Custom']" variant="outlined"
+                          density="compact" class="sow-select" :disabled="shouldDisableField(`${column.key}${row.key}`)"
+                          :error="!!fieldErrors[`${column.key}${row.key}`]" hide-details clearable />
 
-                        <div
-                          v-else-if="row.key === 'MainBldgPitch'"
-                          class="sow-input-container"
-                          tabindex="0"
-                          :name="`${column.key}${row.key}`"
-                          :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
+                        <div v-else-if="row.key === 'MainBldgPitch'" class="sow-input-container" tabindex="0"
+                          :name="`${column.key}${row.key}`" :class="{ error: !!fieldErrors[`${column.key}${row.key}`] }"
                           @click="focusFirstInput('mainBldgPitch', `${column.key}${row.key}`)"
-                          @focusin="activeColumns[column.key] = true"
-                        >
-                          <input
-                            v-model="mainBldgPitchInputs[`${column.key}${row.key}`].value"
-                            :name="`mainBldgPitch-${column.key}${row.key}`"
-                            type="number"
-                            min="1"
-                            class="sow-input"
-                            :placeholder="activeColumns[column.key] ? '' : ''"
-                            inputmode="numeric"
-                            :disabled="shouldDisableField(`${column.key}${row.key}`)"
-                            @click.stop
-                          />
+                          @focusin="activeColumns[column.key] = true">
+                          <input v-model="mainBldgPitchInputs[`${column.key}${row.key}`].value"
+                            :name="`mainBldgPitch-${column.key}${row.key}`" type="number" min="1" class="sow-input"
+                            :placeholder="activeColumns[column.key] ? '' : ''" inputmode="numeric"
+                            :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? '/12' : ''
-                          }}</span>
+                            }}</span>
                         </div>
 
-                        <v-text-field
-                          v-else
-                          v-model="form[`${column.key}${row.key}`]"
-                          :id="`${column.key}${row.key}`"
-                          :name="`${column.key}${row.key}`"
-                          dense
-                          variant="outlined"
-                          hide-details
-                          class="scope-input"
+                        <v-text-field v-else v-model="form[`${column.key}${row.key}`]" :id="`${column.key}${row.key}`"
+                          :name="`${column.key}${row.key}`" dense variant="outlined" hide-details class="scope-input"
                           :disabled="shouldDisableField(`${column.key}${row.key}`)"
                           :error-messages="fieldErrors[`${column.key}${row.key}`]"
-                          :error="!!fieldErrors[`${column.key}${row.key}`]"
-                          @focus="activeColumns[column.key] = true"
-                        />
+                          :error="!!fieldErrors[`${column.key}${row.key}`]" @focus="activeColumns[column.key] = true" />
                       </td>
                     </tr>
                   </tbody>
@@ -464,31 +302,17 @@
               <div class="fake-table-row mb-4" v-if="form.projectType === 'customPoleBarn'">
                 <div class="scope-label overhang-label">Overhang</div>
                 <div class="overhang-controls">
-                  <v-radio-group
-                    v-model="form.overhangType"
-                    inline
-                    hide-details
-                    name="overhangType"
-                    :disabled="shouldDisableField('overhangType')"
-                    :error-messages="fieldErrors.overhangType"
-                    :error="!!fieldErrors.overhangType"
-                  >
+                  <v-radio-group v-model="form.overhangType" inline hide-details name="overhangType"
+                    :disabled="shouldDisableField('overhangType')" :error-messages="fieldErrors.overhangType"
+                    :error="!!fieldErrors.overhangType">
                     <v-radio label="Standard" value="standard" />
                     <div class="d-flex align-items-center">
                       <v-radio label="Custom" value="custom" />
-                      <v-text-field
-                        v-if="form.overhangType === 'custom'"
-                        v-model="form.overhangValue"
-                        label="Custom Overhang"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        name="overhangValue"
-                        :disabled="shouldDisableField('overhangValue')"
-                        :error-messages="fieldErrors.overhangValue"
+                      <v-text-field v-if="form.overhangType === 'custom'" v-model="form.overhangValue"
+                        label="Custom Overhang" dense variant="outlined" hide-details name="overhangValue"
+                        :disabled="shouldDisableField('overhangValue')" :error-messages="fieldErrors.overhangValue"
                         :error="!!fieldErrors.overhangValue"
-                        style="width: 170px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
-                      />
+                        style="width: 170px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px" />
                     </div>
                   </v-radio-group>
                 </div>
@@ -498,69 +322,31 @@
 
               <v-row>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.riskCategory"
-                    row
-                    label="Risk Category"
-                    inline
-                    name="riskCategory"
-                    :disabled="shouldDisableField('riskCategory')"
-                    :error-messages="fieldErrors.riskCategory"
-                    :error="!!fieldErrors.riskCategory"
-                  >
-                    <v-radio
-                      v-for="n in [1, 2, 3, 4]"
-                      :key="n"
-                      :label="n.toString()"
-                      :value="n.toString()"
-                    />
+                  <v-radio-group v-model="form.riskCategory" row label="Risk Category" inline name="riskCategory"
+                    :disabled="shouldDisableField('riskCategory')" :error-messages="fieldErrors.riskCategory"
+                    :error="!!fieldErrors.riskCategory">
+                    <v-radio v-for="n in [1, 2, 3, 4]" :key="n" :label="n.toString()" :value="n.toString()" />
                   </v-radio-group>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.exposureCategory"
-                    row
-                    label="Exposure Category"
-                    inline
-                    name="exposureCategory"
-                    :disabled="shouldDisableField('exposureCategory')"
-                    :error-messages="fieldErrors.exposureCategory"
-                    :error="!!fieldErrors.exposureCategory"
-                  >
-                    <v-radio
-                      v-for="cat in ['A', 'B', 'C', 'D']"
-                      :key="cat"
-                      :label="cat"
-                      :value="cat"
-                    />
+                  <v-radio-group v-model="form.exposureCategory" row label="Exposure Category" inline
+                    name="exposureCategory" :disabled="shouldDisableField('exposureCategory')"
+                    :error-messages="fieldErrors.exposureCategory" :error="!!fieldErrors.exposureCategory">
+                    <v-radio v-for="cat in ['A', 'B', 'C', 'D']" :key="cat" :label="cat" :value="cat" />
                   </v-radio-group>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.plywoodOnSiding"
-                    row
-                    label="Plywood On Siding"
-                    :disabled="shouldDisableField('plywoodOnSiding')"
-                    inline
-                    name="plywoodOnSiding"
-                    :error-messages="fieldErrors.plywoodOnSiding"
-                    :error="!!fieldErrors.plywoodOnSiding"
-                  >
+                  <v-radio-group v-model="form.plywoodOnSiding" row label="Plywood On Siding"
+                    :disabled="shouldDisableField('plywoodOnSiding')" inline name="plywoodOnSiding"
+                    :error-messages="fieldErrors.plywoodOnSiding" :error="!!fieldErrors.plywoodOnSiding">
                     <v-radio label="Yes" value="Yes" />
                     <v-radio label="No" value="No" />
                   </v-radio-group>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-radio-group
-                    v-model="form.plywoodOnRoof"
-                    row
-                    label="Plywood On Roof"
-                    inline
-                    name="plywoodOnRoof"
-                    :disabled="shouldDisableField('plywoodOnRoof')"
-                    :error-messages="fieldErrors.plywoodOnRoof"
-                    :error="!!fieldErrors.plywoodOnRoof"
-                  >
+                  <v-radio-group v-model="form.plywoodOnRoof" row label="Plywood On Roof" inline name="plywoodOnRoof"
+                    :disabled="shouldDisableField('plywoodOnRoof')" :error-messages="fieldErrors.plywoodOnRoof"
+                    :error="!!fieldErrors.plywoodOnRoof">
                     <v-radio label="Yes" value="Yes" />
                     <v-radio label="No" value="No" />
                   </v-radio-group>
@@ -568,34 +354,20 @@
               </v-row>
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-radio-group
-                    v-model="form.studSpacing"
-                    row
-                    label="2 x 6 Stud Spacing"
-                    inline
-                    name="studSpacing"
-                    v-if="form.projectType !== 'typicalOpbOnly'"
-                    :disabled="shouldDisableField('studSpacing')"
-                    :error-messages="fieldErrors.studSpacing"
-                    :error="!!fieldErrors.studSpacing"
-                  >
+                  <v-radio-group v-model="form.studSpacing" row label="2 x 6 Stud Spacing" inline name="studSpacing"
+                    v-if="!['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType)"
+                    :disabled="shouldDisableField('studSpacing')" :error-messages="fieldErrors.studSpacing"
+                    :error="!!fieldErrors.studSpacing">
                     <v-radio label="16" value="16" class="mr-3 my-3" />
                     <v-radio label="24" value="24" class="mr-3 my-3" />
                     <div style="display: inline-flex; align-items: center">
                       <v-radio label="Custom" value="custom" />
-                      <v-text-field
-                        v-if="form.studSpacing === 'custom'"
-                        v-model="form.studSpacingCustomValue"
-                        label="Custom Stud Spacing"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        name="studSpacingCustomValue"
+                      <v-text-field v-if="form.studSpacing === 'custom'" v-model="form.studSpacingCustomValue"
+                        label="Custom Stud Spacing" dense variant="outlined" hide-details name="studSpacingCustomValue"
                         :disabled="shouldDisableField('studSpacingCustomValue')"
                         :error-messages="fieldErrors.studSpacingCustomValue"
                         :error="!!fieldErrors.studSpacingCustomValue"
-                        style="width: 200px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px"
-                      />
+                        style="width: 200px; margin-left: 8px; margin-top: 2px; margin-bottom: 2px" />
                     </div>
                   </v-radio-group>
                 </v-col>
@@ -604,68 +376,35 @@
                   <div class="section-header mb-2" style="min-height: 24px"></div>
                   <v-row>
                     <v-col cols="6">
-                      <v-text-field
-                        v-model="windSpeedInput.value"
-                        label="Wind Speed"
-                        type="number"
-                        min="1"
-                        dense
-                        variant="outlined"
-                        name="windSpeed"
-                        suffix="MPH"
-                        :disabled="shouldDisableField('windSpeed')"
-                        :error-messages="fieldErrors.windSpeed"
-                        :error="!!fieldErrors.windSpeed"
-                      />
+                      <v-text-field v-model="windSpeedInput.value" label="Wind Speed" type="number" min="1" dense
+                        variant="outlined" name="windSpeed" suffix="MPH" :disabled="shouldDisableField('windSpeed')"
+                        :error-messages="fieldErrors.windSpeed" :error="!!fieldErrors.windSpeed" />
                     </v-col>
                     <v-col cols="6" class="d-flex align-center">
-                      <v-checkbox
-                        v-model="form.wetMapAndSeal"
-                        label="Wet Stamp And Seal"
-                        :disabled="shouldDisableField('wetMapAndSeal')"
-                      />
+                      <v-checkbox v-model="form.wetMapAndSeal" label="Wet Stamp And Seal"
+                        :disabled="shouldDisableField('wetMapAndSeal')" />
                     </v-col>
                   </v-row>
                 </v-col>
               </v-row>
               <hr v-if="!shouldHideField('price')" class="section-divider" />
               <v-row v-if="!shouldHideField('price')" class="admin-pricing-field">
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.price"
-                    label="Project Pricing"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    dense
-                    variant="outlined"
-                    required
-                    name="price"
-                    hide-details
-                    prepend-inner-icon="mdi-currency-usd"
-                    :error-messages="fieldErrors.price"
-                    :error="!!fieldErrors.price"
-                  />
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="form.price" label="Project Pricing" type="number" step="0.01" min="0" dense
+                    variant="outlined" required name="price" hide-details prepend-inner-icon="mdi-currency-usd"
+                    :error-messages="fieldErrors.price" :error="!!fieldErrors.price" />
                 </v-col>
               </v-row>
             </v-sheet>
 
-            <v-sheet
-              class="page-section"
-              elevation="1"
-              v-if="form.projectType === 'customPoleBarn' || isEdit"
-            >
+            <v-sheet class="page-section" elevation="1" v-if="form.projectType === 'customPoleBarn' || !isNewProject">
               <div class="section-header">ADD-ONS</div>
               <div class="addons-table-wrapper">
                 <table class="addons-table">
                   <thead>
                     <tr>
                       <th class="addons-header">Add-On</th>
-                      <th
-                        v-for="column in visibleAddonColumns"
-                        :key="column.key"
-                        class="addons-header"
-                      >
+                      <th v-for="column in visibleAddonColumns" :key="column.key" class="addons-header">
                         {{ column.label }}
                       </th>
                     </tr>
@@ -673,123 +412,58 @@
                   <tbody>
                     <tr v-for="addon in addonsConfig" :key="addon.key">
                       <th class="addons-label">
-                        <v-checkbox
-                          v-model="form[addon.checkboxKey]"
-                          :label="addon.label"
-                          hide-details
-                          :disabled="shouldDisableField(addon.checkboxKey)"
-                        />
+                        <v-checkbox v-model="form[addon.checkboxKey]" :label="addon.label" hide-details
+                          :disabled="shouldDisableField(addon.checkboxKey)" />
                       </th>
-                      <td
-                        v-for="column in visibleAddonColumns"
-                        :key="column.key"
-                        class="addons-cell"
-                      >
+                      <td v-for="column in visibleAddonColumns" :key="column.key" class="addons-cell">
                         <div v-if="addon.type === 'simple' && column.key === 'Opb'" class="na-text">
                           N/A
                         </div>
                         <div v-else-if="addon.type === 'simple'" class="addons-inputs">
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Qty`]"
-                            :name="`${addon.key}${column.key}Qty`"
-                            label="Quantity"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Qty`) ||
+                          <v-text-field v-model="form[`${addon.key}${column.key}Qty`]"
+                            :name="`${addon.key}${column.key}Qty`" label="Quantity" dense variant="outlined"
+                            hide-details :disabled="shouldDisableField(`${addon.key}${column.key}Qty`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Qty`]"
-                          />
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Size`]"
-                            :name="`${addon.key}${column.key}Size`"
-                            label="Size"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Size`) ||
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Qty`]" />
+                          <v-text-field v-model="form[`${addon.key}${column.key}Size`]"
+                            :name="`${addon.key}${column.key}Size`" label="Size" dense variant="outlined" hide-details
+                            :disabled="shouldDisableField(`${addon.key}${column.key}Size`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
-                          />
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Size`]" />
                         </div>
                         <div v-else-if="addon.type === 'complex'" class="addons-inputs">
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Size`]"
-                            :name="`${addon.key}${column.key}Size`"
-                            label="Size"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Size`) ||
+                          <v-text-field v-model="form[`${addon.key}${column.key}Size`]"
+                            :name="`${addon.key}${column.key}Size`" label="Size" dense variant="outlined" hide-details
+                            :disabled="shouldDisableField(`${addon.key}${column.key}Size`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Size`]"
-                          />
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}Pitch`]"
-                            :name="`${addon.key}${column.key}Pitch`"
-                            label="Pitch"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}Pitch`) ||
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Size`]" />
+                          <v-text-field v-model="form[`${addon.key}${column.key}Pitch`]"
+                            :name="`${addon.key}${column.key}Pitch`" label="Pitch" dense variant="outlined" hide-details
+                            :disabled="shouldDisableField(`${addon.key}${column.key}Pitch`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}Pitch`]"
-                          />
+                              " :error="!!fieldErrors[`${addon.key}${column.key}Pitch`]" />
                           <div class="slab-section">
                             <div class="slab-label">Slab</div>
-                            <v-radio-group
-                              v-model="form[`${addon.key}${column.key}Slab`]"
-                              inline
-                              hide-details
-                              :disabled="
-                                shouldDisableField(`${addon.key}${column.key}Slab`) ||
+                            <v-radio-group v-model="form[`${addon.key}${column.key}Slab`]" inline hide-details
+                              :disabled="shouldDisableField(`${addon.key}${column.key}Slab`) ||
                                 !form[addon.checkboxKey]
-                              "
-                            >
-                              <v-radio
-                                label="Yes"
-                                value="Yes"
-                                :name="`${addon.key}${column.key}Slab`"
+                                ">
+                              <v-radio label="Yes" value="Yes" :name="`${addon.key}${column.key}Slab`"
                                 :disabled="!form[addon.checkboxKey]"
-                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
-                              />
-                              <v-radio
-                                label="No"
-                                value="No"
-                                :name="`${addon.key}${column.key}Slab`"
+                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]" />
+                              <v-radio label="No" value="No" :name="`${addon.key}${column.key}Slab`"
                                 :disabled="!form[addon.checkboxKey]"
-                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
-                              />
-                              <v-radio
-                                label="N/A"
-                                value="N/A"
-                                :name="`${addon.key}${column.key}Slab`"
+                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]" />
+                              <v-radio label="N/A" value="N/A" :name="`${addon.key}${column.key}Slab`"
                                 :disabled="!form[addon.checkboxKey]"
-                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]"
-                              />
+                                :error="!!fieldErrors[`${addon.key}${column.key}Slab`]" />
                             </v-radio-group>
                           </div>
-                          <v-text-field
-                            v-model="form[`${addon.key}${column.key}PostSize`]"
-                            :name="`${addon.key}${column.key}PostSize`"
-                            label="Post Size"
-                            dense
-                            variant="outlined"
-                            hide-details
-                            :disabled="
-                              shouldDisableField(`${addon.key}${column.key}PostSize`) ||
+                          <v-text-field v-model="form[`${addon.key}${column.key}PostSize`]"
+                            :name="`${addon.key}${column.key}PostSize`" label="Post Size" dense variant="outlined"
+                            hide-details :disabled="shouldDisableField(`${addon.key}${column.key}PostSize`) ||
                               !form[addon.checkboxKey]
-                            "
-                            :error="!!fieldErrors[`${addon.key}${column.key}PostSize`]"
-                          />
+                              " :error="!!fieldErrors[`${addon.key}${column.key}PostSize`]" />
                         </div>
                       </td>
                     </tr>
@@ -798,66 +472,36 @@
               </div>
             </v-sheet>
           </div>
-          <div v-if="form.projectType || isEdit">
+          <div v-if="form.projectType || !isNewProject">
             <v-sheet class="page-section" elevation="1">
               <div class="section-header">Order Information & Signature</div>
               <v-row>
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.orderedBy"
-                    :class="{ required: isRequired('orderedBy') }"
-                    label="Ordered by"
-                    dense
-                    variant="outlined"
-                    name="orderedBy"
-                    :disabled="shouldDisableField('orderedBy')"
-                    :error-messages="fieldErrors.orderedBy"
-                    :error="!!fieldErrors.orderedBy"
-                  />
+                  <v-text-field v-model="form.orderedBy" :class="{ required: isRequired('orderedBy') }"
+                    label="Ordered by" dense variant="outlined" name="orderedBy"
+                    :disabled="shouldDisableField('orderedBy')" :error-messages="fieldErrors.orderedBy"
+                    :error="!!fieldErrors.orderedBy" />
                 </v-col>
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.signature"
-                    :class="{ required: isRequired('signature') }"
-                    :disabled="shouldDisableField('signature')"
-                    label="Signature"
-                    dense
-                    variant="outlined"
-                    name="signature"
-                    :error-messages="fieldErrors.signature"
-                    :error="!!fieldErrors.signature"
-                  />
+                  <v-text-field v-model="form.signature" :class="{ required: isRequired('signature') }"
+                    :disabled="shouldDisableField('signature')" label="Signature" dense variant="outlined"
+                    name="signature" :error-messages="fieldErrors.signature" :error="!!fieldErrors.signature" />
                 </v-col>
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.orderDate"
-                    :class="{ required: isRequired('orderDate') }"
-                    label="Order Date"
-                    type="date"
-                    dense
-                    variant="outlined"
-                    name="orderDate"
-                    :disabled="shouldDisableField('orderDate')"
-                    :error-messages="fieldErrors.orderDate"
-                    :error="!!fieldErrors.orderDate"
-                  />
+                  <v-text-field v-model="form.orderDate" :class="{ required: isRequired('orderDate') }"
+                    label="Order Date" type="date" dense variant="outlined" name="orderDate"
+                    :disabled="shouldDisableField('orderDate')" :error-messages="fieldErrors.orderDate"
+                    :error="!!fieldErrors.orderDate" />
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12">
-                  <v-textarea
-                    v-model="form.additionalInformation"
-                    :class="{ required: isRequired('additionalInformation') }"
-                    label="Additional Information/Notes"
-                    rows="4"
-                    dense
-                    variant="outlined"
-                    name="additionalInformation"
+                  <v-textarea v-model="form.additionalInformation"
+                    :class="{ required: isRequired('additionalInformation') }" label="Additional Information/Notes"
+                    rows="4" dense variant="outlined" name="additionalInformation"
                     :disabled="shouldDisableField('additionalInformation')"
-                    :error-messages="fieldErrors.additionalInformation"
-                    :error="!!fieldErrors.additionalInformation"
-                    auto-grow
-                  />
+                    :error-messages="fieldErrors.additionalInformation" :error="!!fieldErrors.additionalInformation"
+                    auto-grow />
                 </v-col>
               </v-row>
             </v-sheet>
@@ -865,48 +509,23 @@
             <v-sheet class="page-section" elevation="1" v-if="form.projectType !== 'paperCopy'">
               <div class="upload-header-container mb-4">
                 <div class="upload-title">Page 2 - Upload Sketch</div>
-                <v-btn
-                  v-if="form.driveFolder"
-                  class="view-folder-btn"
-                  prepend-icon="mdi-folder-open"
-                  color="primary"
-                  variant="outlined"
-                  :href="form.driveFolder"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <v-btn v-if="form.driveFolder" class="view-folder-btn" prepend-icon="mdi-folder-open" color="primary"
+                  variant="outlined" :href="form.driveFolder" target="_blank" rel="noopener noreferrer">
                   View Folder
                 </v-btn>
               </div>
-              <v-file-input
-                v-model="files"
-                label="Upload Files"
-                multiple
-                show-size
-                prepend-icon="mdi-upload"
-                variant="outlined"
-                :disabled="shouldDisableField('uploadSketch')"
-                @change="handleFileUpload"
-                hide-details
-              />
+              <v-file-input v-model="files" label="Upload Files" multiple show-size prepend-icon="mdi-upload"
+                variant="outlined" :disabled="shouldDisableField('uploadSketch')" @change="handleFileUpload"
+                hide-details />
 
               <!-- File Preview Area -->
               <div v-if="uploadedFiles.length > 0" class="file-preview-area mt-4">
                 <div class="file-preview-grid">
                   <div v-for="file in uploadedFiles" :key="file.id" class="file-preview-card">
                     <div v-if="file.isImage" class="image-preview">
-                      <img
-                        :src="file.preview || file.url"
-                        :alt="file.name"
-                        class="thumbnail-image"
-                      />
-                      <v-btn
-                        icon="mdi-close"
-                        size="small"
-                        color="error"
-                        class="remove-btn"
-                        @click="removeFileById(file.id)"
-                      />
+                      <img :src="file.preview || file.url" :alt="file.name" class="thumbnail-image" />
+                      <v-btn icon="mdi-close" size="small" color="error" class="remove-btn"
+                        @click="removeFileById(file.id)" />
                     </div>
 
                     <div v-else class="file-icon-preview">
@@ -914,71 +533,38 @@
                       <a :href="file.url" target="_blank" class="file-name-link">
                         <div class="file-name">{{ file.name }}</div>
                       </a>
-                      <v-btn
-                        icon="mdi-close"
-                        size="small"
-                        color="error"
-                        class="remove-btn"
-                        @click="removeFileById(file.id)"
-                      />
+                      <v-btn icon="mdi-close" size="small" color="error" class="remove-btn"
+                        @click="removeFileById(file.id)" />
                     </div>
                   </div>
                 </div>
               </div>
             </v-sheet>
           </div>
-          <div
-            class="text-center mb-4 d-flex ga-2 justify-center"
-            v-if="form.projectType || isEdit"
-          >
-            <v-btn
-              color="red darken-2"
-              type="submit"
-              size="large"
-              class="px-10 py-4 text-white font-weight-bold"
-              :loading="isSubmitting"
-              :disabled="isSubmitting || shouldDisableField('submitbutton')"
-              @click="handleSubmit"
-              name="submitbutton"
-            >
+          <div class="text-center mb-4 d-flex ga-2 justify-center" v-if="form.projectType || !isNewProject">
+            <v-btn color="red darken-2" type="submit" size="large" class="px-10 py-4 text-white font-weight-bold"
+              :loading="isSubmitting" :disabled="isSubmitting || shouldDisableField('submitbutton')"
+              @click="handleSubmit" name="submitbutton">
               {{
                 isSubmitting
-                  ? isEdit
-                    ? 'Updating...'
-                    : 'Submitting...'
-                  : isEdit
-                    ? 'Update Project'
-                    : 'Submit Project'
+                  ? isNewProject
+                    ? 'Submitting...'
+                    : 'Updating...'
+                  : isNewProject
+                    ? 'Submit Project'
+                    : 'Update Project'
               }}
             </v-btn>
-            <v-btn
-              v-if="errorMessage || successMessage"
-              color="primary"
-              type="submit"
-              size="large"
-              class="px-10 py-4 text-white font-weight-bold"
-              @click="goToDashboard"
-            >
+            <v-btn v-if="errorMessage || successMessage" color="primary" type="submit" size="large"
+              class="px-10 py-4 text-white font-weight-bold" @click="goToDashboard">
               Back to Dashboard
             </v-btn>
           </div>
 
-          <v-alert
-            v-if="errorMessage"
-            name="project-error"
-            type="error"
-            variant="tonal"
-            class="mt-4"
-            >{{ errorMessage }}</v-alert
-          >
-          <v-alert
-            v-if="successMessage"
-            name="project-success"
-            type="success"
-            variant="tonal"
-            class="mt-4"
-            >{{ successMessage }}</v-alert
-          >
+          <v-alert v-if="errorMessage" name="project-error" type="error" variant="tonal" class="mt-4">{{ errorMessage
+            }}</v-alert>
+          <v-alert v-if="successMessage" name="project-success" type="success" variant="tonal" class="mt-4">{{
+            successMessage }}</v-alert>
         </v-card>
       </v-col>
     </v-row>
@@ -992,15 +578,67 @@
 
       <v-card-text>
         <div class="d-flex align-center mb-2">
-          {{ wasTypicalOpbOnly ? '1. ' : '' }}Do mention the size in the additional information
+          {{ wasTypicalProjectOnly ? '1. ' : '' }}Do mention the size in the additional information
           field
         </div>
-        <div class="d-flex align-center" v-if="wasTypicalOpbOnly">
+        <div class="d-flex align-center" v-if="wasTypicalProjectOnly">
           2. The project type is changed to Custom Pole Barn
         </div>
       </v-card-text>
       <v-card-actions>
         <v-btn color="primary" @click="showCustomPostSizeDialog = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Revision History Dialog -->
+  <v-dialog v-model="showHistoryDialog" max-width="700px" scrollable>
+    <v-card class="rounded-xl pa-4">
+      <v-card-title class="d-flex align-center justify-space-between pb-3 border-bottom">
+        <div class="d-flex align-center ga-2">
+          <v-icon color="indigo" class="mr-2">mdi-history</v-icon>
+          <span class="text-h6 font-weight-bold text-grey-darken-3">Revision History</span>
+        </div>
+        <v-spacer />
+        <v-btn icon="mdi-close" variant="text" color="grey-darken-1" @click="showHistoryDialog = false" />
+      </v-card-title>
+
+      <v-card-text class="py-4">
+        <div v-if="isLoadingHistory" class="d-flex flex-column align-center justify-center py-8">
+          <v-progress-circular indeterminate color="indigo" size="48" class="mb-2" />
+          <span class="text-body-2 text-grey-darken-1">Loading revision log...</span>
+        </div>
+
+        <div v-else-if="projectHistory.length === 0" class="d-flex flex-column align-center justify-center py-8">
+          <v-icon size="64" color="grey-lighten-1" class="mb-2">mdi-history-off</v-icon>
+          <span class="text-body-1 font-weight-medium text-grey-darken-2">No History Found</span>
+          <span class="text-body-2 text-grey-darken-1 text-center mt-1">
+            This project has no recorded revisions yet.
+          </span>
+        </div>
+
+        <v-timeline v-else side="end" align="start" density="comfortable">
+          <v-timeline-item v-for="(item, index) in projectHistory" :key="index" dot-color="indigo-lighten-1"
+            size="small">
+            <template v-slot:opposite>
+              <div class="text-caption text-grey-darken-1 font-weight-bold">
+                {{ formatDateTime(item.time) }}
+              </div>
+            </template>
+
+            <v-card class="elevation-1 rounded-lg border pa-3 bg-grey-lighten-5">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-subtitle-2 font-weight-bold text-indigo-darken-2 mr-4">{{ item.email }}</span>
+                <span class="text-caption text-grey d-sm-none">{{ formatDateTime(item.time) }}</span>
+              </div>
+              <div class="text-body-2 text-grey-darken-3" style="white-space: pre-line;">{{ item.diff }}</div>
+            </v-card>
+          </v-timeline-item>
+        </v-timeline>
+      </v-card-text>
+
+      <v-card-actions class="pt-3 border-top justify-end">
+        <v-btn color="grey-darken-1" variant="text" @click="showHistoryDialog = false">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -1013,7 +651,7 @@ import { useProjectStore } from '@/stores/projectStore'
 import { STATUSES, BLANK_FORM_DATA, STATES } from '@/global'
 import { API } from '@/services/apiService'
 import { useSnackbar } from '@/composables/useSnackbar'
-import { generateShortId } from '@/global'
+import { generateShortId, USER_TYPES } from '@/global'
 
 const router = useRouter()
 const route = useRoute()
@@ -1024,13 +662,19 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const uploadedFiles = ref([])
 const existingImages = ref([])
-const isEdit = ref(false)
+const isNewProject = ref(true)
 const fieldErrors = ref({})
 const isSubmitting = ref(false)
 const files = ref([])
 const requiredFields = ref(['clientName', 'siteAddress', 'city', 'state', 'zip'])
 const showCustomPostSizeDialog = ref(false)
-const wasTypicalOpbOnly = ref(false)
+const wasTypicalProjectOnly = ref(false)
+const user = computed(() => projectStore.user)
+
+const showHistoryDialog = ref(false)
+const isLoadingHistory = ref(false)
+const projectHistory = ref([])
+const isGeneratingPdf = ref(false)
 
 const form = reactive({ ...BLANK_FORM_DATA })
 
@@ -1057,20 +701,17 @@ watch(
         'orderDate',
       ]
 
-      if (isAdmin.value) {
+      if ([USER_TYPES.Admin, USER_TYPES.Client].includes(user.value?.type)) {
         requiredFields.value.push('price')
       }
 
-      if (form.projectType !== 'typicalOpbOnly') {
+      if (!['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType)) {
         requiredFields.value.push('studSpacing')
       }
     }
   },
 )
 
-const isAdmin = computed(() => {
-  return projectStore.user?.type === 'Admin' || projectStore.user?.isAdmin === true
-})
 const isRequired = (fieldName) => {
   return requiredFields.value.includes(fieldName)
 }
@@ -1080,14 +721,19 @@ const itemsToHide = ['price']
 
 // Check if field should be disabled for employees
 const shouldDisableField = (fieldName) => {
-  if (form.projectType === 'paperCopy' && isEdit.value) return true
-  if (isAdmin.value || !isEdit.value) return false
-  return !itemsToNotDisable.includes(fieldName)
+  if (isNewProject.value) return false
+  if (form.projectType === 'paperCopy' && !isNewProject.value) return true
+  if (USER_TYPES.Employee == user.value?.type) {
+    return !itemsToNotDisable.includes(fieldName)
+  } else {
+    return false
+  }
 }
 
 // Check if field should be hidden for employees
 const shouldHideField = (fieldName) => {
-  if (isAdmin.value || !isEdit.value) return false
+  if (isNewProject.value) return false
+  if ([USER_TYPES.Admin, USER_TYPES.Client].includes(user.value?.type)) return false
   return itemsToHide.includes(fieldName)
 }
 
@@ -1103,6 +749,9 @@ const visibleScopeColumns = computed(() => {
   if (form.projectType === 'typicalOpbOnly') {
     return scopeColumns.filter((col) => col.key === 'opb')
   }
+  if (form.projectType === 'typicalLeanToOnly') {
+    return scopeColumns.filter((col) => col.key === 'pepb')
+  }
   return scopeColumns
 })
 
@@ -1117,6 +766,9 @@ const addonColumns = [
 const visibleAddonColumns = computed(() => {
   if (form.projectType === 'typicalOpbOnly') {
     return addonColumns.filter((col) => col.key === 'Opb')
+  }
+  if (form.projectType === 'typicalLeanToOnly') {
+    return addonColumns.filter((col) => col.key === 'Pepb')
   }
   return addonColumns
 })
@@ -1247,6 +899,53 @@ function goToDashboard() {
   router.push('/dashboard')
 }
 
+async function handleShowHistoryDialog() {
+  showHistoryDialog.value = true
+  isLoadingHistory.value = true
+  try {
+    const projectId = form.projectId
+    const history = await API.getProjectHistory(projectId)
+    projectHistory.value = history || []
+  } catch (error) {
+    console.error('Error fetching project history:', error)
+    showSnackbar('Failed to load project history: ' + error.message, 'error')
+  } finally {
+    isLoadingHistory.value = false
+  }
+}
+
+async function generatePdf() {
+  isGeneratingPdf.value = true
+  try {
+    const projectId = form.projectId
+    const result = await API.generatePdf(projectId)
+    if (result && result.pdfUrl) {
+      showSnackbar('PDF generated successfully!', 'success')
+      window.open(result.pdfUrl, '_blank')
+    } else {
+      showSnackbar('Failed to generate PDF: No URL returned', 'error')
+    }
+  } catch (error) {
+    console.error('Error generating PDF:', error)
+    showSnackbar('Failed to generate PDF: ' + error.message, 'error')
+  } finally {
+    isGeneratingPdf.value = false
+  }
+}
+
+function formatDateTime(val) {
+  if (!val) return ''
+  const date = new Date(val)
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
 function validateRequiredFields() {
   fieldErrors.value = {}
 
@@ -1276,8 +975,12 @@ function validateRequiredFields() {
 }
 
 function validateScopeOfWork() {
-  const columnsToValidate =
-    form.projectType === 'typicalOpbOnly' ? ['opb'] : ['opb', 'epb', 'pepb', 'truss']
+  let columnsToValidate = ['opb', 'epb', 'pepb', 'truss']
+  if (form.projectType === 'typicalOpbOnly') {
+    columnsToValidate = ['opb']
+  } else if (form.projectType === 'typicalLeanToOnly') {
+    columnsToValidate = ['pepb']
+  }
   let hasErrors = false
 
   for (const column of columnsToValidate) {
@@ -1291,7 +994,7 @@ function validateScopeOfWork() {
     ]
 
     let columnHasValue = false
-    if (form.projectType === 'typicalOpbOnly') {
+    if (['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType)) {
       for (const field of scopeFields) {
         const fieldName = `${column}${field}`
         if (!form[fieldName] || form[fieldName].toString().trim() === '') {
@@ -1341,10 +1044,12 @@ function validateScopeOfWork() {
 
 function validateAddOns() {
   let hasErrors = false
-  const columnsToValidate =
-    form.projectType === 'typicalOpbOnly'
-      ? addonColumns.filter((col) => col.key === 'Opb')
-      : addonColumns
+  let columnsToValidate = addonColumns
+  if (form.projectType === 'typicalOpbOnly') {
+    columnsToValidate = addonColumns.filter((col) => col.key === 'Opb')
+  } else if (form.projectType === 'typicalLeanToOnly') {
+    columnsToValidate = addonColumns.filter((col) => col.key === 'Pepb')
+  }
 
   for (const addon of addonsConfig) {
     if (form[addon.checkboxKey]) {
@@ -1433,15 +1138,15 @@ async function handleSubmitProject() {
 
     console.info('formData', formData)
 
-    if (isEdit.value) {
-      let updatedProject = await API.updateProject(formData)
-      projectStore.updateProject(formData.projectId, updatedProject)
-      showSnackbar(`Project ${formData.projectId} updated successfully!`, 'success')
-    } else {
+    if (isNewProject.value) {
       let newProject = await API.newProject(formData)
       delete newProject.sketchData
       projectStore.newProject(newProject)
       showSnackbar(`Project ${newProject.data.projectId} created successfully!`, 'success')
+    } else {
+      let updatedProject = await API.updateProject(formData)
+      projectStore.updateProject(formData.projectId, updatedProject)
+      showSnackbar(`Project ${formData.projectId} updated successfully!`, 'success')
     }
 
     router.push('/dashboard')
@@ -1626,7 +1331,7 @@ function loadProjectData() {
       scrollToBottom()
       return
     }
-    isEdit.value = true
+    isNewProject.value = false
     let editProject = projectInfo.data
     editProject.existingImages = projectInfo.images
 
@@ -1852,11 +1557,11 @@ postSizeFields.forEach((field) => {
         showCustomPostSizeDialog.value = true
         if (form.projectType !== 'customPoleBarn') {
           nextTick(() => {
+            wasTypicalProjectOnly.value = (['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType))
             form.projectType = 'customPoleBarn'
-            wasTypicalOpbOnly.value = true
           })
         } else {
-          wasTypicalOpbOnly.value = false
+          wasTypicalProjectOnly.value = false
         }
       }
     },

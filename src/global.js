@@ -193,3 +193,9 @@ export const generateShortId = (prefix = '') => {
 
   return prefix + hex
 }
+
+export const USER_TYPES = {
+  Admin: 'Admin',
+  Employee: 'Employee',
+  Client: 'Client',
+}
