@@ -6,8 +6,8 @@ const RISK_CATEG_MAP = {
 }
 
 const STRUCTURE_STRATEGIES = {
-  typicalOpbOnly: {
-    isMatch: (projectType) => projectType === 'typicalOpbOnly',
+  standardOpb: {
+    isMatch: (projectType) => projectType === 'standardOpb',
     fieldMap: { pitch: 'opbMainBldgPitch', size: 'opbSize' },
     buildingType: 'Open Pole Barn',
     validationFields: [
@@ -61,8 +61,8 @@ const STRUCTURE_STRATEGIES = {
       return flatData
     },
   },
-  typicalLeanToOnly: {
-    isMatch: (projectType) => projectType === 'typicalLeanToOnly',
+  standardLeanTo: {
+    isMatch: (projectType) => projectType === 'leanToOnly',
     fieldMap: { pitch: 'pepbMainBldgPitch', size: 'pepbSize' },
     buildingType: 'Lean-To',
     validationFields: [
@@ -397,9 +397,9 @@ function _createNewSlideFromTemplate_({ clientName, projectId, projectType }) {
   let documentName = `11 x 17_${dateString}_${projectId}_${clientName}`
 
   let templateKey = 'windCalcSlideOpb'
-  if (projectType === 'typicalLeanToOnly') {
+  if (projectType === 'leanToOnly') {
     templateKey = 'windCalcSlideLeanTo'
-  } else if (projectType === 'typicalSingleSlopeOnly') {
+  } else if (projectType === 'singleSlopeOnly') {
     templateKey = 'windCalcSlideSingleSlope'
   }
   let templateId = settings[templateKey] || settings.windCalcSlideOpb

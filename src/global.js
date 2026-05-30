@@ -75,7 +75,7 @@ export const BLANK_FORM_DATA = {
   state: '',
   country: '',
   zip: '',
-  projectType: '', //typicalOpbOnly
+  projectType: '', //standardOpb
   projectSubtype: '',
   opbSize: '',
   opbPostSpacing: '',

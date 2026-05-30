@@ -221,7 +221,7 @@
       "addOnDoorEpbSize": "",
       "trussSize": "",
       "city": "LAKELAND",
-      "projectType": "typicalOpbOnly",
+      "projectType": "standardOpb",
       "epbPostSize": "",
       "plywoodOnSiding": "Yes",
       "addOnLeanToOpbPitch": "",

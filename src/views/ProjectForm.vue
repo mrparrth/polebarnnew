@@ -26,7 +26,7 @@
 
           <!-- Status and Order Information Section -->
           <v-sheet class="page-section" elevation="1" v-if="form.projectSubtype !== 'paperCopyRequest'">
-            <v-row class="pa-4">
+            <v-row class="pa-4 d-flex justify-space-between">
               <div class="section-header mb-0">Ceed Civil Engineering Project</div>
               <div v-if="!isNewProject" class="d-flex align-center ga-2">
                 <v-tooltip text="View Revision History" location="bottom">
@@ -113,8 +113,9 @@
                     Typical Project (Name & Address Change Only)
                   </div>
                   <div class="d-flex flex-column" style="gap: 8px;">
-                    <v-radio label="Typical OPB ONLY" value="typicalOpbOnly" hide-details />
-                    <v-radio label="Typical Lean To ONLY" value="typicalLeanToOnly" hide-details />
+                    <v-radio label="Typical OPB ONLY" value="standardOpb" hide-details />
+                    <v-radio label="Typical Lean To ONLY" value="standardLeanTo" hide-details />
+                    <v-radio label="Typical Single Slope ONLY" value="standardSingleSlope" hide-details />
                   </div>
                 </v-col>
 
@@ -244,7 +245,7 @@
 
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                            }}</span>
+                          }}</span>
                           <input v-model="sizeInputs[`${column.key}${row.key}`].l"
                             :name="`size-${column.key}${row.key}-l`" type="number" min="1" class="sow-input"
                             :placeholder="activeColumns[column.key] ? 'L' : ''" inputmode="numeric"
@@ -252,7 +253,7 @@
 
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                            }}</span>
+                          }}</span>
                           <input v-model="sizeInputs[`${column.key}${row.key}`].h" type="number" min="1"
                             class="sow-input" :placeholder="activeColumns[column.key] ? 'H' : ''" inputmode="numeric"
                             :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
@@ -268,7 +269,7 @@
                             :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? "'" : ''
-                            }}</span>
+                          }}</span>
                         </div>
                         <v-select v-else-if="row.key === 'PostSize'" v-model="form[`${column.key}${row.key}`]"
                           :name="`${column.key}${row.key}`" :items="['6x6', '8x8', 'Custom']" variant="outlined"
@@ -285,7 +286,7 @@
                             :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? '/12' : ''
-                            }}</span>
+                          }}</span>
                         </div>
 
                         <v-text-field v-else v-model="form[`${column.key}${row.key}`]" :id="`${column.key}${row.key}`"
@@ -355,9 +356,8 @@
               <v-row>
                 <v-col cols="12" md="6">
                   <v-radio-group v-model="form.studSpacing" row label="2 x 6 Stud Spacing" inline name="studSpacing"
-                    v-if="!['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType)"
-                    :disabled="shouldDisableField('studSpacing')" :error-messages="fieldErrors.studSpacing"
-                    :error="!!fieldErrors.studSpacing">
+                    v-if="!standardBuildings.includes(form.projectType)" :disabled="shouldDisableField('studSpacing')"
+                    :error-messages="fieldErrors.studSpacing" :error="!!fieldErrors.studSpacing">
                     <v-radio label="16" value="16" class="mr-3 my-3" />
                     <v-radio label="24" value="24" class="mr-3 my-3" />
                     <div style="display: inline-flex; align-items: center">
@@ -404,7 +404,7 @@
                   <thead>
                     <tr>
                       <th class="addons-header">Add-On</th>
-                      <th v-for="column in visibleAddonColumns" :key="column.key" class="addons-header">
+                      <th v-for="column in addonColumns" :key="column.key" class="addons-header">
                         {{ column.label }}
                       </th>
                     </tr>
@@ -415,7 +415,7 @@
                         <v-checkbox v-model="form[addon.checkboxKey]" :label="addon.label" hide-details
                           :disabled="shouldDisableField(addon.checkboxKey)" />
                       </th>
-                      <td v-for="column in visibleAddonColumns" :key="column.key" class="addons-cell">
+                      <td v-for="column in addonColumns" :key="column.key" class="addons-cell">
                         <div v-if="addon.type === 'simple' && column.key === 'Opb'" class="na-text">
                           N/A
                         </div>
@@ -562,7 +562,7 @@
           </div>
 
           <v-alert v-if="errorMessage" name="project-error" type="error" variant="tonal" class="mt-4">{{ errorMessage
-            }}</v-alert>
+          }}</v-alert>
           <v-alert v-if="successMessage" name="project-success" type="success" variant="tonal" class="mt-4">{{
             successMessage }}</v-alert>
         </v-card>
@@ -578,10 +578,10 @@
 
       <v-card-text>
         <div class="d-flex align-center mb-2">
-          {{ wasTypicalProjectOnly ? '1. ' : '' }}Do mention the size in the additional information
+          {{ wasStandardProject ? '1. ' : '' }}Do mention the size in the additional information
           field
         </div>
-        <div class="d-flex align-center" v-if="wasTypicalProjectOnly">
+        <div class="d-flex align-center" v-if="wasStandardProject">
           2. The project type is changed to Custom Pole Barn
         </div>
       </v-card-text>
@@ -653,89 +653,12 @@ import { API } from '@/services/apiService'
 import { useSnackbar } from '@/composables/useSnackbar'
 import { generateShortId, USER_TYPES } from '@/global'
 
-const router = useRouter()
-const route = useRoute()
-const projectStore = useProjectStore()
-const { showSnackbar } = useSnackbar()
-
-const errorMessage = ref('')
-const successMessage = ref('')
-const uploadedFiles = ref([])
-const existingImages = ref([])
-const isNewProject = ref(true)
-const fieldErrors = ref({})
-const isSubmitting = ref(false)
-const files = ref([])
 const requiredFields = ref(['clientName', 'siteAddress', 'city', 'state', 'zip'])
-const showCustomPostSizeDialog = ref(false)
-const wasTypicalProjectOnly = ref(false)
-const user = computed(() => projectStore.user)
+const standardBuildings = ['standardOpb', 'standardLeanTo', 'standardSingleSlope']
 
-const showHistoryDialog = ref(false)
-const isLoadingHistory = ref(false)
-const projectHistory = ref([])
-const isGeneratingPdf = ref(false)
-
-const form = reactive({ ...BLANK_FORM_DATA })
-
-watch(
-  () => form.projectType,
-  () => {
-    if (form.projectType === 'paperCopy') {
-      requiredFields.value = ['clientName', 'siteAddress', 'city', 'state', 'zip']
-    } else {
-      requiredFields.value = [
-        'clientName',
-        'projectName',
-        'siteAddress',
-        'city',
-        'state',
-        'zip',
-        'riskCategory',
-        'exposureCategory',
-        'plywoodOnSiding',
-        'plywoodOnRoof',
-        'windSpeed',
-        'orderedBy',
-        'signature',
-        'orderDate',
-      ]
-
-      if ([USER_TYPES.Admin, USER_TYPES.Client].includes(user.value?.type)) {
-        requiredFields.value.push('price')
-      }
-
-      if (!['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType)) {
-        requiredFields.value.push('studSpacing')
-      }
-    }
-  },
-)
-
-const isRequired = (fieldName) => {
-  return requiredFields.value.includes(fieldName)
-}
 // Employee field restrictions
 const itemsToNotDisable = ['uploadSketch', 'submitbutton', 'status', 'additionalInformation']
 const itemsToHide = ['price']
-
-// Check if field should be disabled for employees
-const shouldDisableField = (fieldName) => {
-  if (isNewProject.value) return false
-  if (form.projectType === 'paperCopy' && !isNewProject.value) return true
-  if (USER_TYPES.Employee == user.value?.type) {
-    return !itemsToNotDisable.includes(fieldName)
-  } else {
-    return false
-  }
-}
-
-// Check if field should be hidden for employees
-const shouldHideField = (fieldName) => {
-  if (isNewProject.value) return false
-  if ([USER_TYPES.Admin, USER_TYPES.Client].includes(user.value?.type)) return false
-  return itemsToHide.includes(fieldName)
-}
 
 const scopeColumns = [
   { key: 'opb', label: 'Open Pole Barn' },
@@ -744,35 +667,16 @@ const scopeColumns = [
   { key: 'truss', label: 'Truss Only' },
 ]
 
-// Add computed properties for conditional column display
-const visibleScopeColumns = computed(() => {
-  if (form.projectType === 'typicalOpbOnly') {
-    return scopeColumns.filter((col) => col.key === 'opb')
-  }
-  if (form.projectType === 'typicalLeanToOnly') {
-    return scopeColumns.filter((col) => col.key === 'pepb')
-  }
-  return scopeColumns
-})
-
-// Add-ons configuration
-const addonColumns = [
-  { key: 'Opb', label: 'Open Pole Barn' },
-  { key: 'Epb', label: 'Enclosed Pole' },
-  { key: 'Pepb', label: 'Partially Enclosed Pole Barn' },
+const scopeOfWorkRows = [
+  { key: 'Size', label: 'Size' },
+  { key: 'PostSpacing', label: 'Post Spacing' },
+  { key: 'PostSize', label: 'Post Size' },
+  { key: 'MainBldgPitch', label: 'Main Bldg. Pitch' },
+  { key: 'MetalRoofPanelGauge', label: 'Metal Roof Panel Gauge' },
+  { key: 'ConnectSlab', label: 'Concrete Slab (Y/N)' },
 ]
 
-// Add computed property for visible addon columns
-const visibleAddonColumns = computed(() => {
-  if (form.projectType === 'typicalOpbOnly') {
-    return addonColumns.filter((col) => col.key === 'Opb')
-  }
-  if (form.projectType === 'typicalLeanToOnly') {
-    return addonColumns.filter((col) => col.key === 'Pepb')
-  }
-  return addonColumns
-})
-
+// Add-ons configuration
 const addonsConfig = [
   {
     key: 'addOnDoor',
@@ -794,14 +698,67 @@ const addonsConfig = [
   },
 ]
 
-const scopeOfWorkRows = [
-  { key: 'Size', label: 'Size' },
-  { key: 'PostSpacing', label: 'Post Spacing' },
-  { key: 'PostSize', label: 'Post Size' },
-  { key: 'MainBldgPitch', label: 'Main Bldg. Pitch' },
-  { key: 'MetalRoofPanelGauge', label: 'Metal Roof Panel Gauge' },
-  { key: 'ConnectSlab', label: 'Concrete Slab (Y/N)' },
+const addonColumns = [
+  { key: 'Opb', label: 'Open Pole Barn' },
+  { key: 'Epb', label: 'Enclosed Pole' },
+  { key: 'Pepb', label: 'Partially Enclosed Pole Barn' },
 ]
+
+const router = useRouter()
+const route = useRoute()
+const projectStore = useProjectStore()
+const { showSnackbar } = useSnackbar()
+
+const errorMessage = ref('')
+const successMessage = ref('')
+const uploadedFiles = ref([])
+const existingImages = ref([])
+const isNewProject = ref(true)
+const fieldErrors = ref({})
+const isSubmitting = ref(false)
+const files = ref([])
+const showCustomPostSizeDialog = ref(false)
+const wasStandardProject = ref(false)
+const user = computed(() => projectStore.user)
+
+const showHistoryDialog = ref(false)
+const isLoadingHistory = ref(false)
+const projectHistory = ref([])
+const isGeneratingPdf = ref(false)
+
+const form = reactive({ ...BLANK_FORM_DATA })
+
+const isRequired = (fieldName) => {
+  return requiredFields.value.includes(fieldName)
+}
+
+const shouldDisableField = (fieldName) => {
+  if (isNewProject.value) return false
+  if (form.projectType === 'paperCopy' && !isNewProject.value) return true
+  if (USER_TYPES.Employee == user.value?.type) {
+    return !itemsToNotDisable.includes(fieldName)
+  } else {
+    return false
+  }
+}
+
+// Check if field should be hidden for employees
+const shouldHideField = (fieldName) => {
+  if (isNewProject.value) return false
+  if ([USER_TYPES.Admin, USER_TYPES.Client].includes(user.value?.type)) return false
+  return itemsToHide.includes(fieldName)
+}
+
+// Add computed properties for conditional column display
+const visibleScopeColumns = computed(() => {
+  if (['standardOpb', 'standardSingleSlope'].includes(form.projectType)) {
+    return scopeColumns.filter((col) => col.key === 'opb')
+  }
+  if (form.projectType === 'standardLeanTo') {
+    return scopeColumns.filter((col) => col.key === 'pepb')
+  }
+  return scopeColumns
+})
 
 const sizeInputs = reactive({
   opbSize: { w: '', l: '', h: '' },
@@ -890,7 +847,6 @@ function validateProjectNameLength() {
     fieldErrors.value.projectName &&
     fieldErrors.value.projectName.includes('Maximum 25 characters')
   ) {
-    // Clear the length error but keep other validation errors
     delete fieldErrors.value.projectName
   }
 }
@@ -976,25 +932,18 @@ function validateRequiredFields() {
 
 function validateScopeOfWork() {
   let columnsToValidate = ['opb', 'epb', 'pepb', 'truss']
-  if (form.projectType === 'typicalOpbOnly') {
+  if (['standardOpb', 'standardSingleSlope'].includes(form.projectType)) {
     columnsToValidate = ['opb']
-  } else if (form.projectType === 'typicalLeanToOnly') {
+  } else if (form.projectType === 'standardLeanTo') {
     columnsToValidate = ['pepb']
   }
   let hasErrors = false
 
   for (const column of columnsToValidate) {
-    const scopeFields = [
-      'Size',
-      'PostSpacing',
-      'PostSize',
-      'MainBldgPitch',
-      'MetalRoofPanelGauge',
-      'ConnectSlab',
-    ]
+    const scopeFields = scopeOfWorkRows.map(s => s.key)
 
     let columnHasValue = false
-    if (['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType)) {
+    if (standardBuildings.includes(form.projectType)) {
       for (const field of scopeFields) {
         const fieldName = `${column}${field}`
         if (!form[fieldName] || form[fieldName].toString().trim() === '') {
@@ -1044,16 +993,10 @@ function validateScopeOfWork() {
 
 function validateAddOns() {
   let hasErrors = false
-  let columnsToValidate = addonColumns
-  if (form.projectType === 'typicalOpbOnly') {
-    columnsToValidate = addonColumns.filter((col) => col.key === 'Opb')
-  } else if (form.projectType === 'typicalLeanToOnly') {
-    columnsToValidate = addonColumns.filter((col) => col.key === 'Pepb')
-  }
 
   for (const addon of addonsConfig) {
     if (form[addon.checkboxKey]) {
-      for (const column of columnsToValidate) {
+      for (const column of addonColumns) {
         const columnFields = getColumnFields(addon, column.key)
 
         if (columnFields.length === 0) continue
@@ -1557,16 +1500,51 @@ postSizeFields.forEach((field) => {
         showCustomPostSizeDialog.value = true
         if (form.projectType !== 'customPoleBarn') {
           nextTick(() => {
-            wasTypicalProjectOnly.value = (['typicalOpbOnly', 'typicalLeanToOnly'].includes(form.projectType))
+            wasStandardProject.value = (standardBuildings.includes(form.projectType))
             form.projectType = 'customPoleBarn'
           })
         } else {
-          wasTypicalProjectOnly.value = false
+          wasStandardProject.value = false
         }
       }
     },
   )
 })
+
+
+watch(
+  () => form.projectType,
+  () => {
+    if (form.projectType === 'paperCopy') {
+      requiredFields.value = ['clientName', 'siteAddress', 'city', 'state', 'zip']
+    } else {
+      requiredFields.value = [
+        'clientName',
+        'projectName',
+        'siteAddress',
+        'city',
+        'state',
+        'zip',
+        'riskCategory',
+        'exposureCategory',
+        'plywoodOnSiding',
+        'plywoodOnRoof',
+        'windSpeed',
+        'orderedBy',
+        'signature',
+        'orderDate',
+      ]
+
+      if ([USER_TYPES.Admin, USER_TYPES.Client].includes(user.value?.type)) {
+        requiredFields.value.push('price')
+      }
+
+      if (!standardBuildings.includes(form.projectType)) {
+        requiredFields.value.push('studSpacing')
+      }
+    }
+  },
+)
 </script>
 
 <style scoped>

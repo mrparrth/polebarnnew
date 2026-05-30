@@ -154,8 +154,9 @@ const headers = computed(() => {
 const projectTypeOptions = {
   all: 'All',
   allPoleBarnTypes: 'All Pole Barn Types',
-  typicalOpbOnly: 'Typical OPB ONLY / Name & Address Change ONLY',
-  typicalLeanToOnly: 'Typical Lean To ONLY',
+  standardOpb: 'Typical OPB ONLY',
+  standardLeanTo: 'Typical Lean To ONLY',
+  standardSingleSlope: 'Typical Single Slope ONLY',
   customPoleBarn: 'Custom Pole Barn',
   paperCopy: 'All Paper Copy',
   paperCopyRequest: 'Paper Copy Request',
@@ -192,8 +193,9 @@ const filteredProjects = computed(() => {
       } else if (projectStore.dashboardFilter === 'allPoleBarnTypes') {
         return (
           project.data.projectType === 'customPoleBarn' ||
-          project.data.projectType === 'typicalOpbOnly' ||
-          project.data.projectType === 'typicalLeanToOnly' ||
+          project.data.projectType === 'standardOpb' ||
+          project.data.projectType === 'standardLeanTo' ||
+          project.data.projectType === 'standardSingleSlope' ||
           !project.data.projectType
         )
       } else if (projectStore.dashboardFilter === 'customPoleBarn' && !project.data.projectType) {
