@@ -234,7 +234,11 @@ class App {
       if (isOpenPoleBarn && (!isFileCreated || errors.length > 0)) {
         this.emailApp.sendNoPresentationEmail({ data, pdfUrl, slideUrl, errors })
       } else if (isFileCreated) {
-        createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors })
+        if (data.projectType == 'typicalOpb') {
+          createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors })
+        } else {
+          this.emailApp.sendTestPresentationEmail({ data, pdfUrl, slideUrl, errors })
+        }
       }
     } catch (e) {
       console.log(e)
@@ -679,7 +683,7 @@ class App {
 
           console.log(`Executing delayed presentation email for trigger: ${triggerData.triggerUid}`)
 
-          // sendPresentationEmail(triggerData)
+          // this.emailApp.sendPresentationEmail(triggerData) // now we are sending email as a part of the update project status
 
           this.updateProjectStatus({
             data: { projectId: triggerData.data.projectId, newStatus: 'For Review by BW' },
@@ -951,6 +955,66 @@ class EmailApp {
         name: this.settings.emailAliasName,
       },
     )
+  }
+
+  sendTestPresentationEmail({ data, pdfUrl, slideUrl, errors = [] }) {
+    const subject = `‼️PDF Generated, but not sent - ${data.projectId} - ${data.projectName}`
+
+    const htmlBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+            PDF Generated Successfully. But its only being sent to you as we are in the Test Period. 
+          </h2>
+
+          <p style="font-size: 16px; line-height: 1.6; color: #555;">
+            Hello,
+          </p>
+
+          <p style="font-size: 16px; line-height: 1.6; color: #555;">
+            PDF has been generated for <strong>${data.projectId}</strong> - <strong>${data.projectName}</strong>
+          </p>
+
+          <p style="font-size: 16px; line-height: 1.6; color: #555;">
+            It is not currently being sent to the client for project type ${data.projectType} as this is a new system, we need to verify.
+          </p>
+
+          <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Presentation URL:</p>
+            <a href="${pdfUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
+              ${pdfUrl}
+            </a>
+            <p></p>
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #333;">Slide URL (In case you want to make changes):</p>
+            <a href="${slideUrl}" style="color: #007bff; text-decoration: none; word-break: break-all;">
+              ${slideUrl}
+            </a>
+          </div>
+
+          ${
+            errors && errors.length > 0
+              ? `
+          <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0 0 15px 0; font-weight: bold; color: #721c24;">
+              ⚠️ Errors Encountered:
+            </p>
+            <ul style="margin: 0; padding-left: 20px; color: #721c24;">
+              ${errors.map((error) => `<li style="margin-bottom: 5px;">${error}</li>`).join('')}
+            </ul>
+          </div>
+          `
+              : ''
+          }
+
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">
+            Pole Barn Report Generator Bot
+          </p>
+        </div>
+      `
+
+    GmailApp.sendEmail(`ryanhoover@ceedcivil.com,Mehta@ceedcivil.com`, subject, htmlBody, {
+      htmlBody: htmlBody,
+      name: this.settings.emailAliasName,
+    })
   }
 
   sendFieldChangeEmail(oldData, newData, userInfo) {

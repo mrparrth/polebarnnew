@@ -8,15 +8,27 @@ function testPdfGen() {
   console.log({ pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated })
 }
 
-function testPaperCopyProject() {
-  let token = 'mdkbv1by.al'
-  const data = { singleSlope: 10 }
-  // let data = { "state": "Karnatak", "status": "", "clientName": "test test", "siteAddress": "28, First Floor, First Cross", "city": "Bengaluru", "projectType": "paperCopy", "singleSlopePaperSold": 9, "zip": "560077", "orderDate": "2025-09-06" }  // new project
-  // newPaperCopyProject({ data, token })
-  // let data = {"leanTo":{"qty":4}}  //update
-  // updatePaperCopyStock({data, token})
-  // let data = { openPoleBarn: 10, leanTo: 10 } //orderpapercopy
-  orderPaperCopy({ data, token })
+function testLeanToPresentation() {
+  let data = new testApp().opbProjectData
+  data.projectType = 'standardLeanTo'
+  data.pepbSize = data.opbSize
+  data.pepbMainBldgPitch = data.opbMainBldgPitch
+  data.pepbPostSpacing = data.opbPostSpacing
+  data.pepbPostSize = data.opbPostSize
+  data.pepbMetalRoofPanelGauge = data.opbMetalRoofPanelGauge
+  data.pepbConnectSlab = data.opbConnectSlab
+
+  let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
+  console.log({ pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated })
+}
+
+function testSingleSlopePresentation() {
+  let data = new testApp().opbProjectData
+  data.projectType = 'standardSingleSlope'
+  data.exposureCategory = 'C'
+
+  let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
+  console.log({ pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated })
 }
 
 function testUpdateProject() {
@@ -40,20 +52,6 @@ function testGgeneratePresentation() {
   let data = new testApp().opbProjectData
 
   let exportData = generatePresentation(JSON.parse(data))
-}
-
-function testLeanToPresentation() {
-  let data = JSON.parse(new testApp().opbProjectData)
-  data.projectType = 'leanToOnly'
-  data.pepbSize = data.opbSize
-  data.pepbMainBldgPitch = data.opbMainBldgPitch
-  data.pepbPostSpacing = data.opbPostSpacing
-  data.pepbPostSize = data.opbPostSize
-  data.pepbMetalRoofPanelGauge = data.opbMetalRoofPanelGauge
-  data.pepbConnectSlab = data.opbConnectSlab
-
-  let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
-  console.log({ pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated })
 }
 
 function testStatusChange() {
@@ -122,7 +120,7 @@ function updateAllProjects() {
 }
 
 function testApp() {
-  this.opbProjectData = `{"signature":"12","windSpeed":"145MPH","projectName":"Test","epbConnectSlab":"","pepbPostSpacing":"","addOnWindowPepbSize":"","wetMapAndSeal":true,"addOnDoorEpbQty":"","trussConnectSlab":"","driveFolder":"https://drive.google.com/drive/folders/1Y5Wti1TjX_WGAf2BzBx9CtaTQgAcWYd3","overhangType":"","pepbSize":"","overhangValue":"","pepbMainBldgPitch":"","pepbPostSize":"","trussMainBldgPitch":"","trussMetalRoofPanelGauge":"","addOnLeanToOpbPitch":"","addOnWindowSelected":false,"opbPostSpacing":"12'","riskCategory":"3","siteAddress":"28, First Floor, First Cross","opbMetalRoofPanelGauge":"26g","addOnWindowEpbQty":"","opbPaperSold":"","orderDate":"2025-09-08","trussPostSize":"","addOnLeanToSelected":false,"addOnWindowPepbQty":"","pepbConnectSlab":"","existingImages":[],"addOnWindowEpbSize":"","addOnDoorPepbQty":"","singleSlopePaperSold":"","addOnLeanToPepbSlab":"","addOnLeanToEpbSlab":"","opbConnectSlab":"OPTIONAL","addOnLeanToPepbPostSize":"","projectType":"standardOpb","addOnLeanToEpbPostSize":"","epbMainBldgPitch":"","trussSize":"","epbMetalRoofPanelGauge":"","addOnLeanToEpbPitch":"","studSpacing":"","country":"","trussPostSpacing":"","price":"1","leanToPaperSold":"","plywoodOnSiding":"No","epbSize":"","studSpacingCustomValue":"","addOnLeanToOpbSize":"","state":"Florida","addOnLeanToOpbPostSize":"","zip":"560077","projectId":"999.33","addOnDoorPepbSize":"","orderedBy":"JESSIE CHANEY","plywoodOnRoof":"Yes","addOnLeanToEpbSize":"","epbPostSize":"","addOnLeanToPepbSize":"","opbSize":"12x12x12","city":"Bengaluru","epbPostSpacing":"","opbMainBldgPitch":"3/12","addOnDoorEpbSize":"","exposureCategory":"D","status":"For Review by BW","addOnLeanToOpbSlab":"","addOnDoorSelected":false,"clientName":"test test","pepbMetalRoofPanelGauge":"","opbPostSize":"12x12","additionalInformation":"Test","addOnLeanToPepbPitch":"","fullAddress":"28, First Floor, First Cross, Bengaluru, Florida, 560077","buildingType":"Open Pole Barn","pdfUrl":"https://drive.google.com/file/d/1ejMW5RDUudTkC5NL6U6xT25Eljqaduwu/view?usp=drivesdk","oldstatus":"New Request"}`
+  this.opbProjectData = JSON.parse(`{"signature":"12","windSpeed":"145MPH","projectName":"Test","epbConnectSlab":"","pepbPostSpacing":"","addOnWindowPepbSize":"","wetMapAndSeal":true,"addOnDoorEpbQty":"","trussConnectSlab":"","driveFolder":"https://drive.google.com/drive/u/0/folders/1ngT1I1dOlqlzjeoH7piYmuJJOxbpcw1Y","overhangType":"","pepbSize":"","overhangValue":"","pepbMainBldgPitch":"","pepbPostSize":"","trussMainBldgPitch":"","trussMetalRoofPanelGauge":"","addOnLeanToOpbPitch":"","addOnWindowSelected":false,"opbPostSpacing":"12'","riskCategory":"3","siteAddress":"98, Ninety Eight Cross","opbMetalRoofPanelGauge":"26g","addOnWindowEpbQty":"","opbPaperSold":"","orderDate":"2025-09-08","trussPostSize":"","addOnLeanToSelected":false,"addOnWindowPepbQty":"","pepbConnectSlab":"","existingImages":[],"addOnWindowEpbSize":"","addOnDoorPepbQty":"","singleSlopePaperSold":"","addOnLeanToPepbSlab":"","addOnLeanToEpbSlab":"","opbConnectSlab":"OPTIONAL","addOnLeanToPepbPostSize":"","projectType":"standardOpb","addOnLeanToEpbPostSize":"","epbMainBldgPitch":"","trussSize":"","epbMetalRoofPanelGauge":"","addOnLeanToEpbPitch":"","studSpacing":"","country":"","trussPostSpacing":"","price":"1","leanToPaperSold":"","plywoodOnSiding":"No","epbSize":"","studSpacingCustomValue":"","addOnLeanToOpbSize":"","state":"Florida","addOnLeanToOpbPostSize":"","zip":"560077","projectId":"999.33","addOnDoorPepbSize":"","orderedBy":"JESSIE CHANEY","plywoodOnRoof":"Yes","addOnLeanToEpbSize":"","epbPostSize":"","addOnLeanToPepbSize":"","opbSize":"12x12x12","city":"Bengaluru","epbPostSpacing":"","opbMainBldgPitch":"3/12","addOnDoorEpbSize":"","exposureCategory":"D","status":"For Review by BW","addOnLeanToOpbSlab":"","addOnDoorSelected":false,"clientName":"test test","pepbMetalRoofPanelGauge":"","opbPostSize":"12x12","additionalInformation":"Test","addOnLeanToPepbPitch":"","fullAddress":"98, Ninety Eight Cross, Bengaluru, Florida, 560077","buildingType":"Open Pole Barn","pdfUrl":"https://drive.google.com/file/d/1ejMW5RDUudTkC5NL6U6xT25Eljqaduwu/view?usp=drivesdk","oldstatus":"New Request"}`)
 
   this.pdfGenData = {
     singleSlopePaperSold: '',

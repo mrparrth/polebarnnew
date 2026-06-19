@@ -245,7 +245,7 @@
 
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                          }}</span>
+                            }}</span>
                           <input v-model="sizeInputs[`${column.key}${row.key}`].l"
                             :name="`size-${column.key}${row.key}-l`" type="number" min="1" class="sow-input"
                             :placeholder="activeColumns[column.key] ? 'L' : ''" inputmode="numeric"
@@ -253,7 +253,7 @@
 
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? 'x' : ''
-                          }}</span>
+                            }}</span>
                           <input v-model="sizeInputs[`${column.key}${row.key}`].h" type="number" min="1"
                             class="sow-input" :placeholder="activeColumns[column.key] ? 'H' : ''" inputmode="numeric"
                             :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
@@ -269,7 +269,7 @@
                             :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? "'" : ''
-                          }}</span>
+                            }}</span>
                         </div>
                         <v-select v-else-if="row.key === 'PostSize'" v-model="form[`${column.key}${row.key}`]"
                           :name="`${column.key}${row.key}`" :items="['6x6', '8x8', 'Custom']" variant="outlined"
@@ -286,7 +286,7 @@
                             :disabled="shouldDisableField(`${column.key}${row.key}`)" @click.stop />
                           <span class="sow-separator">{{
                             activeColumns[column.key] ? '/12' : ''
-                          }}</span>
+                            }}</span>
                         </div>
 
                         <v-text-field v-else v-model="form[`${column.key}${row.key}`]" :id="`${column.key}${row.key}`"
@@ -562,7 +562,7 @@
           </div>
 
           <v-alert v-if="errorMessage" name="project-error" type="error" variant="tonal" class="mt-4">{{ errorMessage
-          }}</v-alert>
+            }}</v-alert>
           <v-alert v-if="successMessage" name="project-success" type="success" variant="tonal" class="mt-4">{{
             successMessage }}</v-alert>
         </v-card>
@@ -751,11 +751,14 @@ const shouldHideField = (fieldName) => {
 
 // Add computed properties for conditional column display
 const visibleScopeColumns = computed(() => {
-  if (['standardOpb', 'standardSingleSlope'].includes(form.projectType)) {
-    return scopeColumns.filter((col) => col.key === 'opb')
+  if (form.projectType === 'standardOpb') {
+    return scopeColumns.filter((col) => col.key === 'opb').map((col) => ({ ...col, label: 'Standard OPB' }))
+  }
+  if (form.projectType === 'standardSingleSlope') {
+    return scopeColumns.filter((col) => col.key === 'opb').map((col) => ({ ...col, label: 'Standard Single Slope' }))
   }
   if (form.projectType === 'standardLeanTo') {
-    return scopeColumns.filter((col) => col.key === 'pepb')
+    return scopeColumns.filter((col) => col.key === 'pepb').map((col) => ({ ...col, label: 'Standard Lean To' }))
   }
   return scopeColumns
 })

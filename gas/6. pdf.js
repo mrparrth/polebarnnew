@@ -62,7 +62,7 @@ const STRUCTURE_STRATEGIES = {
     },
   },
   standardLeanTo: {
-    isMatch: (projectType) => projectType === 'leanToOnly',
+    isMatch: (projectType) => projectType === 'standardLeanTo',
     fieldMap: { pitch: 'pepbMainBldgPitch', size: 'pepbSize' },
     buildingType: 'Lean-To',
     validationFields: [
@@ -89,25 +89,82 @@ const STRUCTURE_STRATEGIES = {
     extractCalculatedData: (ss) => {
       let shOpenBldg = ss.getSheetByName('C&C')
       let rawRoofData = shOpenBldg.getRange('I19:L22').getValues()
-      let rawWallData = shOpenBldg.getRange('I46:L47').getValues()
+      let rawWallData = shOpenBldg.getRange('I46:L48').getValues()
 
       let flatData = {}
       rawRoofData.forEach((roofRow, index) => {
-        let pressureType = index == 3 ? `pos` : `neg${index + 1}`
-        flatData[`r.10sf.${pressureType}.ult`] = Math.round(roofRow[0] * 100) / 100
-        flatData[`r.10sf.${pressureType}.asd`] = Math.round((roofRow[0] / 1.6) * 100) / 100
-        flatData[`r.100sf.${pressureType}.ult`] = Math.round(roofRow[2] * 100) / 100
-        flatData[`r.100sf.${pressureType}.asd`] = Math.round((roofRow[2] / 1.6) * 100) / 100
+        let zone = index == 3 ? `z` : `z${index + 1}`
+        let pressureType = index == 3 ? `pos` : `neg`
+        flatData[`r${zone}.10sf.${pressureType}.ult`] = Math.round(roofRow[0] * 100) / 100
+        flatData[`r${zone}.10sf.${pressureType}.asd`] = Math.round((roofRow[0] / 1.6) * 100) / 100
+        flatData[`r${zone}.100sf.${pressureType}.ult`] = Math.round(roofRow[2] * 100) / 100
+        flatData[`r${zone}.100sf.${pressureType}.asd`] = Math.round((roofRow[2] / 1.6) * 100) / 100
       })
 
       rawWallData.forEach((roofRow, index) => {
-        let pressureType = index == 2 ? `pos` : `neg${index + 1}`
-        flatData[`w.10sf.${pressureType}.ult`] = Math.round(roofRow[0] * 100) / 100
-        flatData[`w.10sf.${pressureType}.asd`] = Math.round((roofRow[0] / 1.6) * 100) / 100
-        flatData[`w.100sf.${pressureType}.ult`] = Math.round(roofRow[2] * 100) / 100
-        flatData[`w.100sf.${pressureType}.asd`] = Math.round((roofRow[2] / 1.6) * 100) / 100
+        let zone = index == 2 ? `z` : `z${index + 1}`
+        let pressureType = index == 2 ? `pos` : `neg`
+        flatData[`w${zone}.10sf.${pressureType}.ult`] = Math.round(roofRow[0] * 100) / 100
+        flatData[`w${zone}.10sf.${pressureType}.asd`] = Math.round((roofRow[0] / 1.6) * 100) / 100
+        flatData[`w${zone}.100sf.${pressureType}.ult`] = Math.round(roofRow[2] * 100) / 100
+        flatData[`w${zone}.100sf.${pressureType}.asd`] = Math.round((roofRow[2] / 1.6) * 100) / 100
       })
 
+      return flatData
+    },
+  },
+  standardSingleSlope: {
+    isMatch: (projectType) => projectType === 'standardSingleSlope',
+    fieldMap: { pitch: 'opbMainBldgPitch', size: 'opbSize' },
+    buildingType: 'Single Slope',
+    validationFields: [
+      'opbMainBldgPitch',
+      'opbSize',
+      'riskCategory',
+      'windSpeed',
+      'exposureCategory',
+    ],
+    configureInputs: (shCode, shWind, data, dims) => {
+      let numericalPitch = dims.pitch.split('/')[0]
+      shCode.getRange('E12').setValue('Florida Building Code 2023')
+      shCode.getRange('RoofHt').setValue('Utility & Miscellaneous')
+      shCode.getRange('G20').setValue(RISK_CATEG_MAP[data.riskCategory])
+      shCode.getRange('F34').setValue(numericalPitch)
+      shCode.getRange('building_l').setValue(dims.length)
+      shCode.getRange('building_w').setValue(dims.width)
+      shCode.getRange('Roof_h').setValue(dims.height)
+
+      shWind.getRange('wind_speed').setValue(data.windSpeed.toLowerCase().replace('mph', ''))
+      shWind.getRange('G15').setValue(`Exposure ${data.exposureCategory}`)
+      shWind.getRange('G16').setValue('Open Building')
+      shWind.getRange('G22').setValue('Monoslope')
+
+      let shOpenBarn = shCode.getParent().getSheetByName('Open Bldg')
+      shOpenBarn.getRange('roof_type').setValue('Monoslope Free Roofs')
+      shOpenBarn.getRange('wind_flow').setValue('Clear')
+    },
+    extractCalculatedData: (ss) => {
+      let shOpenBldg = ss.getSheetByName('Open Bldg')
+      let rawData = shOpenBldg.getRange('D61:K63').getValues()
+      let windAreas = ['wa1', 'wa2', 'wa3']
+      let zones = ['z3', 'z2', 'z1']
+      let pressureTypes = ['pos', 'neg']
+
+      let flatData = {}
+      rawData.forEach((row, rIdx) => {
+        if (row && row[0]) {
+          flatData['WindArea' + (rIdx + 1)] = row[0].toString().replace(' sf', '').trim()
+        }
+
+        zones.forEach((zone, zIdx) => {
+          pressureTypes.forEach((type, tIdx) => {
+            let rawVal = row ? row[2 + zIdx * 2 + tIdx] : 0
+            let val = parseFloat(rawVal) || 0
+            flatData[`${windAreas[rIdx]}.${zone}.${type}.ult`] = Math.round(val * 100) / 100
+            flatData[`${windAreas[rIdx]}.${zone}.${type}.asd`] = Math.round((val / 1.6) * 100) / 100
+          })
+        })
+      })
       return flatData
     },
   },
@@ -115,9 +172,8 @@ const STRUCTURE_STRATEGIES = {
 
 function generatePresentation(projectData) {
   let settings = _getSettings_()
-  const strategy = Object.values(STRUCTURE_STRATEGIES).find((s) =>
-    s.isMatch(projectData.projectType),
-  )
+  let projectType = projectData.projectType
+  const strategy = Object.values(STRUCTURE_STRATEGIES).find((s) => s.isMatch(projectType))
 
   if (!strategy) {
     return { isOpenPoleBarn: false, errors: ['Unsupported or missing project type'] }
@@ -176,12 +232,12 @@ function generatePresentation(projectData) {
   flatData.riskCategoryRoman = new Array(parseInt(projectData.riskCategory) || 1).fill('I').join('')
 
   let errors = []
-  let trussData = _getTrussData_(width)
+  let trussData = _getTrussData_(width, projectType)
   if (Object.keys(trussData).length === 0) {
     errors.push(`There is no truss data for width : ${width}`)
   }
 
-  let chartData = _getChartData_(projectData.windSpeed, projectData.exposureCategory, width, height)
+  let chartData = _getChartData_(projectData.windSpeed, projectData.exposureCategory, width, height, projectType)
   if (Object.keys(chartData).length === 0) {
     errors.push(
       `There is no chart data for Wind Speed - ${projectData.windSpeed}, Exposure ${projectData.exposureCategory}, Width - ${width}, Height - ${height}`,
@@ -302,7 +358,7 @@ function _parseWindCalculations_(rawData) {
   return flatData
 }
 
-function _getChartData_(windSpeed, exposure, width, height) {
+function _getChartData_(windSpeed, exposure, width, height, projectType) {
   windSpeed = parseInt(windSpeed.toLowerCase().replace('mph', ''))
   width = parseInt(width)
   height = parseInt(height)
@@ -311,34 +367,55 @@ function _getChartData_(windSpeed, exposure, width, height) {
 
   let foundData = chartData.find(
     (row) =>
-      row.windSpeed == (windSpeed <= 145 ? 145 : 160) &&
+      row.windSpeed <= windSpeed &&
       row.exposure == exposure &&
       row.minWidth <= width &&
       row.maxWidth >= width &&
       row.minEaveHeight <= height &&
-      row.maxEaveHeight >= height,
+      row.maxEaveHeight >= height &&
+      row.projectType == projectType,
   )
 
   if (!foundData) {
     console.error(
-      `Chart data is not found for ${JSON.stringify({ windSpeed, exposure, width, height })}`,
+      `Chart data is not found for ${JSON.stringify({ windSpeed, exposure, width, height, projectType })}`,
     )
     return {}
   }
   return foundData
 }
 
-function _getTrussData_(width) {
+function _getTrussData_(width, projectType) {
   width = parseInt(width)
-  let shTruss = SpreadsheetApp.getActive().getSheetByName('TrussSizeDetails')
-  let trussData = _getItemsFromSheet_(shTruss)
-  let foundData = trussData.find((row) => width >= row.minWidth && width <= row.maxWidth)
 
-  if (!foundData) {
+  const shTruss = SpreadsheetApp.getActive().getSheetByName('TrussSizeDetails')
+  const trussData = _getItemsFromSheet_(shTruss)
+
+  const matches = trussData.filter(
+    row =>
+      width >= row.minWidth &&
+      width <= row.maxWidth &&
+      row.projectType == projectType
+  )
+
+  if (!matches.length) {
     console.error(`Truss data is not found for width - ${width}`)
     return {}
   }
-  return foundData
+
+  if (projectType !== 'standardLeanTo' || matches.length === 1) {
+    return matches[0]
+  }
+
+  const [firstRow, secondRow] = matches
+
+  const result = { ...firstRow }
+
+  Object.entries(secondRow).forEach(([key, value]) => {
+    result[`${key}2`] = value
+  })
+
+  return result
 }
 
 function _replaceTemplateFieldsInShapes_(slide, valueObject) {
@@ -397,9 +474,9 @@ function _createNewSlideFromTemplate_({ clientName, projectId, projectType }) {
   let documentName = `11 x 17_${dateString}_${projectId}_${clientName}`
 
   let templateKey = 'windCalcSlideOpb'
-  if (projectType === 'leanToOnly') {
+  if (projectType === 'standardLeanTo') {
     templateKey = 'windCalcSlideLeanTo'
-  } else if (projectType === 'singleSlopeOnly') {
+  } else if (projectType === 'standardSingleSlope') {
     templateKey = 'windCalcSlideSingleSlope'
   }
   let templateId = settings[templateKey] || settings.windCalcSlideOpb

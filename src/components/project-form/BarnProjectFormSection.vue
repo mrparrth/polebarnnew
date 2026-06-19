@@ -299,10 +299,13 @@ const scopeColumns = [
 
 const visibleScopeColumns = computed(() => {
     if (form.projectType === 'standardOpb') {
-        return scopeColumns.filter((col) => col.key === 'opb')
+        return scopeColumns.filter((col) => col.key === 'opb').map((col) => ({ ...col, label: 'Standard OPB' }))
+    }
+    if (form.projectType === 'standardSingleSlope') {
+        return scopeColumns.filter((col) => col.key === 'opb').map((col) => ({ ...col, label: 'Standard Single Slope' }))
     }
     if (form.projectType === 'standardLeanTo') {
-        return scopeColumns.filter((col) => col.key === 'pepb')
+        return scopeColumns.filter((col) => col.key === 'pepb').map((col) => ({ ...col, label: 'Standard Lean To' }))
     }
     return scopeColumns
 })
@@ -314,7 +317,7 @@ const addonColumns = [
 ]
 
 const visibleAddonColumns = computed(() => {
-    if (form.projectType === 'standardOpb') {
+    if (['standardOpb', 'standardSingleSlope'].includes(form.projectType)) {
         return addonColumns.filter((col) => col.key === 'Opb')
     }
     if (form.projectType === 'standardLeanTo') {
