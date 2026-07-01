@@ -112,6 +112,10 @@ export const BLANK_FORM_DATA = {
   studSpacing: '',
   studSpacingCustomValue: '',
   price: '',
+  createdAt: '',
+  createdBy: '',
+  updatedAt: '',
+  updatedBy: '',
   // Add-Ons
   addOnDoorSelected: false,
   addOnDoorEpbQty: '',

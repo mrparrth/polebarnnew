@@ -14,10 +14,13 @@ const autoArchiveProjects = (payload) => new App().autoArchiveProjects(payload)
 const getSubmissionData = (payload) => new App().getSubmissionData(payload)
 const markAsArchived = (payload) => new App().markAsArchived(payload)
 
-const createDelayedPresentationEmailTrigger = (payload) =>
-  new App().createDelayedPresentationEmailTrigger(payload)
+const createDelayedPresentationEmail = (payload) =>
+  new App().createDelayedPresentationEmail(payload)
 const executeDelayedPresentationEmail = (payload) =>
   new App().executeDelayedPresentationEmail(payload)
+const testExecDelayedPres = () => {
+  new App().executeDelayedPresentationEmail({ triggerUid: '1823378438669467648' })
+}
 
 const includes = (e) => HtmlService.createHtmlOutputFromFile(e).getContent()
 
@@ -167,7 +170,7 @@ class App {
     return template.evaluate().setTitle(this.settings.appName)
   }
 
-  getDataByProjectName(projectId) {
+  getDataByProjectId(projectId) {
     let allData = _getSheetValuesAsJson_(this.shSubmission)
     let data = allData.find((row) => row.projectId == projectId)
 
@@ -185,6 +188,17 @@ class App {
     if (!userInfo.user) throw 'Invalid login. Please login again and try'
 
     let currentProjectId = this.cache.getProperty('currentProjectId')
+    if (!currentProjectId) {
+      let allData = _getItemsFromSheet_(this.shSubmission).map((r) => r.projectId)
+      let projectBase = allData.length > 0 ? allData[0].toString().split('.')[0] : '0'
+      let maxPart = 0
+      for (let p of allData) {
+        if (!p) continue
+        let pt = parseInt(p.toString().split('.')[1]) || 0
+        if (pt > maxPart) maxPart = pt
+      }
+      currentProjectId = projectBase + '.' + maxPart
+    }
 
     let [projectBase, projectPart] = currentProjectId.toString().split('.')
     let newProjectId = projectBase + '.' + (parseInt(projectPart) + 1).toString()
@@ -222,26 +236,17 @@ class App {
       }
     }
 
-    try {
-      let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(data)
+    const isStandardProject = ['standardOpb', 'standardLeanTo', 'standardSingleSlope'].includes(
+      data.projectType,
+    )
+    const isFloridaProject = ['FL', 'FLORIDA'].includes(data.state?.toUpperCase())
 
-      if (isFileCreated) {
-        data.pdfUrl = pdfUrl
-      } else {
-        data.pdfUrl = ''
+    if (isStandardProject && isFloridaProject) {
+      try {
+        this.createDelayedPresentationEmail(data)
+      } catch (e) {
+        console.log(e)
       }
-
-      if (isOpenPoleBarn && (!isFileCreated || errors.length > 0)) {
-        this.emailApp.sendNoPresentationEmail({ data, pdfUrl, slideUrl, errors })
-      } else if (isFileCreated) {
-        if (data.projectType == 'typicalOpb') {
-          createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors })
-        } else {
-          this.emailApp.sendTestPresentationEmail({ data, pdfUrl, slideUrl, errors })
-        }
-      }
-    } catch (e) {
-      console.log(e)
     }
 
     this.emailApp.sendStatusChangeEmail('', 'New Project', data)
@@ -309,7 +314,7 @@ class App {
     delete projectUpdates.sketchData
     delete projectUpdates.existingImages
 
-    let currentProject = this.getDataByProjectName(projectUpdates.projectId)
+    let currentProject = this.getDataByProjectId(projectUpdates.projectId)
     let row = currentProject['_row_']
 
     let driveFileUrls = []
@@ -379,10 +384,18 @@ class App {
     return { data: newData, images: driveFileUrls }
   }
 
-  updateProjectStatus({ data: { projectId, newStatus } }) {
+  updateProjectStatus({ data: { projectId, newStatus, ...otherProps }, token }) {
     console.log(`Updating ${projectId} with status ${newStatus}`)
-    let project = this.getDataByProjectName(projectId)
+    let project = this.getDataByProjectId(projectId)
     let currentStatus = project.data.status
+
+    project.data = { ...project.data, ...otherProps }
+
+    if (token) {
+      var userInfo = this.authApp.login({ token })
+    } else {
+      userInfo = { user: { email: 'System' } }
+    }
 
     if (currentStatus && currentStatus !== newStatus) {
       project.data.status = newStatus
@@ -391,6 +404,8 @@ class App {
       if (newStatus == 'S&S') {
         project.data.ssAt = new Date().toISOString()
       }
+      project.data.updatedAt = new Date().toISOString()
+      project.data.updatedBy = userInfo?.user?.email
 
       let rowData = Object.values(project)
       rowData[3] = JSON.stringify(rowData[3])
@@ -446,14 +461,17 @@ class App {
       throw 'Unauthorized: Only Admins and Employees can generate PDF'
     }
 
-    let allData = _getSheetValuesAsJson_(this.shSubmission)
-    let projectRow = allData.find((row) => row.projectId == projectId)
-    if (!projectRow) throw 'Project not found'
+    let project = this.getDataByProjectId(projectId)
+    if (!project) throw 'Project not found'
 
-    let dataRow = projectRow.data
-    let activeRow = projectRow._row_
+    // Cancel existing delayed triggers to avoid duplicate runs
+    this.cancelDelayedTriggerForProject(projectId)
 
-    let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(dataRow)
+    let dataRow = project.data
+    let activeRow = project._row_
+
+    let { pdfUrl, slideUrl, errors, isStandardProject, isFileCreated } =
+      generatePresentation(dataRow)
 
     if (isFileCreated) {
       dataRow.pdfUrl = pdfUrl
@@ -463,9 +481,9 @@ class App {
 
     this.shSubmission.getRange(activeRow, 4).setValue(JSON.stringify(dataRow))
 
-    if (isOpenPoleBarn && (!isFileCreated || errors.length > 0)) {
+    if (isStandardProject && errors.length > 0) {
       this.emailApp.sendNoPresentationEmail({ data: dataRow, pdfUrl, slideUrl, errors })
-      throw 'Some error occurred while creating the PDF. Check email or try again.'
+      throw new Error(errors.join(' || '))
     }
 
     return { pdfUrl }
@@ -601,7 +619,7 @@ class App {
     }
   }
 
-  getSubmissionData(token) {
+  getSubmissionData({ token }) {
     let userInfo = this.authApp.login({ token })
     if (!userInfo) throw 'Timed Out, please log in again'
 
@@ -645,7 +663,7 @@ class App {
     activeSheet.getRange(activeRow, statusColumn, totalRows, 1).setValue('Archived')
   }
 
-  createDelayedPresentationEmailTrigger({ data, pdfUrl, slideUrl, errors }) {
+  createDelayedPresentationEmail(data) {
     const trigger = ScriptApp.newTrigger('executeDelayedPresentationEmail')
       .timeBased()
       .after(
@@ -656,10 +674,7 @@ class App {
       .create()
 
     const triggerData = {
-      data,
-      pdfUrl,
-      slideUrl,
-      errors,
+      projectId: data.projectId,
       triggerUid: trigger.getUniqueId().toString(),
       createdAt: new Date().toISOString(),
     }
@@ -672,28 +687,38 @@ class App {
   }
 
   executeDelayedPresentationEmail(event) {
-    console.log(event)
+    console.log(`Executing delayed presentation email for trigger: ${event.triggerUid}`)
+
     try {
       let property = this.cache.getProperty(event.triggerUid.toString())
       if (!property) property = this.cache.getProperty(event.triggerUid)
 
       if (property) {
-        try {
-          const triggerData = JSON.parse(property)
+        const triggerData = JSON.parse(property)
 
-          console.log(`Executing delayed presentation email for trigger: ${triggerData.triggerUid}`)
+        const projectId = triggerData.projectId
+        let projectData = this.getDataByProjectId(projectId)
+        let data = projectData.data
 
-          // this.emailApp.sendPresentationEmail(triggerData) // now we are sending email as a part of the update project status
+        let { pdfUrl, slideUrl, errors, isFileCreated } = generatePresentation(data)
 
-          this.updateProjectStatus({
-            data: { projectId: triggerData.data.projectId, newStatus: 'For Review by BW' },
-          })
-
-          this.cleanupDelayedTrigger(event.triggerUid)
-        } catch (parseError) {
-          console.error(`Error parsing trigger data for key ${key}:`, parseError)
-          this.cache.deleteProperty(event.triggerUid.toString())
+        if (!isFileCreated || errors.length > 0) {
+          this.emailApp.sendNoPresentationEmail({ data, pdfUrl, slideUrl, errors })
         }
+
+        if (isFileCreated && errors.length == 0) {
+          if (data.projectType == 'standardOpb') {
+            this.updateProjectStatus({
+              data: { projectId, newStatus: 'For Review by BW', pdfUrl },
+            })
+          } else {
+            this.emailApp.sendTestPresentationEmail({ data, pdfUrl, slideUrl, errors })
+            data.pdfUrl = pdfUrl
+            this.shSubmission.getRange(projectData._row_, 4).setValue(JSON.stringify(data))
+          }
+        }
+
+        this.cleanupDelayedTrigger(event.triggerUid)
       }
     } catch (error) {
       console.error('Error in executeDelayedPresentationEmail:', error)
@@ -721,6 +746,27 @@ class App {
     }
   }
 
+  cancelDelayedTriggerForProject(projectId) {
+    try {
+      const triggers = ScriptApp.getProjectTriggers()
+      for (const trigger of triggers) {
+        if (trigger.getHandlerFunction() === 'executeDelayedPresentationEmail') {
+          let triggerId = trigger.getUniqueId().toString()
+          let property = this.cache.getProperty(triggerId)
+          if (property) {
+            let triggerData = JSON.parse(property)
+            if (triggerData.projectId === projectId) {
+              this.cleanupDelayedTrigger(trigger.getUniqueId())
+              console.log(`Canceled delayed trigger for project ${projectId}`)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error canceling delayed trigger for project ${projectId}:`, error)
+    }
+  }
+
   generatePdfForRow() {
     if (this.ss.getActiveSheet().getName() !== 'Submission') return
     let data = _getSheetValuesAsJson_(this.shSubmission)
@@ -728,7 +774,8 @@ class App {
 
     let dataRow = data.find((dr) => dr._row_ == activeRow)?.data
     if (!dataRow) return
-    let { pdfUrl, slideUrl, errors, isOpenPoleBarn, isFileCreated } = generatePresentation(dataRow)
+    let { pdfUrl, slideUrl, errors, isStandardProject, isFileCreated } =
+      generatePresentation(dataRow)
 
     if (isFileCreated) {
       data.pdfUrl = pdfUrl
@@ -736,7 +783,7 @@ class App {
       data.pdfUrl = ''
     }
 
-    if (isOpenPoleBarn && (!isFileCreated || errors.length > 0)) {
+    if (isStandardProject && (!isFileCreated || errors.length > 0)) {
       this.emailApp.sendNoPresentationEmail({ data, pdfUrl, slideUrl, errors })
       throw `Some error occured while creating the pdf. Do check you email for more details.`
     } else if (isFileCreated) {

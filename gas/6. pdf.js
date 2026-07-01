@@ -64,7 +64,7 @@ const STRUCTURE_STRATEGIES = {
   standardLeanTo: {
     isMatch: (projectType) => projectType === 'standardLeanTo',
     fieldMap: { pitch: 'pepbMainBldgPitch', size: 'pepbSize' },
-    buildingType: 'Lean-To',
+    buildingType: 'Lean To',
     validationFields: [
       'pepbMainBldgPitch',
       'pepbSize',
@@ -176,7 +176,7 @@ function generatePresentation(projectData) {
   const strategy = Object.values(STRUCTURE_STRATEGIES).find((s) => s.isMatch(projectType))
 
   if (!strategy) {
-    return { isOpenPoleBarn: false, errors: ['Unsupported or missing project type'] }
+    return { isStandardProject: false, errors: ['Unsupported or missing project type'] }
   }
 
   // Modifying projectData with fullAddress exactly like earlier
@@ -193,7 +193,7 @@ function generatePresentation(projectData) {
 
   if (!['FL', 'FLORIDA'].includes(projectData.state?.toUpperCase())) {
     console.log('Not a Florida project')
-    return { isOpenPoleBarn: false, errors: ['Not a Florida project'] }
+    return { isStandardProject: true, errors: ['Not a Florida project'] }
   }
 
   const sizeKey = strategy.fieldMap.size
@@ -204,7 +204,7 @@ function generatePresentation(projectData) {
   let validationErrors = _validateInputs_(projectData, strategy, sizeKey, pitchKey)
   if (validationErrors.length > 0) {
     console.error(`Validation failed:\n${validationErrors.map((e) => `- ${e}`).join('\n')}`)
-    return { isOpenPoleBarn: true, errors: validationErrors, isFileCreated: false }
+    return { isStandardProject: true, errors: validationErrors, isFileCreated: false }
   }
 
   let lock = LockService.getScriptLock()
@@ -237,7 +237,13 @@ function generatePresentation(projectData) {
     errors.push(`There is no truss data for width : ${width}`)
   }
 
-  let chartData = _getChartData_(projectData.windSpeed, projectData.exposureCategory, width, height, projectType)
+  let chartData = _getChartData_(
+    projectData.windSpeed,
+    projectData.exposureCategory,
+    width,
+    height,
+    projectType,
+  )
   if (Object.keys(chartData).length === 0) {
     errors.push(
       `There is no chart data for Wind Speed - ${projectData.windSpeed}, Exposure ${projectData.exposureCategory}, Width - ${width}, Height - ${height}`,
@@ -287,7 +293,7 @@ function generatePresentation(projectData) {
     slideUrl: presOPB.getUrl(),
     errors,
     isFileCreated: true,
-    isOpenPoleBarn: true,
+    isStandardProject: true,
   }
 }
 
@@ -392,10 +398,7 @@ function _getTrussData_(width, projectType) {
   const trussData = _getItemsFromSheet_(shTruss)
 
   const matches = trussData.filter(
-    row =>
-      width >= row.minWidth &&
-      width <= row.maxWidth &&
-      row.projectType == projectType
+    (row) => width >= row.minWidth && width <= row.maxWidth && row.projectType == projectType,
   )
 
   if (!matches.length) {

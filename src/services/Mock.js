@@ -6,7 +6,7 @@ import PAPER_COPY_DATA from '@/data/paperCopyData.json'
 const FAKE_USER = {
   email: 'test@test.com',
   password: '123456',
-  type: 'Employee',
+  type: 'Admin',
   token: 'dev_fake_token_123456',
 }
 
@@ -25,6 +25,7 @@ export class Mock {
       updateProject: () => this.handleMockUpdateProject(data),
       updateProjectStatus: () => this.handleMockUpdateProjectStatus(data),
       getLatestData: () => this.handleMockGetLatestData(),
+      getSubmissionData: () => this.handleMockGetSubmissionData(),
       newPaperCopyProject: () => this.handleMockNewPaperCopyProject(data),
       orderPaperCopy: () => this.handleMockOrderPaperCopy(data),
       updatePaperCopyStock: () => this.handleMockUpdatePaperCopyStock(data),
@@ -87,6 +88,7 @@ export class Mock {
   }
 
   static handleMockNewProject(data) {
+    // throw new Error(`Tesmporary`)
     console.log('handleMockNewProject', data)
     data.projectId = Math.random().toString(36).substring(2, 15)
     return { data, images: [] }
@@ -106,6 +108,11 @@ export class Mock {
   static handleMockGetLatestData() {
     console.log('handleMockGetLatestData')
     return { success: true }
+  }
+
+  static handleMockGetSubmissionData() {
+    console.log('handleMockGetSubmissionData')
+    return LOCAL_DATA
   }
 
   static handleMockUpdateProjectStatus(data) {

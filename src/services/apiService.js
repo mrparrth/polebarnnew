@@ -68,6 +68,12 @@ export class API {
     return result
   }
 
+  static async getSubmissionData() {
+    const result = await this.execute('getSubmissionData')
+
+    return result
+  }
+
   static async newProject(projectData) {
     const result = await this.execute('newProject', projectData)
 

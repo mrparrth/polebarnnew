@@ -1,7 +1,7 @@
 <template>
-  <v-container class="project-form-bg d-flex">
-    <v-row justify="center" align="center" class="fill-height">
-      <v-col cols="12">
+  <v-container class="project-form-bg">
+    <v-row justify="center" align="stretch" class="fill-height">
+      <v-col cols="12" :md="showPreview ? 8 : 12" :lg="showPreview ? 9 : 12">
         <v-card elevation="8" class="pa-0 rounded-xl main-form-card">
           <!-- Header Bar -->
           <v-sheet class="header-bar d-flex align-center py-4 position-relative" elevation="0">
@@ -26,23 +26,13 @@
 
           <!-- Status and Order Information Section -->
           <v-sheet class="page-section" elevation="1" v-if="form.projectSubtype !== 'paperCopyRequest'">
-            <v-row class="pa-4 d-flex justify-space-between">
+            <v-row class="pa-4 d-flex justify-space-between align-center">
               <div class="section-header mb-0">Ceed Civil Engineering Project</div>
               <div v-if="!isNewProject" class="d-flex align-center ga-2">
-                <v-tooltip text="View Revision History" location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" icon="mdi-history" variant="tonal" density="comfortable" color="indigo"
-                      :loading="isLoadingHistory" @click="handleShowHistoryDialog" />
-                  </template>
-                </v-tooltip>
-
-                <v-tooltip v-if="[USER_TYPES.Admin, USER_TYPES.Employee].includes(user?.type)" text="Generate PDF"
-                  location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" icon="mdi-file-pdf-box" variant="tonal" density="comfortable"
-                      color="red-darken-2" :loading="isGeneratingPdf" @click="generatePdf" />
-                  </template>
-                </v-tooltip>
+                <v-btn prepend-icon="mdi-history" variant="tonal" color="indigo" class="text-none"
+                  :loading="isLoadingHistory" @click="handleShowHistoryDialog">
+                  Revision History
+                </v-btn>
               </div>
             </v-row>
             <v-row>
@@ -66,7 +56,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="form.projectName" :class="{ required: isRequired('projectName') }"
-                  label="Project Name" dense variant="outlined" required name="projectName" counter="25"
+                  label="Project Name" dense variant="outlined" required name="projectName" counter="30"
                   :disabled="shouldDisableField('projectName')" :error-messages="fieldErrors.projectName"
                   :error="!!fieldErrors.projectName" @input="validateProjectNameLength" />
               </v-col>
@@ -376,7 +366,11 @@
                   <div class="section-header mb-2" style="min-height: 24px"></div>
                   <v-row>
                     <v-col cols="6">
-                      <v-text-field v-model="windSpeedInput.value" label="Wind Speed" type="number" min="1" dense
+                      <v-select v-if="standardBuildings.includes(form.projectType)" v-model="windSpeedInput.value"
+                        :items="windSpeedOptions" label="Wind Speed" dense variant="outlined" name="windSpeed"
+                        suffix="MPH" :disabled="shouldDisableField('windSpeed')" :error-messages="fieldErrors.windSpeed"
+                        :error="!!fieldErrors.windSpeed" />
+                      <v-text-field v-else v-model="windSpeedInput.value" label="Wind Speed" type="number" min="1" dense
                         variant="outlined" name="windSpeed" suffix="MPH" :disabled="shouldDisableField('windSpeed')"
                         :error-messages="fieldErrors.windSpeed" :error="!!fieldErrors.windSpeed" />
                     </v-col>
@@ -542,7 +536,7 @@
             </v-sheet>
           </div>
           <div class="text-center mb-4 d-flex ga-2 justify-center" v-if="form.projectType || !isNewProject">
-            <v-btn color="red darken-2" type="submit" size="large" class="px-10 py-4 text-white font-weight-bold"
+            <v-btn v-if="!isViewOnlyMode" color="red-darken-2" type="submit" size="large" class="px-10 py-4 text-white font-weight-bold"
               :loading="isSubmitting" :disabled="isSubmitting || shouldDisableField('submitbutton')"
               @click="handleSubmit" name="submitbutton">
               {{
@@ -566,6 +560,35 @@
           <v-alert v-if="successMessage" name="project-success" type="success" variant="tonal" class="mt-4">{{
             successMessage }}</v-alert>
         </v-card>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" v-if="showPreview" class="d-flex justify-center">
+        <div class="sticky-preview-wrapper">
+          <v-card elevation="8" class="pa-4 rounded-l preview-card">
+            <div class="text-subtitle-1 font-weight-bold mb-4 text-center"
+              style="color: #b62025; font-family: sans-serif;">
+              How it will look like<br>
+              in the PDF
+            </div>
+            <div class="slide-preview">
+              <div :class="['project-name', { 'placeholder-text': !form.projectName?.trim() }]" id="projectNamePreview">
+                {{ form.projectName || '-Project Name-' }}
+              </div>
+
+              <div :class="['opb-size', { 'placeholder-text': !formattedSize?.trim() }]" id="opbSizePreview">
+                {{ formattedSize || '-Project Size-' }}
+              </div>
+
+              <div :class="['building-type', { 'placeholder-text': !buildingTypeDisplay?.trim() }]"
+                id="buildingTypePreview">
+                {{ buildingTypeDisplay || '-Building Type-' }}
+              </div>
+
+              <div :class="['address', { 'placeholder-text': !formattedFullAddress?.trim() }]" id="addressPreview">
+                {{ formattedFullAddress || '-Address-' }}
+              </div>
+            </div>
+          </v-card>
+        </div>
       </v-col>
     </v-row>
   </v-container>
@@ -617,7 +640,7 @@
           </span>
         </div>
 
-        <v-timeline v-else side="end" align="start" density="comfortable">
+        <v-timeline v-else side="end" align="start" density="comfortable" class="revision-timeline">
           <v-timeline-item v-for="(item, index) in projectHistory" :key="index" dot-color="indigo-lighten-1"
             size="small">
             <template v-slot:opposite>
@@ -642,10 +665,47 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- PDF dialogs removed as manual generation is managed from Dashboard only -->
+
+  <!-- Error Alert Dialog -->
+  <v-dialog v-model="showErrorDialog" max-width="500">
+    <v-card class="rounded-xl pa-4">
+      <v-card-title class="d-flex align-center justify-space-between pb-3 border-bottom">
+        <div class="d-flex align-center ga-2">
+          <v-icon color="red-darken-2" class="mr-2">mdi-alert-circle</v-icon>
+          <span class="text-h6 font-weight-bold text-grey-darken-3">{{ errorDialogTitle || 'Error' }}</span>
+        </div>
+        <v-spacer />
+        <v-btn icon="mdi-close" variant="text" color="grey-darken-1" @click="showErrorDialog = false" />
+      </v-card-title>
+
+      <v-card-text class="py-4 text-body-1 text-grey-darken-2">
+        <div v-if="errorDialogMessages.length === 1">
+          {{ errorDialogMessages[0] }}
+        </div>
+        <ul v-else-if="errorDialogMessages.length > 1" class="pl-4">
+          <li v-for="(msg, index) in errorDialogMessages" :key="index" class="mb-1">
+            {{ msg.trim() }}
+          </li>
+        </ul>
+      </v-card-text>
+
+      <v-card-actions class="pt-3 border-top justify-end">
+        <v-btn color="red-darken-2" variant="flat" class="text-white font-weight-bold px-6" @click="showErrorDialog = false">
+          Close
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Scroll to Top Button -->
+  <v-btn v-show="showScrollTop" color="primary" icon="mdi-arrow-up" size="large" elevation="4" class="scroll-to-top-btn"
+    @click="scrollToTop" />
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { STATUSES, BLANK_FORM_DATA, STATES } from '@/global'
@@ -654,6 +714,7 @@ import { useSnackbar } from '@/composables/useSnackbar'
 import { generateShortId, USER_TYPES } from '@/global'
 
 const requiredFields = ref(['clientName', 'siteAddress', 'city', 'state', 'zip'])
+const isFormLoading = ref(true)
 const standardBuildings = ['standardOpb', 'standardLeanTo', 'standardSingleSlope']
 
 // Employee field restrictions
@@ -724,7 +785,24 @@ const user = computed(() => projectStore.user)
 const showHistoryDialog = ref(false)
 const isLoadingHistory = ref(false)
 const projectHistory = ref([])
-const isGeneratingPdf = ref(false)
+const projectCreatedDate = ref('')
+const showScrollTop = ref(false)
+const showErrorDialog = ref(false)
+const errorDialogTitle = ref('')
+const errorDialogMessages = ref([])
+
+function parseErrorMessage(message) {
+  if (!message) return ['An unknown error occurred']
+  
+  // Clean up "Error: " prefix from Google Apps Script if present
+  let cleanMessage = message.replace(/^Error:\s*/i, '')
+  
+  if (cleanMessage.includes('||')) {
+    return cleanMessage.split('||').map(msg => msg.trim()).filter(Boolean)
+  }
+  return [cleanMessage]
+}
+const generatedPdfUrl = ref('')
 
 const form = reactive({ ...BLANK_FORM_DATA })
 
@@ -732,7 +810,10 @@ const isRequired = (fieldName) => {
   return requiredFields.value.includes(fieldName)
 }
 
+const isViewOnlyMode = computed(() => route.query.mode === 'view')
+
 const shouldDisableField = (fieldName) => {
+  if (isViewOnlyMode.value) return true
   if (isNewProject.value) return false
   if (form.projectType === 'paperCopy' && !isNewProject.value) return true
   if (USER_TYPES.Employee == user.value?.type) {
@@ -761,6 +842,69 @@ const visibleScopeColumns = computed(() => {
     return scopeColumns.filter((col) => col.key === 'pepb').map((col) => ({ ...col, label: 'Standard Lean To' }))
   }
   return scopeColumns
+})
+
+// Title Case helper function matching GAS backend
+function toProperCase(val) {
+  if (!val) return ''
+  const minorWords = new Set([
+    'a', 'an', 'the', 'and', 'but', 'or', 'nor', 'for', 'yet', 'so',
+    'at', 'by', 'from', 'in', 'into', 'of', 'off', 'on', 'onto', 'to', 'up', 'with'
+  ])
+
+  const words = val.toString().toLowerCase().trim().split(/\s+/)
+  if (words.length === 0 || (words.length === 1 && words[0] === '')) return ''
+
+  return words
+    .map((word, index, array) => {
+      if (index === 0 || index === array.length - 1 || !minorWords.has(word)) {
+        return word.charAt(0).toUpperCase() + word.substring(1)
+      } else {
+        return word
+      }
+    })
+    .join(' ')
+}
+
+const showPreview = computed(() => {
+  return standardBuildings.includes(form.projectType)
+})
+
+const buildingTypeDisplay = computed(() => {
+  if (form.projectType === 'standardOpb') return 'Open Pole Barn'
+  if (form.projectType === 'standardLeanTo') return 'Lean To'
+  if (form.projectType === 'standardSingleSlope') return 'Single Slope'
+  return ''
+})
+
+const formattedSize = computed(() => {
+  const sizeKey = form.projectType === 'standardLeanTo' ? 'pepbSize' : 'opbSize'
+  const sizeObj = sizeInputs[sizeKey]
+  if (sizeObj) {
+    if (sizeObj.w || sizeObj.l || sizeObj.h) {
+      return `${sizeObj.w || ''}x${sizeObj.l || ''}x${sizeObj.h || ''}`
+    }
+  }
+  return form[sizeKey] || ''
+})
+
+const formattedFullAddress = computed(() => {
+  return [
+    toProperCase(form.siteAddress),
+    toProperCase(form.city),
+    toProperCase(form.state),
+    toProperCase(form.country),
+    form.zip,
+  ]
+    .filter(Boolean)
+    .join(', ')
+})
+
+const windSpeedOptions = computed(() => {
+  if (form.projectType === 'standardLeanTo' || form.projectType === 'standardSingleSlope') {
+    return ['140', '160']
+  }
+  return ['145', '160']
 })
 
 const sizeInputs = reactive({
@@ -843,12 +987,12 @@ function removeFileById(id) {
 }
 
 function validateProjectNameLength() {
-  if (form.projectName && form.projectName.length > 25) {
+  if (form.projectName && form.projectName.length > 30) {
     fieldErrors.value.projectName =
-      'Maximum 25 characters allowed for project name. You can add more information in the notes section.'
+      'Maximum 30 characters allowed for project name. You can add more information in the notes section.'
   } else if (
     fieldErrors.value.projectName &&
-    fieldErrors.value.projectName.includes('Maximum 25 characters')
+    fieldErrors.value.projectName.includes('Maximum 30 characters')
   ) {
     delete fieldErrors.value.projectName
   }
@@ -867,30 +1011,15 @@ async function handleShowHistoryDialog() {
     projectHistory.value = history || []
   } catch (error) {
     console.error('Error fetching project history:', error)
-    showSnackbar('Failed to load project history: ' + error.message, 'error')
+    errorDialogTitle.value = 'History Load Error'
+    errorDialogMessages.value = parseErrorMessage(error.message)
+    showErrorDialog.value = true
   } finally {
     isLoadingHistory.value = false
   }
 }
 
-async function generatePdf() {
-  isGeneratingPdf.value = true
-  try {
-    const projectId = form.projectId
-    const result = await API.generatePdf(projectId)
-    if (result && result.pdfUrl) {
-      showSnackbar('PDF generated successfully!', 'success')
-      window.open(result.pdfUrl, '_blank')
-    } else {
-      showSnackbar('Failed to generate PDF: No URL returned', 'error')
-    }
-  } catch (error) {
-    console.error('Error generating PDF:', error)
-    showSnackbar('Failed to generate PDF: ' + error.message, 'error')
-  } finally {
-    isGeneratingPdf.value = false
-  }
-}
+// PDF generation methods removed as manual generation is managed from Dashboard only
 
 function formatDateTime(val) {
   if (!val) return ''
@@ -1085,11 +1214,15 @@ async function handleSubmitProject() {
     console.info('formData', formData)
 
     if (isNewProject.value) {
+      formData.createdAt = new Date().toISOString()
+      formData.createdBy = user.value?.email || 'unknown'
       let newProject = await API.newProject(formData)
       delete newProject.sketchData
       projectStore.newProject(newProject)
       showSnackbar(`Project ${newProject.data.projectId} created successfully!`, 'success')
     } else {
+      formData.updatedAt = new Date().toISOString()
+      formData.updatedBy = user.value?.email || 'unknown'
       let updatedProject = await API.updateProject(formData)
       projectStore.updateProject(formData.projectId, updatedProject)
       showSnackbar(`Project ${formData.projectId} updated successfully!`, 'success')
@@ -1101,6 +1234,14 @@ async function handleSubmitProject() {
     fieldErrors.value = {}
     fieldErrors.value.submitbutton = 'Error'
     scrollToFirstError()
+    try {
+      localStorage.setItem('projectData', JSON.stringify(formData))
+    } catch (e) {
+      console.error('Failed to save projectData to localStorage:', e)
+    }
+    errorDialogTitle.value = 'Submission Error'
+    errorDialogMessages.value = parseErrorMessage(error.message)
+    showErrorDialog.value = true
     errorMessage.value = 'An error occurred while submitting the form: ' + error.message
   } finally {
     isSubmitting.value = false
@@ -1151,6 +1292,9 @@ async function handleSubmitPaperCopy() {
     paperFormData.singleSlopePaperSold = form.singleSlopePaperSold
   }
 
+  paperFormData.createdAt = new Date().toISOString()
+  paperFormData.createdBy = user.value?.email || 'unknown'
+
   try {
     projectStore.showPaperCopyStockWarning = true
     await API.newPaperCopyProject(paperFormData)
@@ -1159,6 +1303,14 @@ async function handleSubmitPaperCopy() {
     router.push('/dashboard')
   } catch (error) {
     console.error('Error submitting paper copy form:', error)
+    try {
+      localStorage.setItem('projectData', JSON.stringify(paperFormData))
+    } catch (e) {
+      console.error('Failed to save projectData to localStorage:', e)
+    }
+    errorDialogTitle.value = 'Submission Error'
+    errorDialogMessages.value = parseErrorMessage(error.message)
+    showErrorDialog.value = true
     errorMessage.value = 'Error submitting paper copy form: ' + error.message
   } finally {
     isSubmitting.value = false
@@ -1278,6 +1430,7 @@ function loadProjectData() {
       return
     }
     isNewProject.value = false
+    projectCreatedDate.value = projectInfo.date || ''
     let editProject = projectInfo.data
     editProject.existingImages = projectInfo.images
 
@@ -1314,6 +1467,7 @@ function loadProjectData() {
       errorMessage.value = 'Project not found'
     }
   } else {
+    projectCreatedDate.value = ''
     Object.keys(BLANK_FORM_DATA).forEach((key) => {
       if (key in form) {
         form[key] = BLANK_FORM_DATA[key]
@@ -1467,7 +1621,7 @@ watch(
 // Watch for projectType changes to update active columns
 watch(
   () => form.projectType,
-  () => {
+  (newType) => {
     // Reset all active columns first
     Object.keys(activeColumns).forEach((key) => {
       activeColumns[key] = false
@@ -1476,21 +1630,53 @@ watch(
     visibleScopeColumns.value.forEach((column) => {
       activeColumns[column.key] = columnHasData(column.key)
     })
+
+    // Update default windSpeed if not initial loading of an existing project
+    if (!isFormLoading.value) {
+      if (newType === 'standardLeanTo' || newType === 'standardSingleSlope') {
+        form.windSpeed = '140MPH'
+      } else {
+        form.windSpeed = BLANK_FORM_DATA.windSpeed || '145MPH'
+      }
+    }
   },
 )
+
+const handleScroll = () => {
+  showScrollTop.value = window.scrollY > 300
+}
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
+}
 
 onMounted(() => {
   loadProjectData()
   visibleScopeColumns.value.forEach((column) => {
     activeColumns[column.key] = columnHasData(column.key)
   })
+  nextTick(() => {
+    isFormLoading.value = false
+  })
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 
 watch(
   () => route.query.projectId,
   (newProjectId) => {
     if (newProjectId) {
+      isFormLoading.value = true
       loadProjectData()
+      nextTick(() => {
+        isFormLoading.value = false
+      })
     }
   },
 )
@@ -2053,5 +2239,101 @@ watch(
   content: ' *';
   color: red;
   font-weight: bold;
+}
+
+/* Slide Preview styles */
+.sticky-preview-wrapper {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+}
+
+/* 
+.preview-card {
+  no extra positioning on preview-card needed
+} */
+
+.slide-preview {
+  width: 186px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  background: white;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  /* padding: 20px 10px; */
+  border-radius: 2px;
+}
+
+.project-name {
+  width: 184px;
+  height: 60.2px;
+  margin-top: 0px;
+  padding-bottom: 9px;
+  padding-top: 9px;
+  font-size: 16pt;
+  font-weight: normal;
+  text-align: center;
+  line-height: 1;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.opb-size {
+  width: 184px;
+  height: 25.3px;
+  margin-top: 0px;
+  padding-bottom: 9px;
+  padding-top: 9px;
+  font-size: 16pt;
+  font-weight: normal;
+  text-align: center;
+  line-height: 1;
+}
+
+.building-type {
+  width: 184px;
+  height: 25.3px;
+  margin-top: 4.9px;
+  padding-bottom: 9px;
+  padding-top: 9px;
+  font-size: 16pt;
+  font-weight: normal;
+  text-align: center;
+  line-height: 1;
+}
+
+.address {
+  width: 186px;
+  height: 53.5px;
+  margin-top: 4.6px;
+  padding-bottom: 9px;
+  padding-top: 9px;
+  font-size: 10pt;
+  font-weight: normal;
+  text-align: center;
+  line-height: 1;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.placeholder-text {
+  color: #bdbdbd !important;
+  font-style: italic;
+}
+
+/* Revision History timeline styles */
+.revision-timeline :deep(.v-timeline-item__opposite) {
+  min-width: 104px;
+  text-align: right;
+}
+
+/* Scroll to top floating button */
+.scroll-to-top-btn {
+  position: fixed !important;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
 }
 </style>
