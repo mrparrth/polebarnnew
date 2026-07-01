@@ -137,8 +137,8 @@
                                 <template v-slot:prepend>
                                   <v-icon color="red-darken-2" class="mr-2">mdi-file-pdf-box</v-icon>
                                 </template>
-                                <v-list-item-title class="text-body-2 font-weight-medium">Generate
-                                  PDF</v-list-item-title>
+                                <v-list-item-title class="text-body-2 font-weight-medium"> {{ item.data.pdfUrl ?
+                                  'Regenerate PDF' : 'Generate PDF' }}</v-list-item-title>
                               </v-list-item>
                             </v-list>
                           </v-menu>
@@ -235,7 +235,8 @@
       </v-card-text>
 
       <v-card-actions class="pt-3 border-top justify-end">
-        <v-btn color="primary" variant="flat" @click="showPdfExistsDialog = false">Close</v-btn>
+        <v-btn color="grey-darken-1" variant="text" @click="showPdfExistsDialog = false">Close</v-btn>
+        <v-btn color="red-darken-2" variant="flat" @click="confirmRegeneratePdf">Regenerate</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -625,8 +626,27 @@ async function handlePdfGenerateClick(project) {
   const projectId = project.data.projectId
   selectedProjectId.value = projectId
 
+  if (project.data.pdfUrl) {
+    selectedProjectPdfUrl.value = project.data.pdfUrl
+    showPdfExistsDialog.value = true
+    return
+  }
+
+  await executePdfGenerationCheck()
+}
+
+async function confirmRegeneratePdf() {
+  showPdfExistsDialog.value = false
+  await executePdfGenerationCheck(true)
+}
+
+async function executePdfGenerationCheck(forceRegenerate = false) {
+  const projectId = selectedProjectId.value
+
   // 1. Fetch latest data first
   loading.value = true
+  isGeneratingPdf.value = true
+
   try {
     const freshProjects = await API.getSubmissionData()
     if (freshProjects && Array.isArray(freshProjects)) {
@@ -647,8 +667,9 @@ async function handlePdfGenerateClick(project) {
   selectedProjectPdfUrl.value = pdfUrl
 
   // 3. Check if it already has a pdfUrl
-  if (pdfUrl) {
+  if (pdfUrl && !forceRegenerate) {
     showPdfExistsDialog.value = true
+    isGeneratingPdf.value = false
   } else {
     // 4. Check if less than 2 hours since project creation
     const createdAt = updatedProject.data.createdAt
@@ -658,6 +679,7 @@ async function handlePdfGenerateClick(project) {
 
     if (createdAt && hoursSinceCreation < 2) {
       showAgeConfirmationDialog.value = true
+      isGeneratingPdf.value = false
     } else {
       await generatePdf(projectId)
     }
